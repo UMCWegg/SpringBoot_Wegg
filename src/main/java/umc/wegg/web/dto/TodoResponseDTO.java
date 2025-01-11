@@ -12,7 +12,7 @@ public class TodoResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ListResultDTO{
+    public static class AddResultDTO{
         Long todoId;
         LocalDateTime createdAt;
     }

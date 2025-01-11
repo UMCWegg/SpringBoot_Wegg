@@ -4,5 +4,6 @@ import umc.wegg.domain.TodoList;
 import umc.wegg.web.dto.TodoRequestDTO;
 
 public interface TodoCommandService {
-    TodoList listTodo(TodoRequestDTO.ListDTO request);
+    TodoList addTodo(TodoRequestDTO.AddDTO request);
+    TodoList updateTodo(Long todoId, TodoRequestDTO.UpdateDTO request); // updateTodo 추가
 }
