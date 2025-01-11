@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.TodoList;
 import umc.wegg.repository.TodoRepository;
+import umc.wegg.repository.UserRepository;
 import umc.wegg.web.dto.TodoRequestDTO;
 
 @Service
@@ -12,10 +13,11 @@ import umc.wegg.web.dto.TodoRequestDTO;
 public class TodoCommandServiceImpl implements TodoCommandService {
 
     private final TodoRepository todoRepository;
+    private final UserRepository userRepository;  // UserRepository 추가
 
     @Override
     public TodoList addTodo(TodoRequestDTO.AddDTO request) {
-        TodoList newTodo = TodoConverter.toTodo(request);
+        TodoList newTodo = TodoConverter.toTodo(request, userRepository);
         return todoRepository.save(newTodo);
     }
 
@@ -24,7 +26,6 @@ public class TodoCommandServiceImpl implements TodoCommandService {
         TodoList existingTodo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new RuntimeException("Todo not found"));
 
-        // 변경 사항 반영
         if (request.getStatus() != null) {
             existingTodo.setStatus(request.getStatus());
         }

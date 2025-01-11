@@ -15,5 +15,6 @@ public class TodoRequestDTO {
     public static class UpdateDTO {
         private TodoListStatus status;
         private String content;
+        private Long userId;
     }
 }
