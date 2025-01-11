@@ -9,10 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
@@ -32,5 +29,13 @@ public class UserRestController {
 //        User user = userCommandService.joinUser(request);
         UserResponseDTO.UserJoinResultDTO response = userCommandService.joinUser(request);
         return ApiResponse.onSuccess(response);
+    }
+
+    @GetMapping("/id-check")
+    @Operation(summary = "아이디 중복 체크", description = "아이디의 중복 여부를 확인하는 API. 중복일 경우 result 값 true")
+    public ApiResponse<Boolean> checkAccountIdDuplication(
+            @RequestParam("accountId") String accountId) {
+        boolean isDuplicate = userCommandService.checkAccountIdDuplication(accountId);
+        return ApiResponse.onSuccess(isDuplicate);
     }
 }

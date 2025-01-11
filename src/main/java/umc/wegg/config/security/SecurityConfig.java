@@ -20,7 +20,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/users/signup",
+                                "/users/**",
                                 "/swagger-ui/**", // Swagger UI 관련 URL
                                 "/v3/api-docs/**"  // OpenAPI 명세 URL
                         ).permitAll() // 로그인 없이 접근 허용

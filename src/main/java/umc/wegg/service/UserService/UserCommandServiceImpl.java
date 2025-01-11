@@ -49,4 +49,10 @@ public class UserCommandServiceImpl implements UserCommandService{
             throw e;
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean checkAccountIdDuplication(String accountId) {
+        return userRepository.findByAccountId(accountId).isPresent();
+    }
 }
