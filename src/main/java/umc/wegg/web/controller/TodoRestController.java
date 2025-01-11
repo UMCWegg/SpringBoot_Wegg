@@ -31,5 +31,11 @@ public class TodoRestController {
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(updatedTodo));
     }
 
+    @GetMapping("/achievement")
+    public ApiResponse<Double> getAchievementRate() {
+        double achievementRate = todoCommandService.getAchievementRate();  // 비율 계산
+        return ApiResponse.onSuccess(achievementRate);  // 비율 반환
+    }
+
 
 }

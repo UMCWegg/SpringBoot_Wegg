@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.TodoList;
+import umc.wegg.domain.enums.TodoListStatus;
 import umc.wegg.repository.TodoRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.web.dto.TodoRequestDTO;
@@ -34,5 +35,16 @@ public class TodoCommandServiceImpl implements TodoCommandService {
         }
 
         return todoRepository.save(existingTodo);
+    }
+
+    public double getAchievementRate() {
+        long totalTodos = todoRepository.count();  // 전체 Todo 개수
+        long doneTodos = todoRepository.countByStatus(TodoListStatus.DONE);  // DONE 상태의 Todo 개수
+
+        if (totalTodos == 0) {
+            return 0.0;  // 전체 할 일이 없다면 0%로 처리
+        }
+
+        return (doneTodos * 100.0) / totalTodos;  // 비율 계산
     }
 }
