@@ -15,8 +15,21 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     private final UserRepository userRepository;
 
     @Override
-    public Plan planAddMember(PlanRequestDTO.PlanAddDTO request) {
+    public Plan addPlan(PlanRequestDTO.PlanAddDTO request) {
         Plan newPlan = PlanConverter.toPlan(request, userRepository);
         return planRepository.save(newPlan);
     }
+
+    @Override
+    public Plan updatePlan(Long planId, PlanRequestDTO.PlanUpdateDTO request) {
+        Plan existingPlan = planRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+
+        if (request.getStatus() != null) {
+            existingPlan.setStatus(request.getStatus());
+        }
+
+        return planRepository.save(existingPlan);
+    }
+
 }
