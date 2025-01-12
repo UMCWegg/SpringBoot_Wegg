@@ -10,13 +10,14 @@ import umc.wegg.dto.NotificationRequestDTO;
 import umc.wegg.dto.NotificationResponseDTO;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/notifications")
 public class NotificationRestController {
 
-    private final NotificationCommandService notificationCommandService;
+    //private final NotificationCommandService notificationCommandService;
 
 
     @GetMapping("/")
@@ -30,12 +31,12 @@ public class NotificationRestController {
     }
 
     @PatchMapping("/{notification_id}")
-    public ApiResponse<NotificationResponseDTO> updateNotification(
+    public ApiResponse<NotificationResponseDTO.ReadResultDTO> updateNotification(
             @PathVariable Long notification_id,
             @RequestBody @Valid NotificationRequestDTO.ReadDTO request) {
-//        Notification updatedNotification = notificationCommandService.updateNotification(notification_id, request);
-//        NotificationResponseDTO response = NotificationConverter.toNotificationResponseDTO(updatedNotification);
-//        return ApiResponse.onSuccess(response);
+//            Notification updatedNotification = notificationCommandService.updateNotification(notificationId, request);
+//            NotificationResponseDTO response = NotificationConverter.toNotificationResponseDTO(updatedNotification);
+//            return ApiResponse.onSuccess(response);
         return null;
     }
 
