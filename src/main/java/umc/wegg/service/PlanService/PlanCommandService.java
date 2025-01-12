@@ -4,5 +4,6 @@ import umc.wegg.domain.Plan;
 import umc.wegg.dto.PlanRequestDTO;
 
 public interface PlanCommandService {
-    Plan planAddMember(PlanRequestDTO.PlanAddDTO request);
+    Plan addPlan(PlanRequestDTO.PlanAddDTO request);
+    Plan updatePlan(Long planId, PlanRequestDTO.PlanUpdateDTO request); // updateTodo 추가
 }
