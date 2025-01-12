@@ -18,8 +18,8 @@ public class NotificationRestController {
 
     private final NotificationCommandService notificationCommandService;
 
-    // 1. 알림 목록 조회 (GET /notifications)
-    @GetMapping
+
+    @GetMapping("/")
     public ApiResponse<List<NotificationResponseDTO>> getNotifications() {
 //        List<Notification> notifications = notificationCommandService.getAllNotifications();
 //        List<NotificationResponseDTO> response = notifications.stream()
@@ -29,7 +29,6 @@ public class NotificationRestController {
         return null;
     }
 
-    // 2. 알림 수정 (PATCH /notifications/{notification_id})
     @PatchMapping("/{notification_id}")
     public ApiResponse<NotificationResponseDTO> updateNotification(
             @PathVariable Long notification_id,
@@ -40,7 +39,6 @@ public class NotificationRestController {
         return null;
     }
 
-    // 3. 알림 리디렉션 (GET /notifications/{notification_id}/redirect)
     @GetMapping("/{notification_id}/redirect")
     public ApiResponse<Void> redirectNotification(@PathVariable Long notification_id) {
 //        notificationCommandService.redirectNotification(notification_id);
