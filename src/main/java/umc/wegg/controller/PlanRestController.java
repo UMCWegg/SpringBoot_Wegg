@@ -13,7 +13,7 @@ import umc.wegg.service.PlanService.PlanCommandService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/plan")
+@RequestMapping("/plans")
 public class PlanRestController {
     private final PlanCommandService planCommandService;
 

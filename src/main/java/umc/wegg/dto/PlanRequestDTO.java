@@ -14,6 +14,7 @@ public class PlanRequestDTO {
         ReplayStatus replay;
         LocalDateTime startTime;
         LocalDateTime finishTime;
+        Long userId;
         Integer lateTime;
         Float latitude;
         Float longitude;

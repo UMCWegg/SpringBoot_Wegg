@@ -3,7 +3,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/wegg
     username: root
-    password: { DB_PASSWORD }
+    password: {DB_PASSWORD}
   sql:
     init:
       mode: never
