@@ -71,6 +71,9 @@ dependencies {
 
 	// OAuth2 클라이언트
 //	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	//CoolSms
+	implementation 'net.nurigo:sdk:4.3.0'
 }
 
 sourceSets {

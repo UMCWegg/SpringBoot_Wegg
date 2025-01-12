@@ -1,10 +1,7 @@
 package umc.wegg.dto;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import umc.wegg.domain.enums.Job;
 import umc.wegg.domain.enums.Role;
 
@@ -62,6 +59,13 @@ public class UserRequestDTO {
     public static class ContactDto {
         private String contactName;
         @Pattern(regexp = "\\d{3}-\\d{4}-\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
+        private String phone; // 연락처 전화번호
+    }
+
+    @Getter
+    @Setter
+    public static class SendPhoneVerificationDto {
+        @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         private String phone; // 연락처 전화번호
     }
 }

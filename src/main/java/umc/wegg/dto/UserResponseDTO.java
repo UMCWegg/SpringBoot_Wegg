@@ -1,9 +1,6 @@
 package umc.wegg.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,5 +24,13 @@ public class UserResponseDTO {
             private String name;
             private String phone;
         }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VerificationResultDTO {
+        private String message; // 예: "인증번호가 전송되었습니다."
     }
 }
