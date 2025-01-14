@@ -37,6 +37,20 @@ public class PlanConverter {
                 .address(request.getAddress())
                 .build();
     }
+    public static PlanResponseDTO.PlanDetailDTO toPlanDetailDTO(Plan plan) {
+        return PlanResponseDTO.PlanDetailDTO.builder()
+                .planId(plan.getId())
+                .status(plan.getStatus())
+                .replay(plan.getReplay())
+                .startTime(plan.getStartTime())
+                .finishTime(plan.getFinishTime())
+                .lateTime(plan.getLateTime())
+                .latitude(plan.getLatitude())
+                .longitude(plan.getLongitude())
+                .address(plan.getAddress())
+                .userId(plan.getUser().getId()) // Plan에 User가 연관되어 있다고 가정
+                .build();
+    }
 
 
 }

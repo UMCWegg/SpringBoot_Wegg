@@ -9,12 +9,16 @@ import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.service.PlanService.PlanCommandService;
+import umc.wegg.service.PlanService.PlanQueryService;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/plans")
 public class PlanRestController {
     private final PlanCommandService planCommandService;
+    private final PlanQueryService planQueryService;
 
     @PostMapping("/add")
     public ApiResponse<PlanResponseDTO.PlanAddResultDTO> join(@RequestBody @Valid PlanRequestDTO.PlanAddDTO request){
@@ -30,8 +34,17 @@ public class PlanRestController {
         return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(updatedPlan));
     }
 
-    @GetMapping("/")
-    public ApiResponse<Double> getAchievementRate() {
-        return null;
+    @GetMapping
+    public ApiResponse<List<PlanResponseDTO.PlanDetailDTO>> getPlans(
+            @RequestParam(required = false) Long userId) {
+        List<Plan> plans = (userId != null)
+                ? planQueryService.getPlansByUserId(userId)
+                : planQueryService.getAllPlans();
+
+        List<PlanResponseDTO.PlanDetailDTO> response = plans.stream()
+                .map(PlanConverter::toPlanDetailDTO)
+                .toList();
+
+        return ApiResponse.onSuccess(response);
     }
 }
