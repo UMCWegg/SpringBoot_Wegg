@@ -1,7 +1,7 @@
 package umc.wegg.service.TodoService;
 
 import umc.wegg.domain.TodoList;
-import umc.wegg.web.dto.TodoRequestDTO;
+import umc.wegg.dto.TodoRequestDTO;
 
 public interface TodoCommandService {
     TodoList addTodo(TodoRequestDTO.AddDTO request);

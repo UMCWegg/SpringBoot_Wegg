@@ -4,8 +4,8 @@ import umc.wegg.domain.TodoList;
 import umc.wegg.domain.User;
 import umc.wegg.domain.enums.TodoListStatus;
 import umc.wegg.repository.UserRepository;
-import umc.wegg.web.dto.TodoRequestDTO;
-import umc.wegg.web.dto.TodoResponseDTO;
+import umc.wegg.dto.TodoRequestDTO;
+import umc.wegg.dto.TodoResponseDTO;
 
 import java.time.LocalDateTime;
 

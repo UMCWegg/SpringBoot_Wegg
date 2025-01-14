@@ -1,4 +1,4 @@
-package umc.wegg.web.dto;
+package umc.wegg.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

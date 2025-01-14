@@ -1,4 +1,4 @@
-package umc.wegg.web.controller;
+package umc.wegg.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +7,8 @@ import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.TodoList;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.service.TodoService.TodoCommandService;
-import umc.wegg.web.dto.TodoRequestDTO;
-import umc.wegg.web.dto.TodoResponseDTO;
+import umc.wegg.dto.TodoRequestDTO;
+import umc.wegg.dto.TodoResponseDTO;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class TodoRestController {
 
     @PatchMapping("/{todo_Id}")
     public ApiResponse<TodoResponseDTO.AddResultDTO> updateTodo(
-            @PathVariable Long todoId,
+            @PathVariable("todo_Id") Long todoId,
             @RequestBody @Valid TodoRequestDTO.UpdateDTO request) {
         TodoList updatedTodo = todoCommandService.updateTodo(todoId, request);
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(updatedTodo));

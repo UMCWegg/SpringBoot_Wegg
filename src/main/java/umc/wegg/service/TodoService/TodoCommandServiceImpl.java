@@ -7,7 +7,7 @@ import umc.wegg.domain.TodoList;
 import umc.wegg.domain.enums.TodoListStatus;
 import umc.wegg.repository.TodoRepository;
 import umc.wegg.repository.UserRepository;
-import umc.wegg.web.dto.TodoRequestDTO;
+import umc.wegg.dto.TodoRequestDTO;
 
 @Service
 @RequiredArgsConstructor
