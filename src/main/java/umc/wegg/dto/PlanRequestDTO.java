@@ -32,6 +32,6 @@ public class PlanRequestDTO {
         Integer lateTime;
         Float latitude;
         Float longitude;
-        String content;
+        String address;
     }
 }
