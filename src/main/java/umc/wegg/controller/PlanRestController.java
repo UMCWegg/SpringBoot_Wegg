@@ -23,9 +23,9 @@ public class PlanRestController {
 
     @PatchMapping("/{plan_id}")
     public ApiResponse<PlanResponseDTO.PlanAddResultDTO> updateTodo(
-            @PathVariable Long todoId,
+            @PathVariable("plan_id") Long planId,
             @RequestBody @Valid PlanRequestDTO.PlanUpdateDTO request) {
-        Plan updatedPlan = planCommandService.updatePlan(todoId, request);
+        Plan updatedPlan = planCommandService.updatePlan(planId, request);
         return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(updatedPlan));
     }
 
