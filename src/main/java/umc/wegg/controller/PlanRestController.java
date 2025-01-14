@@ -51,7 +51,7 @@ public class PlanRestController {
     // 사용자가 계획에 설정된 가게 내에 있는지 확인
     @GetMapping("/{plan_id}/check")
     public boolean checkUserLocation(
-            @PathVariable Long planId,
+            @PathVariable("plan_id") Long planId,
             @RequestParam Long userId) {
 
         return planQueryService.isUserInPlan(planId, userId);
