@@ -27,8 +27,16 @@ public class PlanConverter {
 
         return Plan.builder()
                 .status(status)
-                .user(user)  // User 객체 설정
+                .replay(request.getReplay())
+                .startTime(request.getStartTime())
+                .finishTime(request.getFinishTime())
+                .user(user)
+                .lateTime(request.getLateTime() != null ? request.getLateTime() : 0) // null일 경우 기본값 설정
+                .latitude(request.getLatitude() != null ? request.getLatitude() : 0.0f) // null일 경우 기본값 설정
+                .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0f) // null일 경우 기본값 설정
+                .address(request.getAddress())
                 .build();
     }
+
 
 }

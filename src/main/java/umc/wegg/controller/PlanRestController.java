@@ -18,7 +18,8 @@ public class PlanRestController {
 
     @PostMapping("/add")
     public ApiResponse<PlanResponseDTO.PlanAddResultDTO> join(@RequestBody @Valid PlanRequestDTO.PlanAddDTO request){
-        return null;
+        Plan plan = planCommandService.addPlan(request);
+        return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(plan));
     }
 
     @PatchMapping("/{plan_id}")
