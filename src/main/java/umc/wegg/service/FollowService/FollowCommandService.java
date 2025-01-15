@@ -1,4 +1,4 @@
-package umc.wegg.service;
+package umc.wegg.service.FollowService;
 
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.dto.FollowRequestDTO;

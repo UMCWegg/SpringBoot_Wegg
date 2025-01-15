@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
-import umc.wegg.service.postService.PostCommandService;
+import umc.wegg.service.PostService.PostCommandService;
 
 import java.util.List;
 
