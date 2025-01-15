@@ -18,6 +18,10 @@ public class Setting extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 설정 고유 id
 
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 해당 설정을 한 사용자
