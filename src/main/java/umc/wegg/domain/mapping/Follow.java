@@ -26,6 +26,9 @@ public class Follow extends BaseEntity {
     @JoinColumn(name = "followee_id", nullable = false)
     private User followee; // 팔로우를 받은 사용자
 
+    // FollowStatus 업데이트를 위한 setter 메서드
+    @Setter
     @Enumerated(EnumType.STRING)
     private FollowStatus followStatus; // 팔로우 성공 여부
+
 }
