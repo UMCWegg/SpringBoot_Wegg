@@ -16,7 +16,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf((csrf) -> csrf
-                        .ignoringRequestMatchers("/users/**") // REST API 경로에서는 CSRF 비활성화
+                        .ignoringRequestMatchers("/users/**","/plans/**",
+                                "/todo/**")
+                        // REST API 경로에서는 CSRF 비활성화
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
