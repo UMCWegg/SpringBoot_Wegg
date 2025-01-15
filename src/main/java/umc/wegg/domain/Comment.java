@@ -26,7 +26,6 @@ public class Comment extends BaseEntity {
 
     private String comment; // 댓글 내용
 
-    @ManyToOne
     @JoinColumn(name = "parent_id")
-    private Comment parent; // 부모 댓글 ID (대댓글 기능)
+    private Long parentId; // 부모 댓글 ID (대댓글 기능)
 }
