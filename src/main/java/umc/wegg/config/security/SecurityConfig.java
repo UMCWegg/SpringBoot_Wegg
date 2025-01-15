@@ -16,13 +16,21 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf((csrf) -> csrf
-                        .ignoringRequestMatchers("/users/**") // REST API 경로에서는 CSRF 비활성화
+                        .ignoringRequestMatchers("/users/**","/plans/**",
+                                "/todo/**","/eggs/**",
+                                "/home/**","/follow/**",
+                                "/posts/**")
+                        // REST API 경로에서는 CSRF 비활성화
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/users/**",
                                 "/plans/**",
                                 "/todo/**",
+                                "/eggs/**",
+                                "/home/**",
+                                "/follow/**",
+                                "/posts/**",
                                 "/swagger-ui/**", // Swagger UI 관련 URL
                                 "/v3/api-docs/**"  // OpenAPI 명세 URL
                         ).permitAll() // 로그인 없이 접근 허용

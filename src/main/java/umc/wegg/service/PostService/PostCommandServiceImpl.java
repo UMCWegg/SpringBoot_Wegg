@@ -1,4 +1,4 @@
-package umc.wegg.service.postService;
+package umc.wegg.service.PostService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

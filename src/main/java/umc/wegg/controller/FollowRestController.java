@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.dto.FollowRequestDTO;
 import umc.wegg.dto.FollowResponseDTO;
-import umc.wegg.service.FollowCommandService;
+import umc.wegg.service.FollowService.FollowCommandService;
 import umc.wegg.domain.apiPayload.ApiResponse;
 
 @RestController

@@ -1,4 +1,4 @@
-package umc.wegg.service;
+package umc.wegg.service.EggService;
 
 import umc.wegg.dto.EggRequestDTO;
 import umc.wegg.dto.TimeRequestDTO;

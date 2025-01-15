@@ -1,4 +1,4 @@
-package umc.wegg.service.postService;
+package umc.wegg.service.PostService;
 
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
