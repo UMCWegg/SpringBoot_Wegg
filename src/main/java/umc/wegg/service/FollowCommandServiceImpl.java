@@ -7,7 +7,7 @@ import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.mapping.Follow;
 import umc.wegg.dto.FollowRequestDTO;
 import umc.wegg.repository.FollowRepository;
-import umc.wegg.repository.UserRepository.UserRepository;
+import umc.wegg.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
