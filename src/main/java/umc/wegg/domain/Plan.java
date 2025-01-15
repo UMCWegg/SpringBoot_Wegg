@@ -1,5 +1,6 @@
 package umc.wegg.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import umc.wegg.domain.common.BaseEntity;
@@ -43,4 +44,8 @@ public class Plan extends BaseEntity {
     private String address; // 공부할 위치의 이름 ex) 스타벅스 신용산점
 
     private LocalDateTime date; // 계획의 날짜
+
+    @OneToOne(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // 순환 참조 방지
+    private Egg egg; // 알과의 1:1 관계
 }
