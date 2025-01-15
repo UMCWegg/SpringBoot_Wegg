@@ -4,6 +4,7 @@ spring:
     url: jdbc:mysql://localhost:3306/wegg
     username: [username]
     password: [password]
+    
   sql:
     init:
       mode: never

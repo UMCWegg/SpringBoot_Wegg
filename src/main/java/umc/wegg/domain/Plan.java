@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -35,7 +36,6 @@ public class Plan extends BaseEntity {
     private LocalDateTime finishTime; // 공부 종료 시간 (랜덤 인증 종료 시간)
 
     private int lateTime; // 지각 허용 시간
-    //private String content; // 레이블
 
     @Enumerated(EnumType.STRING)
     private ReplayStatus replay; // 반복 -> 아이폰 알람 반복 참고하는 걸로 이해하고 enum 만들었음.
