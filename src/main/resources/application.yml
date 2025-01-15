@@ -2,8 +2,9 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/wegg
-    username: root
-    password: { DB_PASSWORD }
+    username: [username]
+    password: [password]
+    
   sql:
     init:
       mode: never
@@ -17,3 +18,21 @@ spring:
         hbm2ddl:
           auto: update
         default_batch_fetch_size: 1000
+
+logging:
+  level:
+    # Spring Web 및 DispatcherServlet 로그
+    org.springframework.web.servlet.DispatcherServlet: TRACE
+    org.springframework.web: DEBUG
+
+    # Hibernate SQL 및 매핑 로그
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.engine.query.spi.QueryPlanCache: TRACE
+
+    # Hibernate Validator (유효성 검사 상세 로그)
+    org.hibernate.validator: TRACE
+    org.springframework.validation: TRACE
+
+    # Spring Security 로그 (필요한 경우)
+    org.springframework.security: DEBUG
