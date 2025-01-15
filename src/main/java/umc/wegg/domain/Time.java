@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "time")
+@Table(name = "`time`")
 public class Time extends BaseEntity {
 
     @Id
@@ -21,7 +21,7 @@ public class Time extends BaseEntity {
     private LocalDateTime date; // 시간이 기록될 날짜
 
     @Column(nullable = false)
-    private Long duration; // 공부 시간
+    private int duration; // 공부 시간
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
