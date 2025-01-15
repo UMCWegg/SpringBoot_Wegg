@@ -32,4 +32,11 @@ public class PlanCommandServiceImpl implements PlanCommandService{
         return planRepository.save(existingPlan);
     }
 
+    @Override
+    public void deletePlan(Long planId) {
+        if (!planRepository.existsById(planId)) {
+            throw new RuntimeException("Plan not found with ID: " + planId);
+        }
+        planRepository.deleteById(planId);
+    }
 }

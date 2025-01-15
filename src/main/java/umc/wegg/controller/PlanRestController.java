@@ -56,4 +56,9 @@ public class PlanRestController {
 
         return planQueryService.isUserInPlan(planId, userId);
     }
+
+    @DeleteMapping("/{plan_id}")
+    public void deletePlan(@PathVariable Long plan_id) {
+        planCommandService.deletePlan(plan_id);
+    }
 }
