@@ -1,4 +1,4 @@
-package umc.wegg.repository.UserRepository;
+package umc.wegg.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import umc.wegg.domain.User;

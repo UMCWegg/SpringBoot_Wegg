@@ -8,7 +8,7 @@ import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.*;
-import umc.wegg.repository.UserRepository.UserRepository;
+import umc.wegg.repository.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
