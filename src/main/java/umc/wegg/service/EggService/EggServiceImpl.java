@@ -1,4 +1,4 @@
-package umc.wegg.service;
+package umc.wegg.service.EggService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

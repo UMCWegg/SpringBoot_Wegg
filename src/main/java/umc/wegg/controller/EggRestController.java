@@ -1,14 +1,13 @@
 package umc.wegg.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.EggRequestDTO;
 import umc.wegg.dto.TimeRequestDTO;
-import umc.wegg.service.EggService;
+import umc.wegg.service.EggService.EggService;
 
 @RestController
 @RequiredArgsConstructor
