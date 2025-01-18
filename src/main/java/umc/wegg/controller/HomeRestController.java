@@ -13,7 +13,7 @@ import umc.wegg.service.HomeService.HomeCommandService;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/home")
-public class HomeController {
+public class HomeRestController {
 
     private final HomeCommandService homeService;
 
