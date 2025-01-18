@@ -21,15 +21,16 @@ public class HomeController {
     @GetMapping("/week")
     @Operation(summary = "주간 화면 렌더링", description = "홈(주간) 화면 렌더링 API")
     public ApiResponse<HomeResponseDTO> renderWeekView() {
-        HomeResponseDTO response = homeService.getHomeData();
+        HomeResponseDTO response = homeService.getHomeWeekData();
         return ApiResponse.onSuccess(response);
     }
 
     // 월간 화면 렌더링
     @GetMapping("/month")
     @Operation(summary = "월간 화면 렌더링", description = "홈(월간) 화면 렌더링 API")
-    public ApiResponse<Void> renderMonthView() {
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<HomeResponseDTO> renderMonthView() {
+        HomeResponseDTO response = homeService.getHomeMonthData();
+        return ApiResponse.onSuccess(response);
     }
 
     // 이전달/다음달 버튼 이동

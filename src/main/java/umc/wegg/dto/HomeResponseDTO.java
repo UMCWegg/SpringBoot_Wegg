@@ -12,9 +12,9 @@ import java.util.List;
 @Data
 public class HomeResponseDTO {
     // 주간 일정 관련 필드
-    private List<PlanInfo> weeklyPlans;        // 주간 일정 정보 리스트
+    private List<PlanInfo> plans;        // 주간 일정 정보 리스트
     // 주간 게시물 관련 필드
-    private List<PostInfo> weeklyPosts;        // 주간 게시물 정보 리스트
+    private List<PostInfo> posts;        // 주간 게시물 정보 리스트
 
     // 투두리스트 통계
     private int totalTodos;                  // 총 투두리스트 항목 수
