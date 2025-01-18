@@ -27,7 +27,7 @@ public class HomeController {
 
     // 월간 화면 렌더링
     @GetMapping("/month")
-    @Operation(summary = "월간 화면 렌더링", description = "홈(월간) 화면 렌더링 API")
+    @Operation(summary = "월간 화면 렌더링", description = "홈(월간) 화면 렌더링 API, 날짜에 따른 게시물 사진과 시간 모두 담김")
     public ApiResponse<HomeResponseDTO> renderMonthView() {
         HomeResponseDTO response = homeService.getHomeMonthData();
         return ApiResponse.onSuccess(response);
@@ -44,12 +44,12 @@ public class HomeController {
         return ApiResponse.onSuccess(null);
     }
 
-    // 사진, 시간 토글 버튼
-    @GetMapping("/month/{photo_or_time}")
-    @Operation(summary = "사진, 시간 토글 버튼", description = "홈 화면에서 사진과 시간을 토글하는 API")
-    public ApiResponse<Void> togglePhotoOrTime(@PathVariable String photo_or_time) {
-        return ApiResponse.onSuccess(null);
-    }
+//    // 사진, 시간 토글 버튼
+//    @GetMapping("/month/{photo_or_time}")
+//    @Operation(summary = "사진, 시간 토글 버튼", description = "홈 화면에서 사진과 시간을 토글하는 API")
+//    public ApiResponse<Void> togglePhotoOrTime(@PathVariable String photo_or_time) {
+//        return ApiResponse.onSuccess(null);
+//    }
 
     // 게시물 조회
     @GetMapping("/posts/{post_id}/view")
