@@ -7,17 +7,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.dto.HomeResponseDTO;
+import umc.wegg.service.HomeService.HomeCommandService;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/home")
 public class HomeController {
 
+    private final HomeCommandService homeService;
+
     // 주간 화면 렌더링
     @GetMapping("/week")
     @Operation(summary = "주간 화면 렌더링", description = "홈(주간) 화면 렌더링 API")
-    public ApiResponse<Void> renderWeekView() {
-        return ApiResponse.onSuccess(null);
+    public ApiResponse<HomeResponseDTO> renderWeekView() {
+        HomeResponseDTO response = homeService.getHomeData();
+        return ApiResponse.onSuccess(response);
     }
 
     // 월간 화면 렌더링
