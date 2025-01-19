@@ -1,5 +1,6 @@
 package umc.wegg.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.enums.ReplayStatus;
@@ -10,14 +11,23 @@ import java.time.LocalDateTime;
 public class PlanRequestDTO {
     @Getter
     public static class PlanAddDTO{
+        @NotNull
         PlanStatus status;
+        @NotNull
         ReplayStatus replay;
+        @NotNull
         LocalDateTime startTime;
+        @NotNull
         LocalDateTime finishTime;
+        @NotNull
         Long userId;
+        @NotNull
         Integer lateTime;
+        @NotNull
         Float latitude;
+        @NotNull
         Float longitude;
+        @NotNull
         String address;
 
     }
