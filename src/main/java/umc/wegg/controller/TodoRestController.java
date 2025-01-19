@@ -2,6 +2,7 @@ package umc.wegg.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.TodoList;
@@ -9,6 +10,8 @@ import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.service.TodoService.TodoCommandService;
 import umc.wegg.dto.TodoRequestDTO;
 import umc.wegg.dto.TodoResponseDTO;
+import org.springframework.security.core.Authentication;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +22,14 @@ public class TodoRestController {
 
     @PostMapping("/add")
     public ApiResponse<TodoResponseDTO.AddResultDTO> join(@RequestBody @Valid TodoRequestDTO.AddDTO request){
+//        // 인증된 사용자 ID 가져오기
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+//        Long userId = userDetails.getId(); // 인증된 사용자 ID
+//
+//        // AddDTO에 userId 설정
+//        request.setUserId(userId);
+
         TodoList todo = todoCommandService.addTodo(request);
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(todo));
     }
