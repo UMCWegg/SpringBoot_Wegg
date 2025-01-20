@@ -37,11 +37,10 @@ public class UserRequestDTO {
 
         private String reason; // 이 앱을 시작한 이유
 
-        @Pattern(regexp = "\\d{3}-\\d{4}-\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
+        @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         @NotBlank(message = "전화번호는 필수 항목입니다.")
         private String phone; // 사용자 전화번호
 
-        private Role role;
 
         @NotNull
         private Boolean alarm;

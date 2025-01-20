@@ -8,7 +8,7 @@ import umc.wegg.converter.UserConverter;
 import umc.wegg.domain.User;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
-import umc.wegg.repository.UserRepository.UserRepository;
+import umc.wegg.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;

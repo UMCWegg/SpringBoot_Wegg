@@ -37,7 +37,6 @@ public class UserConverter {
                 .job(request.getJob())
                 .reason(request.getReason())
                 .phone(request.getPhone())
-                .role(request.getRole())
                 .build();
 
         AlarmType alarmType = null;
