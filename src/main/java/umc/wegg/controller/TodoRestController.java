@@ -26,7 +26,7 @@ public class TodoRestController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 //        Long userId = userDetails.getId(); // 인증된 사용자 ID
-        Long userId = 1L;
+        Long userId = 2L;
         // AddDTO에 userId 설정
         request.setUserId(userId);
 
@@ -44,7 +44,10 @@ public class TodoRestController {
 
     @GetMapping("/achievement")
     public ApiResponse<Double> getAchievementRate() {
-        double achievementRate = todoCommandService.getAchievementRate();  // 비율 계산
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = 2L;  // 실제 인증된 사용자 ID로 교체
+
+        double achievementRate = todoCommandService.getAchievementRate(userId);  // 비율 계산
         return ApiResponse.onSuccess(achievementRate);  // 비율 반환
     }
 

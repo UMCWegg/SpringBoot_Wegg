@@ -9,6 +9,8 @@ import umc.wegg.repository.TodoRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.dto.TodoRequestDTO;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TodoCommandServiceImpl implements TodoCommandService {
@@ -37,12 +39,14 @@ public class TodoCommandServiceImpl implements TodoCommandService {
         return todoRepository.save(existingTodo);
     }
 
-    public double getAchievementRate() {
-        long totalTodos = todoRepository.count();  // 전체 Todo 개수
-        long doneTodos = todoRepository.countByStatus(TodoListStatus.DONE);  // DONE 상태의 Todo 개수
+    @Override
+    public double getAchievementRate(Long userId) {
+        List<TodoList> userTodos = todoRepository.findByUserId(userId);  // userId에 해당하는 Todo 리스트
+        long totalTodos = userTodos.size();  // 전체 할 일 개수
+        long doneTodos = todoRepository.countByStatus(userId, TodoListStatus.DONE);  // DONE 상태의 Todo 개수
 
         if (totalTodos == 0) {
-            return 0.0;  // 전체 할 일이 없다면 0%로 처리
+            return 0.0;  // 해당 사용자가 할 일이 없으면 0%로 처리
         }
 
         return (doneTodos * 100.0) / totalTodos;  // 비율 계산
