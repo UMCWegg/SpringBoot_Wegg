@@ -11,7 +11,7 @@ public interface TodoRepository extends JpaRepository<TodoList, Long> {
     List<TodoList> findByUserId(Long userId);
 
     // 상태가 DONE인 TodoList의 개수를 반환
-    long countByStatus(Long userId, TodoListStatus status);
+    long countByUserIdAndStatus(Long userId, TodoListStatus status);
 
     // 전체 TodoList 개수를 반환
     long count();
