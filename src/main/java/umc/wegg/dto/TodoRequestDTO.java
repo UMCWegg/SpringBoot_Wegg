@@ -9,7 +9,6 @@ public class TodoRequestDTO {
     @Getter
     @Setter
     public static class AddDTO {
-        @NotNull
         private Long userId;
         @NotNull
         private TodoListStatus status;

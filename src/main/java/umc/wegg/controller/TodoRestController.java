@@ -22,13 +22,13 @@ public class TodoRestController {
 
     @PostMapping("/add")
     public ApiResponse<TodoResponseDTO.AddResultDTO> join(@RequestBody @Valid TodoRequestDTO.AddDTO request){
-//        // 인증된 사용자 ID 가져오기
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 인증된 사용자 ID 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 //        Long userId = userDetails.getId(); // 인증된 사용자 ID
-//
-//        // AddDTO에 userId 설정
-//        request.setUserId(userId);
+        Long userId = 1L;
+        // AddDTO에 userId 설정
+        request.setUserId(userId);
 
         TodoList todo = todoCommandService.addTodo(request);
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(todo));
