@@ -25,6 +25,8 @@ public class HomeResponseDTO {
     // 기타 통계
     private int successCount;                // 인증 성공 횟수
     private int totalStudyTime;              // 총 공부 시간
+    private int followerCount;               // 팔로워 수
+    private int followingCount;              // 팔로잉 수
 
     // Plan 정보 구조
     @Data
