@@ -76,8 +76,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         List<HomeResponseDTO.PostInfo> monthlyPosts = homeConverter.convertPostsToPostInfos(
                 postRepository.findPostsByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
         );
-        List<HomeResponseDTO.TimeInfo> timeInfos = homeConverter.calculateTimeInfos(
-                userId, monthStart, monthEnd, timeRepository
+        List<HomeResponseDTO.DateSummaryInfo> dateSummaries = homeConverter.calculateDateSummaries(
+                userId, monthStart, monthEnd, timeRepository, todoRepository
         );
 
         // 투두리스트 통계
@@ -95,7 +95,9 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         return new HomeResponseDTO(
                 monthlyPlans,
                 monthlyPosts,
-                timeInfos,
+//                timeInfos,
+//                todoRates,
+                dateSummaries,
                 totalTodos,
                 completedTodos,
                 completionRate,
