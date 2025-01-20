@@ -34,14 +34,14 @@ public class HomeRestController {
     }
 
     // 이전달/다음달 버튼 이동
-    @GetMapping("/calendar/{year}/{month}/{photo_or_time}")
+    @GetMapping("/calendar/{year}/{month}")
     @Operation(summary = "이전달/다음달 버튼", description = "홈(월간) 화면에서 이전/다음 달로 이동하는 API")
-    public ApiResponse<Void> handleCalendarNavigation(
-            @PathVariable int year,
-            @PathVariable int month,
-            @PathVariable String photo_or_time
+    public ApiResponse<HomeResponseDTO> getCalendarData(
+            @PathVariable("year") int year,
+            @PathVariable("month") int month
     ) {
-        return ApiResponse.onSuccess(null);
+        HomeResponseDTO response = homeService.getHomeMonthDataFor(year, month);
+        return ApiResponse.onSuccess(response);
     }
 
 //    // 사진, 시간 토글 버튼

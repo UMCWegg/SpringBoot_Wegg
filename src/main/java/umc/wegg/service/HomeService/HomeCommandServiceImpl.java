@@ -121,4 +121,54 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 followingCount
         );
     }
+
+    @Override
+    public HomeResponseDTO getHomeMonthDataFor(int year, int month) {
+        Long userId = 1L; // 테스트를 위해 userId를 1로 설정
+        LocalDate monthStart = LocalDate.of(year, month, 1); // 해당 달 첫째 날
+        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth()); // 해당 달 마지막 날
+
+        // 월간 데이터 변환
+        List<HomeResponseDTO.PlanInfo> monthlyPlans = homeConverter.convertPlansToPlanInfos(
+                planRepository.findPlansByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
+        );
+        List<HomeResponseDTO.PostInfo> monthlyPosts = homeConverter.convertPostsToPostInfos(
+                postRepository.findPostsByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
+        );
+        List<HomeResponseDTO.DateSummaryInfo> dateSummaries = homeConverter.calculateDateSummaries(
+                userId, monthStart, monthEnd, timeRepository, todoRepository
+        );
+
+        // 투두리스트 통계
+        LocalDate today = LocalDate.now();
+        List<TodoList> todos = todoRepository.findTodosByUserIdAndDate(userId, today);
+        int totalTodos = todos.size();
+        int completedTodos = (int) todos.stream().filter(todo -> todo.getStatus() == TodoListStatus.DONE).count();
+        double completionRate = totalTodos > 0 ? ((double) completedTodos / totalTodos) * 100 : 0.0;
+
+        // 팔로워/팔로잉 수 계산
+        int followerCount = followRepository.countFollowers(userId);
+        int followingCount = followRepository.countFollowing(userId);
+
+        // 인증 성공 횟수 계산
+        int successCount = userRepository.findSuccessCountByUserId(userId);
+
+        // 오늘 날짜의 공부 시간 합산
+        int totalStudyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, today)
+                .stream().mapToInt(time -> time.getDuration()).sum();
+
+        return new HomeResponseDTO(
+                monthlyPlans,
+                monthlyPosts,
+                dateSummaries,
+                totalTodos,
+                completedTodos,
+                completionRate,
+                successCount,
+                totalStudyTime,
+                followerCount,
+                followingCount
+        );
+    }
+
 }
