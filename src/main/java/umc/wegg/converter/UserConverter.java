@@ -67,4 +67,12 @@ public class UserConverter {
 
         return user;
     }
+
+    public static UserResponseDTO.LoginResultDTO toLoginResultDTO(boolean success, Long userId) {
+        return UserResponseDTO.LoginResultDTO.builder()
+                .success(success)
+                .userId(userId)
+                .build();
+
+    }
 }

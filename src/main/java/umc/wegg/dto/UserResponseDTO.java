@@ -26,6 +26,16 @@ public class UserResponseDTO {
         }
     }
 
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoginResultDTO {
+        private boolean success; // 성공 여부
+        private Long userId; // 사용자 ID
+    }
+
     @Getter
     @Setter
     @NoArgsConstructor

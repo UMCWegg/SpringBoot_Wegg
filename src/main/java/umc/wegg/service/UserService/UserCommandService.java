@@ -5,5 +5,4 @@ import umc.wegg.dto.UserResponseDTO;
 
 public interface UserCommandService {
     UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request);
-    boolean checkAccountIdDuplication(String accountId);
 }

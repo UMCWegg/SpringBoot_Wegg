@@ -33,6 +33,12 @@ public class UserRestController {
         return ApiResponse.onSuccess(response);
     }
 
+    //확인용 api
+    @GetMapping("/info")
+    public void infoMember(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        log.info("authenticatedUser -> {}", authenticatedUser.toString());
+    }
+
     @PostMapping("/phone/send-verification")
     @Operation(summary = "인증번호 전송(전화번호)",description = "사용자의 전화번호로 인증번호를 전송하는 API")
     public ApiResponse<UserResponseDTO.VerificationResultDTO> sendPhoneVerificationCode(@RequestBody @Valid UserRequestDTO.SendPhoneVerificationDto request){
