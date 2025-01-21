@@ -135,7 +135,38 @@ public class UserCommandServiceImpl implements UserCommandService{
         return new UserResponseDTO.UserDeleteResultDTO(true, userId);
     }
 
+    @Override
+    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request) {
+
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
         }
+
+        Long userId = authenticatedUser.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+
+        // 수정된 필드를 저장할 Map
+        Map<String, Object> updatedFields = new HashMap<>();
+
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            user.setName(request.getName());
+            updatedFields.put("name", request.getName());
+        }
+
+        if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
+            user.setAccountId(request.getAccountId());
+            updatedFields.put("accountId", request.getAccountId());
+        }
+
+        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
+            user.setProfileImage(request.getProfileImage());
+            updatedFields.put("profileImage", request.getProfileImage());
+        }
+
+        userRepository.save(user);
+
+        return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
     }
 
     @Override

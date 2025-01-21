@@ -66,6 +66,15 @@ public class UserRestController {
         return ApiResponse.onSuccess(response);
     }
 
+    @PatchMapping("/update")
+    @Operation(summary = "회원정보 수정",description = "회원정보 수정 API")
+    public ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request){
+
+        UserResponseDTO.UserUpdateResultDTO response = userCommandService.updateUser(authenticatedUser, request);
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @PostMapping("/phone/send-verification")
     @Operation(summary = "인증번호 전송(전화번호)",description = "사용자의 전화번호로 인증번호를 전송하는 API")
     public ApiResponse<UserResponseDTO.VerificationResultDTO> sendPhoneVerificationCode(@RequestBody @Valid UserRequestDTO.SendPhoneVerificationDto request){

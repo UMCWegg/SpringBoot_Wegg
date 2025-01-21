@@ -112,6 +112,17 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    public static class UserUpdateDto {
+        @Size(max = 10, message = "이름은 최대 10자까지 가능합니다.")
+        private String name; // 사용자 이름
+        @Size(max = 10, message = "계정 ID는 최대 10자까지 가능합니다.")
+        private String accountId; // 사용자 계정 ID
+
+        private String profileImage; // 사용자 프로필 이미지
+    }
+
+    @Getter
+    @Setter
     public static class SendPhoneVerificationDto {
         @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         private String phone; // 연락처 전화번호

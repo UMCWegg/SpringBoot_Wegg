@@ -77,6 +77,15 @@ public class UserResponseDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class UserUpdateResultDTO {
+        private boolean success; // 성공 여부
+        private Map<String, Object> updatedFields; // 수정된 필드 (key: 필드명, value: 수정된 값)
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class VerificationResultDTO {
         private String message; // 예: "인증번호가 전송되었습니다."
     }
