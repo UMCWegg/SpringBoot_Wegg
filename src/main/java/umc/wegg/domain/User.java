@@ -100,6 +100,9 @@ public class User extends BaseEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Setting setting;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContactFriend> contactFriends = new ArrayList<>();
+
     public void setSetting(Setting setting) {
         this.setting = setting;
         if (setting != null) {
