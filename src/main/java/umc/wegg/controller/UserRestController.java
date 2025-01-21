@@ -31,7 +31,6 @@ public class UserRestController {
     @PostMapping("/signup")
     @Operation(summary = "회원가입",description = "회원가입 API")
     public ApiResponse<UserResponseDTO.UserJoinResultDTO> join(@RequestBody @Valid UserRequestDTO.UserJoinDto request){
-//        User user = userCommandService.joinUser(request);
         UserResponseDTO.UserJoinResultDTO response = userCommandService.joinUser(request);
         return ApiResponse.onSuccess(response);
     }
@@ -82,7 +81,7 @@ public class UserRestController {
     @Operation(summary = "인증번호 전송(전화번호)",description = "사용자의 전화번호로 인증번호를 전송하는 API")
     public ApiResponse<UserResponseDTO.VerificationResultDTO> sendPhoneVerificationCode(@RequestBody @Valid UserRequestDTO.SendPhoneVerificationDto request){
 
-        String message = smsService.sendSms(request); // 서비스 계층에서 메시지 생성 및 처리
+        String message = smsService.sendSms(request); // 메시지 생성 및 처리
         UserResponseDTO.VerificationResultDTO response = new UserResponseDTO.VerificationResultDTO(message);
 
         return ApiResponse.onSuccess(response);

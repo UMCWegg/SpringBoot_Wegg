@@ -96,3 +96,8 @@ logging:
     org.springframework.security.web.session: TRACE
     org.springframework.security.oauth2 : DEBUG
 
+sms:
+  api-key: [api-key]
+  api-secret: [api-secret]
+  provider: https://api.coolsms.co.kr
+  sender: [sender]
