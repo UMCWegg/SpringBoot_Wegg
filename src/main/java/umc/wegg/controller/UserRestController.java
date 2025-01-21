@@ -84,6 +84,16 @@ public class UserRestController {
 
         return ApiResponse.onSuccess(response);
     }
+
+    @PostMapping("/email/send-verification")
+    @Operation(summary = "인증번호 전송(이메일)",description = "사용자의 이메일로 인증번호를 전송하는 API")
+    public ApiResponse<UserResponseDTO.VerificationResultDTO> sendEmailVerificationCode(@RequestBody @Valid UserRequestDTO.SendEmailVerificationDto request){
+
+        UserResponseDTO.VerificationResultDTO response = mailService.sendMail(request);
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @GetMapping("/id-check")
     @Operation(summary = "아이디 중복 체크", description = "아이디의 중복 여부를 확인하는 API. 중복일 경우 result 값 true")
     public ApiResponse<Boolean> checkAccountIdDuplication(

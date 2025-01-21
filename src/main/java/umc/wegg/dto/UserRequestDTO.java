@@ -127,4 +127,13 @@ public class UserRequestDTO {
         @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         private String phone; // 연락처 전화번호
     }
+
+    @Getter
+    @Setter
+    public static class SendEmailVerificationDto {
+        @Email
+        @NotNull(message = "이메일은 필수 항목입니다.")
+        private String email; // 연락처 전화번호
+    }
+
 }
