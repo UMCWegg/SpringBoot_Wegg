@@ -68,6 +68,15 @@ public class UserResponseDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class UserDeleteResultDTO {
+        private boolean success; // 성공 여부
+        private Long userId;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class VerificationResultDTO {
         private String message; // 예: "인증번호가 전송되었습니다."
     }

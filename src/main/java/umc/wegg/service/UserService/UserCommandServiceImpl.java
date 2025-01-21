@@ -119,6 +119,22 @@ public class UserCommandServiceImpl implements UserCommandService{
         }
     }
 
+    @Override
+    public UserResponseDTO.UserDeleteResultDTO deleteUser(AuthenticatedUser authenticatedUser) {
+
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        Long userId = authenticatedUser.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+
+        userRepository.delete(user);
+
+        return new UserResponseDTO.UserDeleteResultDTO(true, userId);
+    }
+
         }
     }
 

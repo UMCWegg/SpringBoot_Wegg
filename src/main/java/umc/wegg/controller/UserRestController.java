@@ -57,6 +57,15 @@ public class UserRestController {
         return ApiResponse.onSuccess(response);
     }
 
+    @DeleteMapping("/resign")
+    @Operation(summary = "회원 탈퇴",description = "회원 탈퇴 API. ")
+    public ApiResponse<UserResponseDTO.UserDeleteResultDTO> deleteUser(@AuthenticationPrincipal AuthenticatedUser authenticatedUser){
+
+        UserResponseDTO.UserDeleteResultDTO response = userCommandService.deleteUser(authenticatedUser);
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @PostMapping("/phone/send-verification")
     @Operation(summary = "인증번호 전송(전화번호)",description = "사용자의 전화번호로 인증번호를 전송하는 API")
     public ApiResponse<UserResponseDTO.VerificationResultDTO> sendPhoneVerificationCode(@RequestBody @Valid UserRequestDTO.SendPhoneVerificationDto request){
