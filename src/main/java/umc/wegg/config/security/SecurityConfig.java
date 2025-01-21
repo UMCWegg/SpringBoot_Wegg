@@ -17,6 +17,8 @@ public class SecurityConfig {
         http
                 .csrf((csrf) -> csrf
                         .ignoringRequestMatchers("/users/**") // REST API 경로에서는 CSRF 비활성화
+                        .ignoringRequestMatchers("/posts/**") // REST API 경로에서는 CSRF 비활성화
+                        .ignoringRequestMatchers("/follow/**") // REST API 경로에서는 CSRF 비활성화
                 )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
@@ -24,7 +26,9 @@ public class SecurityConfig {
                                 "/plans/**",
                                 "/todo/**",
                                 "/swagger-ui/**", // Swagger UI 관련 URL
-                                "/v3/api-docs/**"  // OpenAPI 명세 URL
+                                "/v3/api-docs/**",  // OpenAPI 명세 URL
+                                "/follow/**",
+                                "/posts/**"
                         ).permitAll() // 로그인 없이 접근 허용
                         .anyRequest().authenticated()
                 );

@@ -11,6 +11,7 @@ import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -159,15 +160,109 @@ public class PostCommandServiceImpl implements PostCommandService {
 
     @Override
     public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts() {
-        // 게시물 둘러보기 로직
-        return null;
+        // 1. 현재 사용자 조회
+        Long userId = 1L; // 예: 인증된 사용자 ID (로그인 구현 시 변경)
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        // 2. 모든 게시물 조회
+        List<Post> allPosts = postRepository.findAll();
+
+        // 3. 게시물 이모지 개수를 계산하고 정렬 기준 적용
+        List<PostResponseDTO.PostPreviewResponseDTO> sortedPosts = allPosts.stream()
+                // 게시물을 DTO로 변환
+                .filter(post -> post.getPlan() != null) // Plan이 없는 게시물 필터링
+                .map(post -> {
+                    int emojiCount = emojiRepository.countByPost(post); // 이모지 개수 계산
+                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
+
+                    return PostResponseDTO.PostPreviewResponseDTO.builder()
+                            .postId(post.getId())
+                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
+                            .nickname(postUser.getName()) // 작성자 닉네임
+                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
+                            .build();
+                })
+                // 정렬 로직
+                .sorted((dto1, dto2) -> {
+                    Post post1 = postRepository.findById(dto1.getPostId())
+                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto1.getPostId()));
+                    Post post2 = postRepository.findById(dto2.getPostId())
+                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto2.getPostId()));
+
+                    User user1 = post1.getPlan().getUser();
+                    User user2 = post2.getPlan().getUser();
+
+                    boolean sameJob1 = user1.getJob().equals(currentUser.getJob());
+                    boolean sameJob2 = user2.getJob().equals(currentUser.getJob());
+
+                    if (sameJob1 && !sameJob2) {
+                        return -1; // 같은 job인 경우 우선순위 높게
+                    } else if (!sameJob1 && sameJob2) {
+                        return 1; // 다른 job인 경우 우선순위 낮게
+                    } else {
+                        // 같은 job끼리는 이모지 개수로 정렬
+                        int emojiCount1 = emojiRepository.countByPost(post1);
+                        int emojiCount2 = emojiRepository.countByPost(post2);
+                        return Integer.compare(emojiCount2, emojiCount1); // 이모지 개수가 많은 순서
+                    }
+                })
+                .collect(Collectors.toList());
+
+        // 4. 정렬된 게시물 리스트 반환
+        return sortedPosts;
     }
+
+
 
     @Override
     public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId) {
-        // 작성물 상세보기 로직
-        return null;
+        // 1. 게시물 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+
+        // 2. 댓글 리스트 조회
+        List<Comment> comments = commentRepository.findByPost(post);
+
+        // 3. 댓글 리스트를 DTO로 변환
+        List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> commentDTOs = comments.stream()
+                .map(comment -> PostResponseDTO.PostDetailResponseDTO.CommentDTO.builder()
+                        .commentId(comment.getId())                         // 댓글 ID
+                        .userId(comment.getUser().getId())                  // 댓글 작성자 ID
+                        .username(comment.getUser().getName())              // 댓글 작성자 닉네임
+                        .content(comment.getComment())                      // 댓글 내용
+                        .commenterProfileUrl(comment.getUser().getProfileImage()) // 댓글 작성자 프로필 이미지
+                        .createdAt(comment.getCreatedAt())                  // 댓글 작성 시간
+                        .build())
+                .collect(Collectors.toList());
+
+        // 4. 이모지 데이터 조회
+        List<Emoji> emojis = emojiRepository.findByPost(post);
+
+        int heartCount = (int) emojis.stream().filter(e -> e.getType() == EmojiType.LIKE).count();
+        int smileCount = (int) emojis.stream().filter(e -> e.getType() == EmojiType.LAUGH).count();
+        int thumbUpCount = (int) emojis.stream().filter(e -> e.getType() == EmojiType.THUMBS_UP).count();
+
+        // 5. 작성자 확인 및 사용자 선택 이모지 리스트 구성
+        List<String> userSelectedEmojis = emojis.stream()
+                .map(emoji -> emoji.getType().name())
+                .collect(Collectors.toList());
+
+        // 6. PostDetailResponseDTO 생성 및 반환
+        return PostResponseDTO.PostDetailResponseDTO.builder()
+                .postId(post.getId())                                   // 게시물 ID
+                .postImageUrl(post.getImageUrl())                      // 게시물 이미지 URL
+                .profileImage(post.getPlan().getUser().getProfileImage()) // 작성자 프로필 이미지
+                .name(post.getPlan().getUser().getName())              // 작성자 이름
+                .createdAt(post.getCreatedAt())                        // 게시 시간
+                .comments(commentDTOs)                                 // 댓글 리스트
+                .heartCount(heartCount)                                // 하트 이모지 개수
+                .smileCount(smileCount)                                // 웃는 이모지 개수
+                .thumbUpCount(thumbUpCount)                            // 좋아요 이모지 개수
+                .userSelectedEmojis(userSelectedEmojis)                // 사용자 선택 이모지 리스트
+                .build();
     }
+
 
     @Override
     public List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId) {
@@ -195,8 +290,41 @@ public class PostCommandServiceImpl implements PostCommandService {
 
     @Override
     public PostResponseDTO.EmojiResponseDTO getEmojis(Long postId) {
-        // 이모지 조회 로직
-        return null;
+        // 1. 게시물 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+
+        // 2. 이모지 조회
+        List<Emoji> emojis = emojiRepository.findByPost(post);
+
+        // 3. 이모지 카운트 계산
+        int heartCount = (int) emojis.stream()
+                .filter(emoji -> emoji.getType() == EmojiType.LIKE)
+                .count();
+
+        int smileCount = (int) emojis.stream()
+                .filter(emoji -> emoji.getType() == EmojiType.LAUGH)
+                .count();
+
+        int thumbUpCount = (int) emojis.stream()
+                .filter(emoji -> emoji.getType() == EmojiType.THUMBS_UP)
+                .count();
+
+        // 4. 사용자별 선택된 이모지 리스트
+        List<String> userSelectedEmojis = emojis.stream()
+                .map(emoji -> emoji.getType().name()) // 이모지 타입 이름
+                .distinct() // 중복 제거
+                .collect(Collectors.toList());
+
+        // 5. EmojiResponseDTO 생성 및 반환
+        return PostResponseDTO.EmojiResponseDTO.builder()
+                .postId(postId)                     // 게시물 ID
+                .heartCount(heartCount)             // 하트 이모지 개수
+                .smileCount(smileCount)             // 웃는 이모지 개수
+                .thumbUpCount(thumbUpCount)         // 따봉 이모지 개수
+                .userSelectedEmojis(userSelectedEmojis) // 사용자 선택 이모지 리스트
+                .build();
     }
+
 }
 
