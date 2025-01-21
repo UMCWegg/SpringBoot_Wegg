@@ -25,6 +25,13 @@ public class PlanConverter {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // 현재 시간을 기준으로 date 필드 계산
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfDay = now.getHour() < 4
+                ? now.minusDays(1).withHour(4).withMinute(0).withSecond(0).withNano(0)
+                : now.withHour(4).withMinute(0).withSecond(0).withNano(0);
+
+
         return Plan.builder()
                 .status(status)
                 .replay(request.getReplay())
@@ -35,6 +42,7 @@ public class PlanConverter {
                 .latitude(request.getLatitude() != null ? request.getLatitude() : 0.0f) // null일 경우 기본값 설정
                 .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0f) // null일 경우 기본값 설정
                 .address(request.getAddress())
+                .date(startOfDay)
                 .build();
     }
     public static PlanResponseDTO.PlanDetailDTO toPlanDetailDTO(Plan plan) {
