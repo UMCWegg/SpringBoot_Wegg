@@ -48,6 +48,34 @@ public class UserRequestDTO {
         private List<ContactDto> contact; // 연락처 정보 리스트
     }
 
+    @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OAuth2UserJoinDto{
+
+        @NotBlank(message = "oauth ID는 필수 항목입니다.")
+        private String oauthId;
+
+        @NotNull
+        private Boolean marketingAgree;
+
+        @NotBlank(message = "계정 ID는 필수 항목입니다.")
+        @Size(max = 10, message = "계정 ID는 최대 10자까지 가능합니다.")
+        private String accountId; // 사용자 계정 ID
+
+        @NotBlank(message = "이름은 필수 항목입니다.")
+        @Size(max = 10, message = "이름은 최대 10자까지 가능합니다.")
+        private String name; // 사용자 이름
+
+        private Job job; // 사용자 신분
+
+        private String reason; // 이 앱을 시작한 이유
+
+        @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
+        @NotBlank(message = "전화번호는 필수 항목입니다.")
+        private String phone; // 사용자 전화번호
 
         @NotNull
         private Boolean alarm;
@@ -55,6 +83,8 @@ public class UserRequestDTO {
         // 연락처 리스트
         @Size(max = 10, message = "최대 10개의 연락처를 제공할 수 있습니다.")
         private List<ContactDto> contact; // 연락처 정보 리스트
+
+        private String password; // 비밀번호(null로 설정)
     }
 
     @Getter

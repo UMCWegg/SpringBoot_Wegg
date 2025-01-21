@@ -26,6 +26,24 @@ public class UserResponseDTO {
         }
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OAuth2UserJoinResultDTO{
+        Long userId;
+        LocalDateTime createdAt;
+        List<ExistingUserDTO> existingUsers;
+
+        //연락처에 있는 user
+        @Getter
+        @AllArgsConstructor
+        public static class ExistingUserDTO {
+            private String contactName;
+            private String name;
+            private String phone;
+        }
+    }
 
     @Getter
     @Builder
@@ -34,6 +52,16 @@ public class UserResponseDTO {
     public static class LoginResultDTO {
         private boolean success; // 성공 여부
         private Long userId; // 사용자 ID
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OAuth2LoginResultDTO {
+        private boolean success; // 성공 여부
+        private String provider;
+        private String oauthId; // 사용자 ID
     }
 
     @Getter

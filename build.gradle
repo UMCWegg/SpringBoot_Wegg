@@ -70,7 +70,8 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 
 	// OAuth2 클라이언트
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	//CoolSms
 	implementation 'net.nurigo:sdk:4.3.0'

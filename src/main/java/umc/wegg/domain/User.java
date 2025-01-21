@@ -65,6 +65,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String phone; // 사용자 전화번호
 
+    private String oauthId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();

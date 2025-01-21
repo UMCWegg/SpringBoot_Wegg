@@ -1,15 +1,15 @@
 package umc.wegg.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
@@ -37,6 +37,24 @@ public class UserRestController {
     @GetMapping("/info")
     public void infoMember(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         log.info("authenticatedUser -> {}", authenticatedUser.toString());
+    }
+
+    @PostMapping("/oauth2/signup")
+    @Operation(summary = "OAuth 회원가입", description = "OAuth 인증을 완료하고 사용자 정보를 저장하는 API")
+    public ApiResponse<?> oAuth2Signup(@RequestBody @Valid UserRequestDTO.OAuth2UserJoinDto request) {
+
+        UserResponseDTO.OAuth2UserJoinResultDTO response = userCommandService.oAuth2JoinUser(request);
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @GetMapping("/oauth2/login")
+    @Operation(summary = "OAuth 로그인", description = "OAuth 인증을 완료하고 OAuth 사용자가 회원가입을 했는지 확인하는 API")
+    public ApiResponse<?> oAuth2Login(HttpServletRequest request, @AuthenticationPrincipal OAuth2User oauth2User) {
+
+        UserResponseDTO.OAuth2LoginResultDTO response = userCommandService.oAuth2LoginUser(request, oauth2User);
+
+        return ApiResponse.onSuccess(response);
     }
 
     @PostMapping("/phone/send-verification")
