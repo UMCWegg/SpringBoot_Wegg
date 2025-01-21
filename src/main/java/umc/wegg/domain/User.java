@@ -2,14 +2,24 @@ package umc.wegg.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import umc.wegg.domain.common.BaseEntity;
-import umc.wegg.domain.enums.AccountVisibility;
+import umc.wegg.domain.enums.Job;
+import umc.wegg.domain.enums.Role;
+import umc.wegg.domain.mapping.Emoji;
+import umc.wegg.domain.mapping.Follow;
+import umc.wegg.domain.mapping.MyTemplate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
-@Setter
+@DynamicUpdate
+@DynamicInsert
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -31,20 +41,83 @@ public class User extends BaseEntity {
 
     private LocalDate inactiveDate; // 비활성 기간 (null 값이라면 활동 중, 데이터가 존재하면 휴면 중 / 회원 탈퇴 시 휴면 처리해야 함)
 
+    @Column(nullable = false, length = 10)
     private String name; // 사용자 이름
     private String profileImage; // 프로필 이미지 URL
-    private int points; // 포인트
-    private int successCount; // 연속 인증 성공 횟수
 
-    private float currentLat; // 현재 위치 위도
-    private float currentLon; // 현재 위치 경도
+    @ColumnDefault("0")
+    @Builder.Default
+    @Column(nullable = false)
+    private int points = 0; // 포인트
 
-    private String job; // 사용자 신분
+    @ColumnDefault("0")
+    @Builder.Default
+    @Column(nullable = false)
+    private int successCount = 0; // 연속 인증 성공 횟수
+
+    @Column(nullable = true)
+    private Float currentLat; // 현재 위치 위도
+    @Column(nullable = true)
+    private Float currentLon; // 현재 위치 경도
+
+    @Enumerated(EnumType.STRING)
+    private Job job; // 사용자 신분
+
     private String reason; // 이 앱을 시작한 이유
 
     @Column(nullable = false, length = 100)
     private String phone; // 사용자 전화번호
 
     @Enumerated(EnumType.STRING)
-    private AccountVisibility accountVisibility; // 계정 공개 여부 (전체 공개, 맞팔만 공개)
+    @Column(nullable = false)
+    @ColumnDefault("'USER'")
+    private Role role = Role.USER;
+
+//    @Enumerated(EnumType.STRING)
+//    private AccountVisibility accountVisibility; // 계정 공개 여부 (전체 공개, 맞팔만 공개)
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notificationList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TodoList> todoList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followerList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "followee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Follow> followingList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Emoji> emojiList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Time> timeList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Plan> planList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Egg> eggList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MyTemplate> myTemplateList = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Setting setting;
+
+    public void setSetting(Setting setting) {
+        this.setting = setting;
+        if (setting != null) {
+            setting.setUser(this); // 양방향 관계 설정
+        }
+    }
+
+    //암호화된 password
+    public void encodePassword(String password) {
+        this.password = password;
+    }
 }

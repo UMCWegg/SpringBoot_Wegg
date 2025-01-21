@@ -28,4 +28,5 @@ public class Post extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "plan_id", nullable = false)
     private Plan plan; // 연결된 계획
+
 }
