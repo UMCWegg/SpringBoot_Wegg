@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class UserResponseDTO {
 
@@ -98,4 +99,12 @@ public class UserResponseDTO {
         private boolean isValid; // 인증번호 일치 여부
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CheckAccountIdResultDTO {
+        private boolean isDuplicate;
+        private String message;  // 결과 메시지
+    }
 }

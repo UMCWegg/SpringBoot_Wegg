@@ -108,9 +108,9 @@ public class UserRestController {
 
     @GetMapping("/id-check")
     @Operation(summary = "아이디 중복 체크", description = "아이디의 중복 여부를 확인하는 API. 중복일 경우 result 값 true")
-    public ApiResponse<Boolean> checkAccountIdDuplication(
+    public ApiResponse<UserResponseDTO.CheckAccountIdResultDTO> checkAccountIdDuplication(
             @RequestParam("accountId") String accountId) {
-        boolean isDuplicate = userCommandService.checkAccountIdDuplication(accountId);
-        return ApiResponse.onSuccess(isDuplicate);
+        UserResponseDTO.CheckAccountIdResultDTO response = userCommandService.checkAccountIdDuplication(accountId);
+        return ApiResponse.onSuccess(response);
     }
 }

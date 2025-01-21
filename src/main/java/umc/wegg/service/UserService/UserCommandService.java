@@ -12,5 +12,6 @@ public interface UserCommandService {
     UserResponseDTO.OAuth2LoginResultDTO oAuth2LoginUser(HttpServletRequest request, OAuth2User oauth2User);
     UserResponseDTO.UserDeleteResultDTO deleteUser(AuthenticatedUser authenticatedUser);
     UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request);
+    UserResponseDTO.CheckAccountIdResultDTO checkAccountIdDuplication(String accountId);
     UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request);
 }

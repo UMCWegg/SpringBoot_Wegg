@@ -174,8 +174,15 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     @Transactional(readOnly = true)
-    public boolean checkAccountIdDuplication(String accountId) {
-        return userRepository.findByAccountId(accountId).isPresent();
+    public UserResponseDTO.CheckAccountIdResultDTO checkAccountIdDuplication(String accountId) {
+        boolean isDuplicate = userRepository.existsByAccountId(accountId);
+
+        String message = isDuplicate
+                ? "이미 사용 중인 아이디입니다."
+                : "사용 가능한 아이디입니다.";
+
+        return new UserResponseDTO.CheckAccountIdResultDTO(isDuplicate, message);
+    }
 
     public UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request) {
 
