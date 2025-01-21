@@ -13,9 +13,11 @@ import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
+import umc.wegg.service.MailService.MailService;
 import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
 
+@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class UserRestController {
 
     private final UserCommandService userCommandService;
     private final SmsService smsService;
+    private final MailService mailService;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입",description = "회원가입 API")
@@ -90,6 +93,15 @@ public class UserRestController {
     public ApiResponse<UserResponseDTO.VerificationResultDTO> sendEmailVerificationCode(@RequestBody @Valid UserRequestDTO.SendEmailVerificationDto request){
 
         UserResponseDTO.VerificationResultDTO response = mailService.sendMail(request);
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @PostMapping("/verifinum-check")
+    @Operation(summary = "인증번호 확인",description = "인증번호가 일치하는지 확인하는 API. 일치할 경우 result 값 true")
+    public ApiResponse<UserResponseDTO.VerifyNumberResultDTO> verifyNumber(@RequestBody @Valid UserRequestDTO.VerifyNumberDto request){
+
+        UserResponseDTO.VerifyNumberResultDTO response = userCommandService.verityNumber(request);
 
         return ApiResponse.onSuccess(response);
     }

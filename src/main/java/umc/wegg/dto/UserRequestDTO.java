@@ -3,6 +3,7 @@ package umc.wegg.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import umc.wegg.domain.enums.Job;
+import umc.wegg.domain.enums.VerificationType;
 
 import java.util.List;
 
@@ -136,4 +137,25 @@ public class UserRequestDTO {
         private String email; // 연락처 전화번호
     }
 
+    @Getter
+    @Setter
+    public static class VerifyNumberDto {
+        @NotNull
+        private VerificationType type; //phone, email
+        @NotBlank
+        private String target;
+        @NotBlank
+        private String number; // 인증번호
+
+        public boolean validateFormat() {
+            if (this.type == VerificationType.EMAIL){
+                return target.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
+            }
+            else if (this.type == VerificationType.PHONE){
+                return target.matches("\\d{3}\\d{4}\\d{4}");
+            }
+
+            return false;
+        }
+    }
 }

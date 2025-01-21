@@ -17,6 +17,7 @@ import umc.wegg.domain.User;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.util.RedisUtil;
 
 import java.util.*;
 
@@ -25,6 +26,8 @@ import java.util.*;
 public class UserCommandServiceImpl implements UserCommandService{
 
     private final UserRepository userRepository;
+
+    private final RedisUtil redisUtil;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -173,5 +176,27 @@ public class UserCommandServiceImpl implements UserCommandService{
     @Transactional(readOnly = true)
     public boolean checkAccountIdDuplication(String accountId) {
         return userRepository.findByAccountId(accountId).isPresent();
+
+    public UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request) {
+
+        if (!request.validateFormat()) {
+            //exception throw
+        }
+
+        String target = request.getTarget();
+
+        String savedNumber = redisUtil.getData(target);
+        if (savedNumber == null) {
+            //exception throw 하기
+        }
+
+        String number = request.getNumber();
+
+        if (savedNumber.equals(number)) {
+            return new UserResponseDTO.VerifyNumberResultDTO(true);
+
+        } else {
+            return new UserResponseDTO.VerifyNumberResultDTO(false);
+        }
     }
 }

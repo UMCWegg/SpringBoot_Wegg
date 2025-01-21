@@ -75,6 +75,12 @@ dependencies {
 
 	//CoolSms
 	implementation 'net.nurigo:sdk:4.3.0'
+
+	//SMTP
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	//Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 sourceSets {

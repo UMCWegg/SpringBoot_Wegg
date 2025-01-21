@@ -89,4 +89,13 @@ public class UserResponseDTO {
     public static class VerificationResultDTO {
         private String message; // 예: "인증번호가 전송되었습니다."
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VerifyNumberResultDTO {
+        private boolean isValid; // 인증번호 일치 여부
+    }
+
 }
