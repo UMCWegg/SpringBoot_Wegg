@@ -3,7 +3,6 @@ plugins {
 	id 'org.springframework.boot' version '3.3.7'
 	id 'io.spring.dependency-management' version '1.1.7'
 //	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
-
 }
 
 group = 'umc'
@@ -28,7 +27,6 @@ repositories {
 
 dependencies {
 	// Spring Boot Starter
-
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -56,6 +54,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
 	// SpringDoc OpenAPI (Swagger)
+  
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	// implementation 'org.springdoc:springdoc-openapi-ui:1.6.9'
 	// implementation 'org.springdoc:springdoc-openapi-data-rest:1.6.9'
@@ -73,9 +72,16 @@ dependencies {
 
 	// OAuth2 클라이언트
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	//CoolSms
 	implementation 'net.nurigo:sdk:4.3.0'
+
+	//SMTP
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	//Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 sourceSets {

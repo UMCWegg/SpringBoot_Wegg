@@ -23,9 +23,9 @@ public class TodoRestController {
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(todo));
     }
 
-    @PatchMapping("/{todo_Id}")
+    @PatchMapping("/{todo_id}")
     public ApiResponse<TodoResponseDTO.AddResultDTO> updateTodo(
-            @PathVariable("todo_Id") Long todoId,
+            @PathVariable("todo_id") Long todoId,
             @RequestBody @Valid TodoRequestDTO.UpdateDTO request) {
         TodoList updatedTodo = todoCommandService.updateTodo(todoId, request);
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(updatedTodo));
