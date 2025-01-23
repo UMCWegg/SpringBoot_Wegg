@@ -25,7 +25,7 @@ jobs:
             profiles:
               active: dev
             datasource:
-              url: jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:${{ secrets.RDS_PORT }}/${{ secrets.RDS_DATABASE }}
+              url: jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:${{ secrets.RDS_PORT }}/${{ secrets.RDS_DATABASE }}?serverTimezone=Asia/Seoul
               username: ${{ secrets.RDS_USERNAME }}
               password: ${{ secrets.RDS_PASSWORD }}
               driver-class-name: com.mysql.cj.jdbc.Driver
