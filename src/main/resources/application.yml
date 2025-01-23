@@ -11,9 +11,10 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:${{ secrets.RDS_PORT}}/${{ secrets.RDS_DATABASE }}?serverTimezone=Asia/Seoul
-    username: ${{ secrets.RDS_USERNAME}}
-    password: ${{ secrets.RDS_PASSWORD}}
+    url: jdbc:mysql://localhost:3306/wegg
+    username: [username]
+    password: [password]
+
   sql:
     init:
       mode: never
@@ -23,16 +24,16 @@ spring:
         registration:
           kakao:
             client-authentication-method: client_secret_post
-            client-id: ${{ secrets.KAKAO_CLIENT_ID}}
-            client-secret: ${{ secrets.KAKAO_CLIENT_SECRET }}
-            redirect-uri: http://${{ secrets.EC2_HOST }}/login/oauth2/code/kakao
+            client-id: [client-id]
+            client-secret: [client-secret]
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             scope: profile_nickname
             client-name: Kakao
           naver:
-            client-id: ${{ secrets.NAVER_CLIENT_ID }}
-            client-secret: ${{ secrets.NAVER_CLIENT_SECRET }}
-            redirect-uri: http://${{ secrets.EC2_HOST }}/login/oauth2/code/naver
+            client-id: [client-id]
+            client-secret: [client-secret]
+            redirect-uri: http://localhost:8080/login/oauth2/code/naver
             authorization-grant-type: authorization_code
             scope:
               - name
@@ -57,47 +58,47 @@ spring:
         format_sql: true
         use_sql_comments: true
         hbm2ddl:
-          auto: create
+          auto: update
         default_batch_fetch_size: 1000
-    mail:
-      host: smtp.gmail.com
-      username: ${{ secrets.MAIL_ID }}
-      password: ${{ secrets.MAIL_PASSWORD }}
-      properties:
-        mail:
-          smtp:
-            auth: true
-            starttls:
-              enable: true
-              required: true
-          debug: true
-    data:
-      redis:
-        host: localhost
-        port: 6379
+  mail:
+    host: smtp.gmail.com
+    username: 0wegg0@gmail.com
+    password: [password]
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        debug: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
-  logging:
-    level:
-      # Spring Web 및 DispatcherServlet 로그
-      org.springframework.web.servlet.DispatcherServlet: TRACE
-      org.springframework.web: DEBUG
+logging:
+  level:
+    # Spring Web 및 DispatcherServlet 로그
+    org.springframework.web.servlet.DispatcherServlet: TRACE
+    org.springframework.web: DEBUG
 
-      # Hibernate SQL 및 매핑 로그
-      org.hibernate.SQL: DEBUG
-      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-      org.hibernate.engine.query.spi.QueryPlanCache: TRACE
+    # Hibernate SQL 및 매핑 로그
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.engine.query.spi.QueryPlanCache: TRACE
 
-      # Hibernate Validator (유효성 검사 상세 로그)
-      org.hibernate.validator: TRACE
-      org.springframework.validation: TRACE
+    # Hibernate Validator (유효성 검사 상세 로그)
+    org.hibernate.validator: TRACE
+    org.springframework.validation: TRACE
 
-      # Spring Security 로그 (필요한 경우)
-      org.springframework.security: DEBUG
-      org.springframework.security.web.session: TRACE
-      org.springframework.security.oauth2: DEBUG
+    # Spring Security 로그 (필요한 경우)
+    org.springframework.security: DEBUG
+    org.springframework.security.web.session: TRACE
+    org.springframework.security.oauth2 : DEBUG
 
-  sms:
-    api-key: ${{ secrets.SMS_API_KEY }}
-    api-secret: ${{ secrets.SMS_API_SECRET }}
-    provider: https://api.coolsms.co.kr
-    sender: ${{ secrets.SMS_SENDER }}
+sms:
+  api-key: [api-key]
+  api-secret: [api-secret]
+  provider: https://api.coolsms.co.kr
+  sender: [sender]
