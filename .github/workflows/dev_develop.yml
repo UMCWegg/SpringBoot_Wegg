@@ -7,14 +7,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    #    services:
-    #      mysql:
-    #        image: mysql:8
-    #        ports:
-    #          - 3306:3306
-    #        env:
-    #          MYSQL_ROOT_PASSWORD: ${{ secrets.EC2_PASSWORD }}
-    #          MYSQL_DATABASE: weggdb
+#    services:
+#      mysql:
+#        image: mysql:8
+#        ports:
+#          - 3306:3306
+#        env:
+#          MYSQL_ROOT_PASSWORD: ${{ secrets.EC2_PASSWORD }}
+#          MYSQL_DATABASE: weggdb
 
     steps:
       - uses: actions/checkout@v3  # 저장소 코드 체크아웃
@@ -25,25 +25,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make application-dev_develop.yml  # application-dev_develop.yml 파일 생성
+      - name: Make application.yml  # application.yml 파일 생성
         run: |
           cd ./src/main/resources
-          echo "
-          spring:
-            profiles:
-              active: dev
-            datasource:
-              url: jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:${{ secrets.RDS_PORT }}/${{ secrets.RDS_DATABASE }}
-              username: ${RDS_USERNAME}
-              password: ${RDS_PASSWORD}
-              driver-class-name: com.mysql.cj.jdbc.Driver
-            jpa:
-              hibernate:
-                ddl-auto: update
-              properties:
-                hibernate:
-                  dialect: org.hibernate.dialect.MySQL8Dialect
-          " > application-dev_develop.yml
+          echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
         shell: bash
 
       - name: Grant execute permission for gradlew  # gradlew 실행 권한 부여
