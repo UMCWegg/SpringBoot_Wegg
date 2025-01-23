@@ -7,14 +7,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.EC2_PASSWORD }}
-          MYSQL_DATABASE: weggdb
+#    services:
+#      mysql:
+#        image: mysql:8
+#        ports:
+#          - 3306:3306
+#        env:
+#          MYSQL_ROOT_PASSWORD: ${{ secrets.EC2_PASSWORD }}
+#          MYSQL_DATABASE: weggdb
 
     steps:
       - uses: actions/checkout@v3  # 저장소 코드 체크아웃
