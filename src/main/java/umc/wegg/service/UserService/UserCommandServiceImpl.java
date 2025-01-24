@@ -34,25 +34,26 @@ public class UserCommandServiceImpl implements UserCommandService{
     @Override
     @Transactional
     public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
-        User user = UserConverter.toUser(request);
-        user.encodePassword(passwordEncoder.encode(request.getPassword()));
-        userRepository.save(user);
 
-        List<UserResponseDTO.UserJoinResultDTO.ExistingUserDTO> existingUsers = new ArrayList<>();
-        if (request.getContact() != null) {
+        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDTO> contactFriends = new ArrayList<>();
+        if (request.getContact() != null && !request.getContact().isEmpty()) {
             for (UserRequestDTO.ContactDto contact : request.getContact()) {
                 userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(existingUser -> {
-                            existingUsers.add(new UserResponseDTO.UserJoinResultDTO.ExistingUserDTO(
+                        .ifPresent(contactFriend -> {
+                            contactFriends.add(new UserResponseDTO.UserJoinResultDTO.ContactFriendDTO(
                                     contact.getContactName(),
-                                    existingUser.getName(),
-                                    existingUser.getPhone()
+                                    contactFriend.getName(),
+                                    contactFriend.getPhone()
                             ));
                         });
             }
         }
 
-        return UserConverter.toJoinResultDTO(user, existingUsers);
+        User user = UserConverter.toUser(request, contactFriends);
+        user.encodePassword(passwordEncoder.encode(request.getPassword()));
+        userRepository.save(user);
+
+        return UserConverter.toJoinResultDTO(user, contactFriends);
     }
 
     @Override
@@ -70,24 +71,24 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         request.setPassword(passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()));
 
-        User user = UserConverter.toOAuthUser(request);
-        userRepository.save(user);
-
-        List<UserResponseDTO.OAuth2UserJoinResultDTO.ExistingUserDTO> existingUsers = new ArrayList<>();
+        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO> contactFriends = new ArrayList<>();
         if (request.getContact() != null) {
             for (UserRequestDTO.ContactDto contact : request.getContact()) {
                 userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(existingUser -> {
-                            existingUsers.add(new UserResponseDTO.OAuth2UserJoinResultDTO.ExistingUserDTO(
+                        .ifPresent(contactFriend -> {
+                            contactFriends.add(new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO(
                                     contact.getContactName(),
-                                    existingUser.getName(),
-                                    existingUser.getPhone()
+                                    contactFriend.getName(),
+                                    contactFriend.getPhone()
                             ));
                         });
             }
         }
 
-        return UserConverter.toOAuth2JoinResultDTO(user, existingUsers);
+        User user = UserConverter.toOAuthUser(request, contactFriends);
+        userRepository.save(user);
+
+        return UserConverter.toOAuth2JoinResultDTO(user, contactFriends);
     }
 
     @Override
@@ -103,7 +104,7 @@ public class UserCommandServiceImpl implements UserCommandService{
             User user = existingUser.get();
 
             // OAuth2User를 AuthenticatedUser로 변환
-            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // 예시로 existingUser를 AuthenticatedUser로 변환
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // existingUser를 AuthenticatedUser로 변환
 
             // Spring Security에서 인증된 사용자로 설정
             Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, null);

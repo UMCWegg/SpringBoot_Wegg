@@ -15,12 +15,12 @@ public class UserResponseDTO {
     public static class UserJoinResultDTO{
         Long userId;
         LocalDateTime createdAt;
-        List<ExistingUserDTO> existingUsers;
+        List<ContactFriendDTO> contactFriends;
 
         //연락처에 있는 user
         @Getter
         @AllArgsConstructor
-        public static class ExistingUserDTO {
+        public static class ContactFriendDTO {
             private String contactName;
             private String name;
             private String phone;
@@ -34,12 +34,12 @@ public class UserResponseDTO {
     public static class OAuth2UserJoinResultDTO{
         Long userId;
         LocalDateTime createdAt;
-        List<ExistingUserDTO> existingUsers;
+        List<ContactFriendDTO> contactFriends;
 
         //연락처에 있는 user
         @Getter
         @AllArgsConstructor
-        public static class ExistingUserDTO {
+        public static class ContactFriendDTO {
             private String contactName;
             private String name;
             private String phone;
