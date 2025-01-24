@@ -3,6 +3,7 @@ package umc.wegg.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import umc.wegg.domain.enums.Job;
+import umc.wegg.domain.enums.ReasonType;
 import umc.wegg.domain.enums.VerificationType;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class UserRequestDTO {
         private String email; // 사용자 이메일
 
         @NotBlank(message = "비밀번호는 필수 항목입니다.")
+        @Size(min = 6, message = "비밀번호는 최소 6자 이상이어야 합니다.")
         private String password; // 비밀번호
 
         @NotNull
@@ -35,7 +37,7 @@ public class UserRequestDTO {
 
         private Job job; // 사용자 신분
 
-        private String reason; // 이 앱을 시작한 이유
+        private ReasonType reason; // 이 앱을 시작한 이유
 
         @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         @NotBlank(message = "전화번호는 필수 항목입니다.")
@@ -72,7 +74,7 @@ public class UserRequestDTO {
 
         private Job job; // 사용자 신분
 
-        private String reason; // 이 앱을 시작한 이유
+        private ReasonType reason; // 이 앱을 시작한 이유
 
         @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         @NotBlank(message = "전화번호는 필수 항목입니다.")
