@@ -3,7 +3,6 @@ plugins {
 	id 'org.springframework.boot' version '3.3.7'
 	id 'io.spring.dependency-management' version '1.1.7'
 //	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
-
 }
 
 group = 'umc'
@@ -73,9 +72,16 @@ dependencies {
 
 	// OAuth2 클라이언트
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	//CoolSms
 	implementation 'net.nurigo:sdk:4.3.0'
+
+	//SMTP
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	//Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 sourceSets {

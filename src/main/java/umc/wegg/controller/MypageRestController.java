@@ -17,16 +17,9 @@ public class MypageRestController {
 
     private final MypageCommandService mypageCommandService;
 
-//    @PatchMapping("/edit")
-//    public ApiResponse<String> editMypage(@RequestBody @Valid MypageRequestDTO.EditDTO request) {
-//        Long userId = 1L; // 예: 인증된 사용자 ID 가져오기 (실제로는 SecurityContext 등을 사용해야 함)
-//        mypageCommandService.editMypage(userId, request);
-//        return ApiResponse.onSuccess("Mypage updated successfully");
-//    }
-
     @PatchMapping("/setting")
     public ApiResponse<String> updateSettings(@RequestBody @Valid MypageRequestDTO.SettingDTO request) {
-        Long userId = 1L; // 예: 인증된 사용자 ID 가져오기 (실제로는 SecurityContext 등을 사용해야 함)
+        Long userId = 3L; // 예: 인증된 사용자 ID 가져오기 (실제로는 SecurityContext 등을 사용해야 함)
         mypageCommandService.updateSettings(userId, request);
         return ApiResponse.onSuccess("Settings updated successfully");
     }
