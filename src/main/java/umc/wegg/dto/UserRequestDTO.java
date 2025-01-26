@@ -1,5 +1,6 @@
 package umc.wegg.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import umc.wegg.domain.enums.Job;
@@ -48,6 +49,7 @@ public class UserRequestDTO {
 
         // 연락처 리스트
         @Size(max = 10, message = "최대 10개의 연락처를 제공할 수 있습니다.")
+        @Valid
         private List<ContactDto> contact; // 연락처 정보 리스트
     }
 
@@ -96,8 +98,11 @@ public class UserRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ContactDto {
+        @NotBlank
         private String contactName;
+
         @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
+        @NotBlank
         private String phone; // 연락처 전화번호
     }
 

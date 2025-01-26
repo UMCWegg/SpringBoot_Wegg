@@ -20,6 +20,7 @@ import umc.wegg.repository.UserRepository;
 import umc.wegg.util.RedisUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,19 +36,21 @@ public class UserCommandServiceImpl implements UserCommandService{
     @Transactional
     public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
 
-        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDTO> contactFriends = new ArrayList<>();
-        if (request.getContact() != null && !request.getContact().isEmpty()) {
-            for (UserRequestDTO.ContactDto contact : request.getContact()) {
-                userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(contactFriend -> {
-                            contactFriends.add(new UserResponseDTO.UserJoinResultDTO.ContactFriendDTO(
-                                    contact.getContactName(),
-                                    contactFriend.getName(),
-                                    contactFriend.getPhone()
-                            ));
-                        });
-            }
-        }
+        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDTO> contactFriends = Optional.ofNullable(request.getContact())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.UserJoinResultDTO.ContactFriendDTO(
+                                contact.getContactName(),
+                                contactFriend.getId(),
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null))
+                .filter(Objects::nonNull) // null 값 제거
+                .collect(Collectors.toList());
 
         User user = UserConverter.toUser(request, contactFriends);
         user.encodePassword(passwordEncoder.encode(request.getPassword()));
@@ -71,19 +74,21 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         request.setPassword(passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()));
 
-        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO> contactFriends = new ArrayList<>();
-        if (request.getContact() != null) {
-            for (UserRequestDTO.ContactDto contact : request.getContact()) {
-                userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(contactFriend -> {
-                            contactFriends.add(new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO(
-                                    contact.getContactName(),
-                                    contactFriend.getName(),
-                                    contactFriend.getPhone()
-                            ));
-                        });
-            }
-        }
+        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO> contactFriends = Optional.ofNullable(request.getContact())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO(
+                                contact.getContactName(),
+                                contactFriend.getId(),
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null)) // User가 없으면 null
+                .filter(Objects::nonNull) // null 값 제거
+                .collect(Collectors.toList());
 
         User user = UserConverter.toOAuthUser(request, contactFriends);
         userRepository.save(user);

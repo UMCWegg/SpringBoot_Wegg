@@ -22,7 +22,10 @@ public class UserResponseDTO {
         @AllArgsConstructor
         public static class ContactFriendDTO {
             private String contactName;
+            private Long userId;
+            private String accountId;
             private String name;
+            private String profileImage;
             private String phone;
         }
     }
@@ -41,7 +44,10 @@ public class UserResponseDTO {
         @AllArgsConstructor
         public static class ContactFriendDTO {
             private String contactName;
+            private Long userId;
+            private String accountId;
             private String name;
+            private String profileImage;
             private String phone;
         }
     }
