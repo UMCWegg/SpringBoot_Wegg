@@ -7,17 +7,16 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import umc.wegg.domain.common.BaseEntity;
 import umc.wegg.domain.enums.Job;
-import umc.wegg.domain.enums.Role;
 import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.domain.mapping.Follow;
 import umc.wegg.domain.mapping.MyTemplate;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @DynamicUpdate
 @DynamicInsert
 @Builder
@@ -38,8 +37,6 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private String password;  // 비밀번호
-
-    private LocalDate inactiveDate; // 비활성 기간 (null 값이라면 활동 중, 데이터가 존재하면 휴면 중 / 회원 탈퇴 시 휴면 처리해야 함)
 
     @Column(nullable = false, length = 10)
     private String name; // 사용자 이름
@@ -68,13 +65,7 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String phone; // 사용자 전화번호
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @ColumnDefault("'USER'")
-    private Role role = Role.USER;
-
-//    @Enumerated(EnumType.STRING)
-//    private AccountVisibility accountVisibility; // 계정 공개 여부 (전체 공개, 맞팔만 공개)
+    private String oauthId;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
@@ -108,6 +99,9 @@ public class User extends BaseEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Setting setting;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContactFriend> contactFriends = new ArrayList<>();
 
     public void setSetting(Setting setting) {
         this.setting = setting;
