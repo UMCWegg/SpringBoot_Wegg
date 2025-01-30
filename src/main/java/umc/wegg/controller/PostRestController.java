@@ -98,19 +98,15 @@ public class PostRestController {
     }
 
 
-    @Operation(summary = "게시물 상세보기", description = "특정 게시물의 모든 정보 조회하는 API")
+    @Operation(summary = "게시물 상세보기", description = "특정 게시물의 모든 정보를 조회하는 API (댓글 15개씩 페이징 포함)")
     @GetMapping("/{post_id}/view")
-    public ApiResponse<PostResponseDTO.PostDetailResponseDTO> viewPostDetails(@PathVariable("post_id") Long postId) {
-        PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId);
+    public ApiResponse<PostResponseDTO.PostDetailResponseDTO> viewPostDetails(
+            @PathVariable("post_id") Long postId,
+            @RequestParam(defaultValue = "0") int page, // 기본값 페이지 0
+            @RequestParam(defaultValue = "15") int size // 기본값 크기 15
+    ) {
+        PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId, page, size);
         return ApiResponse.onSuccess(responseDTO);
     }
 
-//    @GetMapping("/browse")
-//    public ResponseEntity<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(
-//            @RequestParam(defaultValue = "0") int page, // 기본값 페이지 0
-//            @RequestParam(defaultValue = "20") int size // 기본값 크기 20
-//    ) {
-//        List<PostResponseDTO.PostPreviewResponseDTO> posts = postCommandService.browsePosts(page, size);
-//        return ResponseEntity.ok(posts);
-//    }
 }

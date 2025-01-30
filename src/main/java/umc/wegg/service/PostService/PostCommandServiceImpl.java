@@ -276,18 +276,18 @@ public class PostCommandServiceImpl implements PostCommandService {
 //    }
 
 
-
     @Override
-    public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId) {
+    public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
-        // 2. 댓글 리스트 조회
-        List<Comment> comments = commentRepository.findByPost(post);
+        // 2. 페이징된 댓글 조회
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Comment> commentPage = commentRepository.findByPost(post, pageable);
 
         // 3. 댓글 리스트를 DTO로 변환
-        List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> commentDTOs = comments.stream()
+        List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> commentDTOs = commentPage.getContent().stream()
                 .map(comment -> PostResponseDTO.PostDetailResponseDTO.CommentDTO.builder()
                         .commentId(comment.getId())                         // 댓글 ID
                         .userId(comment.getUser().getId())                  // 댓글 작성자 ID
@@ -326,11 +326,69 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .profileImage(post.getPlan().getUser().getProfileImage()) // 작성자 프로필 이미지
                 .name(post.getPlan().getUser().getName())                // 작성자 이름
                 .createdAt(post.getCreatedAt())                          // 게시 시간
-                .comments(commentDTOs)                                   // 댓글 리스트
+                .comments(commentDTOs)                                   // 댓글 리스트 (페이징 적용됨)
                 .emojiCounts(allEmojiCounts)                             // 모든 이모지의 개수 리스트
                 .userSelectedEmojis(userSelectedEmojis)                  // 사용자 선택 이모지 리스트
+                .currentPage(commentPage.getNumber())                    // 현재 댓글 페이지 번호
+                .totalPages(commentPage.getTotalPages())                 // 총 댓글 페이지 수
+                .totalComments(commentPage.getTotalElements())           // 총 댓글 개수
                 .build();
     }
+
+//    @Override
+//    public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId) {
+//        // 1. 게시물 조회
+//        Post post = postRepository.findById(postId)
+//                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+//
+//        // 2. 댓글 리스트 조회
+//        List<Comment> comments = commentRepository.findByPost(post);
+//
+//        // 3. 댓글 리스트를 DTO로 변환
+//        List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> commentDTOs = comments.stream()
+//                .map(comment -> PostResponseDTO.PostDetailResponseDTO.CommentDTO.builder()
+//                        .commentId(comment.getId())                         // 댓글 ID
+//                        .userId(comment.getUser().getId())                  // 댓글 작성자 ID
+//                        .username(comment.getUser().getName())              // 댓글 작성자 닉네임
+//                        .content(comment.getComment())                      // 댓글 내용
+//                        .commenterProfileUrl(comment.getUser().getProfileImage()) // 댓글 작성자 프로필 이미지
+//                        .createdAt(comment.getCreatedAt())                  // 댓글 작성 시간
+//                        .build())
+//                .collect(Collectors.toList());
+//
+//        // 4. 이모지 데이터 조회
+//        List<Emoji> emojis = emojiRepository.findByPost(post);
+//
+//        // 5. 모든 이모지 타입의 개수를 계산
+//        Map<EmojiType, Long> emojiCounts = emojis.stream()
+//                .collect(Collectors.groupingBy(Emoji::getType, Collectors.counting()));
+//
+//        // 6. 모든 이모지 타입을 포함하여 기본값 0 설정
+//        List<PostResponseDTO.EmojiResponseDTO.EmojiCountDTO> allEmojiCounts = Arrays.stream(EmojiType.values())
+//                .map(type -> PostResponseDTO.EmojiResponseDTO.EmojiCountDTO.builder()
+//                        .emojiType(type.name())                           // 이모지 타입 이름
+//                        .count(emojiCounts.getOrDefault(type, 0L).intValue()) // 개수 (기본값 0)
+//                        .build())
+//                .collect(Collectors.toList());
+//
+//        // 7. 사용자 선택 이모지 리스트 구성
+//        List<String> userSelectedEmojis = emojis.stream()
+//                .map(emoji -> emoji.getType().name())
+//                .distinct()
+//                .collect(Collectors.toList());
+//
+//        // 8. PostDetailResponseDTO 생성 및 반환
+//        return PostResponseDTO.PostDetailResponseDTO.builder()
+//                .postId(post.getId())                                     // 게시물 ID
+//                .postImageUrl(post.getImageUrl())                        // 게시물 이미지 URL
+//                .profileImage(post.getPlan().getUser().getProfileImage()) // 작성자 프로필 이미지
+//                .name(post.getPlan().getUser().getName())                // 작성자 이름
+//                .createdAt(post.getCreatedAt())                          // 게시 시간
+//                .comments(commentDTOs)                                   // 댓글 리스트
+//                .emojiCounts(allEmojiCounts)                             // 모든 이모지의 개수 리스트
+//                .userSelectedEmojis(userSelectedEmojis)                  // 사용자 선택 이모지 리스트
+//                .build();
+//    }
 
 
     @Override

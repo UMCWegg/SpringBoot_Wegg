@@ -24,7 +24,7 @@ public interface PostCommandService {
     List<PostResponseDTO.PostPreviewResponseDTO> browsePosts(int page, int size);
 
     // 작성물 상세보기
-    PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId);
+    PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size);
 
     // 댓글 조회
     List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId, int page, int size);

@@ -98,9 +98,12 @@ public class PostResponseDTO {
         private String profileImage;                           // 작성자 프로필 사진 URL
         private String name;                                   // 작성자 이름
         private LocalDateTime createdAt;                       // 게시 시간
-        private List<CommentDTO> comments;                     // 댓글 리스트
+        private List<CommentDTO> comments;                     // 댓글 리스트 (페이징 적용)
         private List<EmojiResponseDTO.EmojiCountDTO> emojiCounts; // 모든 이모지 타입과 개수 리스트
-        private List<String> userSelectedEmojis;               // 사용자가 선택한 이모지 타입 리스트
+        private List<String> userSelectedEmojis;               // 사용자 선택한 이모지 리스트
+        private int currentPage;                               // 현재 댓글 페이지 번호
+        private int totalPages;                                // 총 댓글 페이지 수
+        private long totalComments;                            // 총 댓글 개수
 
         @Getter
         @Builder
@@ -111,10 +114,11 @@ public class PostResponseDTO {
             private Long userId;                               // 댓글 작성자 ID
             private String username;                           // 댓글 작성자 닉네임
             private String content;                            // 댓글 내용
-            private String commenterProfileUrl;               // 댓글 작성자 프로필 이미지 URL
+            private String commenterProfileUrl;               // 댓글 작성자 프로필 이미지
             private LocalDateTime createdAt;                  // 댓글 작성 시간
         }
     }
+
 
 
 
