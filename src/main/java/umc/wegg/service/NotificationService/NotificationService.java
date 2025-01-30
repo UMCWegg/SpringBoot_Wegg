@@ -7,4 +7,5 @@ import umc.wegg.domain.enums.NotificationType;
 public interface NotificationService {
     SseEmitter subscribe(Long memberId, String lastEventId);
     void send(User receiver, NotificationType notificationType, String content, String url);
+    void sendNotificationToPostOwner(User postOwner, Long postId, String message, String notificationType);
 }

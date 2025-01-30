@@ -86,4 +86,9 @@ public class NotificationServiceImpl implements NotificationService {
             throw new RuntimeException("Failed to send notification");
         }
     }
+
+    public void sendNotificationToPostOwner(User postOwner, Long postId, String content, String notificationType) {
+        NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
+        send(postOwner, type, content, "/posts/" + postId + "/view");
+    }
 }

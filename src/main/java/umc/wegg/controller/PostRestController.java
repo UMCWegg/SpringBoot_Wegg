@@ -4,12 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
-import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
-import umc.wegg.service.NotificationService.NotificationService;
 import umc.wegg.service.PostService.PostCommandService;
 
 import java.util.List;
@@ -21,7 +18,6 @@ import java.util.List;
 public class PostRestController {
 
     private final PostCommandService postCommandService;
-    private final NotificationService notificationService;
 
     @Operation(summary = "게시물 등록", description = "랜덤 인증을 통해 게시물을 등록하는 API")
     @PostMapping
@@ -35,20 +31,6 @@ public class PostRestController {
     @PostMapping("/comment")
     public ApiResponse<String> addComment(@RequestBody PostRequestDTO.AddCommentDTO requestDTO) {
         postCommandService.addComment(requestDTO);
-
-        // 게시글 작성자 조회 (Plan을 통해 User를 가져오는 방식)
-        User postOwner = postCommandService.getPostOwner(requestDTO.getPostingId());
-
-        // 본인이 댓글을 단 경우 제외하고 알림 전송
-        if (!postOwner.getId().equals(requestDTO.getUserId())) {
-            notificationService.send(
-                    postOwner,
-                    NotificationType.COMMENT,
-                    "님이 댓글을 달았습니다.",
-                    "/posts/" + requestDTO.getPostingId() + "/view"
-            );
-        }
-
         return ApiResponse.onSuccess("댓글 등록에 성공하였습니다.");
     }
 

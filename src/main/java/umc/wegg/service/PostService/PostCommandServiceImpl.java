@@ -9,6 +9,7 @@ import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.service.NotificationService.NotificationService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,8 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final PlanRepository planRepository;
     private final TemplateRepository templateRepository;
     private final UserRepository userRepository;
+
+    private final NotificationService notificationService;
 
 
 
@@ -84,6 +87,21 @@ public class PostCommandServiceImpl implements PostCommandService {
 
         // 4. 댓글 저장
         commentRepository.save(comment);
+
+        // 5. 게시글 작성자 조회
+        User postOwner = getPostOwner(requestDTO.getPostingId());
+
+        // 6. 댓글 작성자 이름
+        String commenterName = user.getAccountId();
+
+        // 7. 본인이 댓글을 단 경우를 제외하고 알림 전송
+        if (!postOwner.getId().equals(requestDTO.getUserId())) {
+            // 알림 메시지 작성
+            String message = commenterName + "님이 댓글을 달았습니다!";
+
+            // 알림 전송
+            notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT");
+        }
     }
 
 
@@ -134,6 +152,8 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .type(type)
                 .build();
         emojiRepository.save(emoji);
+
+
     }
 
 
