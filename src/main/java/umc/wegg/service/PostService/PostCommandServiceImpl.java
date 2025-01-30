@@ -153,6 +153,21 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .build();
         emojiRepository.save(emoji);
 
+        // 6. 게시글 작성자 조회
+        User postOwner = getPostOwner(postId);
+
+        // 6. 이모지 작성자 이름
+        String emojiName = user.getAccountId();
+
+        if (!postOwner.getId().equals(userId)) {
+            // 알림 메시지 작성
+            String message = emojiName + " 님이" + emojiType +"을 달았습니다!";
+
+            // 알림 전송
+            notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI");
+        }
+
+        // 알림 전송
 
     }
 
