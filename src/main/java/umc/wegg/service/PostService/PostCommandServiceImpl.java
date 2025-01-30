@@ -64,8 +64,9 @@ public class PostCommandServiceImpl implements PostCommandService {
     @Override
     public void addComment(PostRequestDTO.AddCommentDTO requestDTO) {
         // 1. 유저 조회
-        User user = userRepository.findById(requestDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + requestDTO.getUserId()));
+        Long userId = 1L;// 포스트맨 쓰기전까지 1로 두기!! 이후 바꿔야 함!!
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
         // 2. 게시물(Post) 조회
         Post post = postRepository.findById(requestDTO.getPostingId())
@@ -100,12 +101,13 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public void addEmoji(Long postId, String emojiType, Long userId) {
+    public void addEmoji(Long postId, String emojiType) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
         // 2. 사용자 조회
+        Long userId = 1L;// 포스트맨 쓰기전까지 1로 두기!! 이후 바꿔야 함!!
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
@@ -134,12 +136,13 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public void deleteEmoji(Long postId, String emojiType, Long userId) {
+    public void deleteEmoji(Long postId, String emojiType) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
         // 2. 사용자 조회
+        Long userId = 1L;// 포스트맨 쓰기전까지 1로 두기!! 이후 바꿔야 함!!
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 

@@ -56,7 +56,7 @@ public class PostRestController {
     public ApiResponse<String> addEmoji(
             @PathVariable("post_id") Long postId,
             @RequestBody PostRequestDTO.AddEmojiDTO requestDTO) {
-        postCommandService.addEmoji(postId, requestDTO.getType(), requestDTO.getUserId());
+        postCommandService.addEmoji(postId, requestDTO.getType());
         return ApiResponse.onSuccess("이모지가 " + postId+ "번 포스트에 등록되었습니다.");
     }
 
@@ -72,7 +72,7 @@ public class PostRestController {
     public ApiResponse<String> deleteEmoji(
             @PathVariable("post_id") Long postId,
             @RequestBody PostRequestDTO.DeleteEmojiDTO requestDTO) {
-        postCommandService.deleteEmoji(postId, requestDTO.getType(), requestDTO.getUserId());
+        postCommandService.deleteEmoji(postId, requestDTO.getType());
         return ApiResponse.onSuccess("Emojis deleted for post: " + postId);
     }
 

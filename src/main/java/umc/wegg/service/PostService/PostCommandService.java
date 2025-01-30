@@ -15,10 +15,10 @@ public interface PostCommandService {
     void deleteComment(Long postId, Long commentId);
 
     // 이모지 등록
-    void addEmoji(Long postId, String emojiType, Long userId);
+    void addEmoji(Long postId, String emojiType);
 
     // 이모지 삭제
-    void deleteEmoji(Long postId, String emojiType, Long userId);
+    void deleteEmoji(Long postId, String emojiType);
 
     // 게시물 둘러보기
     List<PostResponseDTO.PostPreviewResponseDTO> browsePosts();
