@@ -1,5 +1,6 @@
 package umc.wegg.service.PostService;
 
+import umc.wegg.domain.User;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import java.util.List;
@@ -31,5 +32,8 @@ public interface PostCommandService {
 
     // 이모지 조회
     PostResponseDTO.EmojiResponseDTO getEmojis(Long postId);
+
+    // 게시글 작성자 조회
+    User getPostOwner(Long postId);
 }
 

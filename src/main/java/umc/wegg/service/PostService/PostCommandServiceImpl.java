@@ -11,7 +11,6 @@ import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,6 +56,13 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .build();
     }
 
+    // 게시글 작성자를 가져오는 메서드
+    public User getPostOwner(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."))
+                .getPlan()          // Post 엔티티에서 Plan을 가져옴
+                .getUser();         // Plan 엔티티에서 User를 가져옴
+    }
 
 
     @Override
