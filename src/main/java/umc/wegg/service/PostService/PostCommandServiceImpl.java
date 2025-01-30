@@ -1,6 +1,9 @@
 package umc.wegg.service.PostService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import umc.wegg.domain.*;
 import umc.wegg.domain.enums.EmojiType;
@@ -164,49 +167,36 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts() {
+    public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts(int page, int size) {
         // 1. 현재 사용자 조회
-        Long userId = 1L; // 예: 인증된 사용자 ID (로그인 구현 시 변경)
+        Long userId = 1L; // 로그인 구현 시 변경
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        // 2. 모든 게시물 조회
-        List<Post> allPosts = postRepository.findAll();
+        // 2. 페이징 처리를 위한 Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, size);
 
-        // 3. 게시물 이모지 개수를 계산하고 정렬 기준 적용
-        List<PostResponseDTO.PostPreviewResponseDTO> sortedPosts = allPosts.stream()
-                // 게시물을 DTO로 변환
+        // 3. 페이징된 게시물 조회
+        Page<Post> postPage = postRepository.findAll(pageable);
+
+        // 4. 게시물 데이터를 정렬
+        List<Post> sortedPosts = postPage.getContent().stream()
                 .filter(post -> post.getPlan() != null) // Plan이 없는 게시물 필터링
-                .map(post -> {
-                    int emojiCount = emojiRepository.countByPost(post); // 이모지 개수 계산
-                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
-
-                    return PostResponseDTO.PostPreviewResponseDTO.builder()
-                            .postId(post.getId())
-                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
-                            .nickname(postUser.getName()) // 작성자 닉네임
-                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
-                            .build();
-                })
-                // 정렬 로직
-                .sorted((dto1, dto2) -> {
-                    Post post1 = postRepository.findById(dto1.getPostId())
-                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto1.getPostId()));
-                    Post post2 = postRepository.findById(dto2.getPostId())
-                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto2.getPostId()));
-
+                .sorted((post1, post2) -> {
+                    // 작성자 가져오기
                     User user1 = post1.getPlan().getUser();
                     User user2 = post2.getPlan().getUser();
 
-                    boolean sameJob1 = user1.getJob().equals(currentUser.getJob());
-                    boolean sameJob2 = user2.getJob().equals(currentUser.getJob());
+                    // 같은 Job인지 확인
+                    boolean sameJob1 = user1.getJob() != null && user1.getJob().equals(currentUser.getJob());
+                    boolean sameJob2 = user2.getJob() != null && user2.getJob().equals(currentUser.getJob());
 
                     if (sameJob1 && !sameJob2) {
-                        return -1; // 같은 job인 경우 우선순위 높게
+                        return -1; // 같은 Job이면 우선순위 높게
                     } else if (!sameJob1 && sameJob2) {
-                        return 1; // 다른 job인 경우 우선순위 낮게
+                        return 1; // 다른 Job이면 우선순위 낮게
                     } else {
-                        // 같은 job끼리는 이모지 개수로 정렬
+                        // 같은 Job끼리는 이모지 개수로 정렬
                         int emojiCount1 = emojiRepository.countByPost(post1);
                         int emojiCount2 = emojiRepository.countByPost(post2);
                         return Integer.compare(emojiCount2, emojiCount1); // 이모지 개수가 많은 순서
@@ -214,9 +204,76 @@ public class PostCommandServiceImpl implements PostCommandService {
                 })
                 .collect(Collectors.toList());
 
-        // 4. 정렬된 게시물 리스트 반환
-        return sortedPosts;
+        // 5. 정렬된 게시물을 DTO로 변환하여 반환
+        return sortedPosts.stream()
+                .map(post -> {
+                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
+                    return PostResponseDTO.PostPreviewResponseDTO.builder()
+                            .postId(post.getId())
+                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
+                            .nickname(postUser.getName()) // 작성자 닉네임
+                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
+
+
+
+//    @Override
+//    public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts() {
+//        // 1. 현재 사용자 조회
+//        Long userId = 1L; // 예: 인증된 사용자 ID (로그인 구현 시 변경)
+//        User currentUser = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+//
+//        // 2. 모든 게시물 조회
+//        List<Post> allPosts = postRepository.findAll();
+//
+//        // 3. 게시물 이모지 개수를 계산하고 정렬 기준 적용
+//        List<PostResponseDTO.PostPreviewResponseDTO> sortedPosts = allPosts.stream()
+//                // 게시물을 DTO로 변환
+//                .filter(post -> post.getPlan() != null) // Plan이 없는 게시물 필터링
+//                .map(post -> {
+//                    int emojiCount = emojiRepository.countByPost(post); // 이모지 개수 계산
+//                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
+//
+//                    return PostResponseDTO.PostPreviewResponseDTO.builder()
+//                            .postId(post.getId())
+//                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
+//                            .nickname(postUser.getName()) // 작성자 닉네임
+//                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
+//                            .build();
+//                })
+//                // 정렬 로직
+//                .sorted((dto1, dto2) -> {
+//                    Post post1 = postRepository.findById(dto1.getPostId())
+//                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto1.getPostId()));
+//                    Post post2 = postRepository.findById(dto2.getPostId())
+//                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto2.getPostId()));
+//
+//                    User user1 = post1.getPlan().getUser();
+//                    User user2 = post2.getPlan().getUser();
+//
+//                    boolean sameJob1 = user1.getJob().equals(currentUser.getJob());
+//                    boolean sameJob2 = user2.getJob().equals(currentUser.getJob());
+//
+//                    if (sameJob1 && !sameJob2) {
+//                        return -1; // 같은 job인 경우 우선순위 높게
+//                    } else if (!sameJob1 && sameJob2) {
+//                        return 1; // 다른 job인 경우 우선순위 낮게
+//                    } else {
+//                        // 같은 job끼리는 이모지 개수로 정렬
+//                        int emojiCount1 = emojiRepository.countByPost(post1);
+//                        int emojiCount2 = emojiRepository.countByPost(post2);
+//                        return Integer.compare(emojiCount2, emojiCount1); // 이모지 개수가 많은 순서
+//                    }
+//                })
+//                .collect(Collectors.toList());
+//
+//        // 4. 정렬된 게시물 리스트 반환
+//        return sortedPosts;
+//    }
 
 
 
@@ -276,28 +333,52 @@ public class PostCommandServiceImpl implements PostCommandService {
     }
 
 
-
     @Override
-    public List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId) {
+    public List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId, int page, int size) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
-        // 2. 댓글 조회 (parentId를 기준으로 기본 댓글과 대댓글 포함)
-        List<Comment> comments = commentRepository.findByPost(post);
+        // 2. 페이징 처리를 위한 Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, size);
 
-        // 3. 댓글 리스트를 DTO로 변환
-        return comments.stream()
+        // 3. 페이징된 댓글 조회
+        Page<Comment> commentPage = commentRepository.findByPost(post, pageable);
+
+        // 4. 댓글 리스트를 DTO로 변환
+        return commentPage.getContent().stream()
                 .map(comment -> PostResponseDTO.PostDetailResponseDTO.CommentDTO.builder()
                         .commentId(comment.getId())                         // 댓글 ID
                         .userId(comment.getUser().getId())                  // 작성자 ID
-                        .username(comment.getUser().getName())          // 작성자 닉네임
+                        .username(comment.getUser().getName())              // 작성자 닉네임
                         .content(comment.getComment())                      // 댓글 내용
                         .commenterProfileUrl(comment.getUser().getProfileImage()) // 작성자 프로필 이미지
                         .createdAt(comment.getCreatedAt())                  // 작성 시간
                         .build())
                 .collect(Collectors.toList());
     }
+
+//    @Override
+//    public List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId) {
+//        // 1. 게시물 조회
+//        Post post = postRepository.findById(postId)
+//                .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
+//
+//        // 2. 댓글 조회 (parentId를 기준으로 기본 댓글과 대댓글 포함)
+//        List<Comment> comments = commentRepository.findByPost(post);
+//
+//        // 3. 댓글 리스트를 DTO로 변환
+//        return comments.stream()
+//                .map(comment -> PostResponseDTO.PostDetailResponseDTO.CommentDTO.builder()
+//                        .commentId(comment.getId())                         // 댓글 ID
+//                        .userId(comment.getUser().getId())                  // 작성자 ID
+//                        .username(comment.getUser().getName())          // 작성자 닉네임
+//                        .content(comment.getComment())                      // 댓글 내용
+//                        .commenterProfileUrl(comment.getUser().getProfileImage()) // 작성자 프로필 이미지
+//                        .createdAt(comment.getCreatedAt())                  // 작성 시간
+//                        .build())
+//                .collect(Collectors.toList());
+//    }
 
 
 

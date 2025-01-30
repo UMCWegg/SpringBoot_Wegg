@@ -14,6 +14,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByPostId(Long postId);
 
     List<Comment> findByPost(Post post); //페이징 적용안함. 아직
-
+    Page<Comment> findByPost(Post post, Pageable pageable);
 }
 

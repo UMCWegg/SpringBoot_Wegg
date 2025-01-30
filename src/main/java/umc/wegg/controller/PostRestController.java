@@ -3,6 +3,7 @@ package umc.wegg.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PostRequestDTO;
@@ -34,13 +35,17 @@ public class PostRestController {
         return ApiResponse.onSuccess("댓글 등록에 성공하였습니다.");
     }
 
-    @Operation(summary = "댓글 조회", description = "특정 게시물에 대한 댓글 리스트를 조회하는 API")
-    @GetMapping("/{post_id}/comment")
+    @Operation(summary = "댓글 조회", description = "특정 게시물에 대한 댓글 리스트를 페이징하여 조회하는 API")
+    @GetMapping("/{post_id}/comments")
     public ApiResponse<List<PostResponseDTO.PostDetailResponseDTO.CommentDTO>> getComments(
-            @PathVariable("post_id") Long postId) {
-        List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> comments = postCommandService.getComments(postId);
+            @PathVariable("post_id") Long postId,
+            @RequestParam(defaultValue = "0") int page, // 기본값 페이지 0
+            @RequestParam(defaultValue = "15") int size // 기본값 크기 15
+    ) {
+        List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> comments = postCommandService.getComments(postId, page, size);
         return ApiResponse.onSuccess(comments);
     }
+
 
     @Operation(summary = "댓글 삭제", description = "특정 게시물의 특정 댓글을 삭제하는 API")
     @DeleteMapping("/{post_id}/comment/{comment_id}")
@@ -76,12 +81,22 @@ public class PostRestController {
         return ApiResponse.onSuccess("Emojis deleted for post: " + postId);
     }
 
-    @Operation(summary = "게시물 둘러보기", description = "모든 게시물을 정렬된 리스트로 반환하는 API")
+//    @Operation(summary = "게시물 둘러보기", description = "모든 게시물을 정렬된 리스트로 반환하는 API")
+//    @GetMapping("/view")
+//    public ApiResponse<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts() {
+//        List<PostResponseDTO.PostPreviewResponseDTO> responseDTOs = postCommandService.browsePosts();
+//        return ApiResponse.onSuccess(responseDTOs);
+//    }
+    @Operation(summary = "게시물 둘러보기", description = "페이징된 게시물을 정렬된 리스트로 반환하는 API")
     @GetMapping("/view")
-    public ApiResponse<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts() {
-        List<PostResponseDTO.PostPreviewResponseDTO> responseDTOs = postCommandService.browsePosts();
+    public ApiResponse<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(
+            @RequestParam(defaultValue = "0") int page, // 기본값 페이지 0
+            @RequestParam(defaultValue = "20") int size // 기본값 크기 20
+    ) {
+        List<PostResponseDTO.PostPreviewResponseDTO> responseDTOs = postCommandService.browsePosts(page, size);
         return ApiResponse.onSuccess(responseDTOs);
     }
+
 
     @Operation(summary = "게시물 상세보기", description = "특정 게시물의 모든 정보 조회하는 API")
     @GetMapping("/{post_id}/view")
@@ -89,4 +104,13 @@ public class PostRestController {
         PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId);
         return ApiResponse.onSuccess(responseDTO);
     }
+
+//    @GetMapping("/browse")
+//    public ResponseEntity<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(
+//            @RequestParam(defaultValue = "0") int page, // 기본값 페이지 0
+//            @RequestParam(defaultValue = "20") int size // 기본값 크기 20
+//    ) {
+//        List<PostResponseDTO.PostPreviewResponseDTO> posts = postCommandService.browsePosts(page, size);
+//        return ResponseEntity.ok(posts);
+//    }
 }

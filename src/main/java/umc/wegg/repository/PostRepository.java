@@ -1,5 +1,7 @@
 package umc.wegg.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,5 +21,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findPostsByUserIdBetween(@Param("userId") Long userId,
                                         @Param("start") LocalDateTime start,
                                         @Param("end") LocalDateTime end);
+
+    Page<Post> findAll(Pageable pageable);
 }
 
