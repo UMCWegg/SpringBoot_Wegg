@@ -30,20 +30,9 @@ public class Notification extends BaseEntity {
     private NotificationType notificationType; // 알림의 유형 (enum: FRIEND_REQUEST, ALERT 등, 데이터베이스에 문자열로 저장)
 
     @Enumerated(EnumType.STRING)
-    private ReadStatus readStatus; // 알림 읽음 상태 (enum: READ, UNREAD 등)
-
-    @Builder
-    public Notification(User user, NotificationType notificationType, String content, String url, ReadStatus readStatus) {
-        this.user = user;
-        this.notificationType = notificationType;
-        this.content = content;
-        this.url = url;
-        this.readStatus = (readStatus != null) ? readStatus : ReadStatus.UNREAD;
-    }
-
-    public String getReceiverName() {
-        return user.getName();
-    } // receiver의 name을 받아올지 accoutId를 받아올지는 pm님께 여쭤보자
+    @Column(nullable = false)
+    @Builder.Default
+    private ReadStatus readStatus = ReadStatus.UNREAD;
 
 
 }
