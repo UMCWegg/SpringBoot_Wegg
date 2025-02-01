@@ -22,7 +22,14 @@ public class ContactFriend {
     @JoinColumn(name = "user_id", nullable = false) // 외래 키 매핑
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY) // User와 다대일 관계
+    @JoinColumn(name = "friend_id", nullable = false) // 외래 키 매핑
+    private User friend;
+
     @Column(name = "phone_num", nullable = false, length = 255)
     private String phoneNum;
+
+    @Column(name = "is_following", nullable = false, length = 255)
+    private Boolean isFollowing;
 }
 

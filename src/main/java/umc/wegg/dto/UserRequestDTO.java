@@ -98,9 +98,6 @@ public class UserRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ContactDto {
-        @NotBlank
-        private String contactName;
-
         @Pattern(regexp = "\\d{3}\\d{4}\\d{4}", message = "전화번호 형식이 맞아야 합니다.")
         @NotBlank
         private String phone; // 연락처 전화번호

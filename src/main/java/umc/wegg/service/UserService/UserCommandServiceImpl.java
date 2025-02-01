@@ -36,13 +36,12 @@ public class UserCommandServiceImpl implements UserCommandService{
     @Transactional
     public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
 
-        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDTO> contactFriends = Optional.ofNullable(request.getContact())
+        List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(contact -> userRepository.findByPhone(contact.getPhone())
-                        .map(contactFriend -> new UserResponseDTO.UserJoinResultDTO.ContactFriendDTO(
-                                contact.getContactName(),
-                                contactFriend.getId(),
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
                                 contactFriend.getAccountId(),
                                 contactFriend.getName(),
                                 contactFriend.getProfileImage(),
@@ -52,9 +51,20 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .filter(Objects::nonNull) // null 값 제거
                 .collect(Collectors.toList());
 
-        User user = UserConverter.toUser(request, contactFriends);
+        User user = UserConverter.toUser(request, contactFriendList);
         user.encodePassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
+
+        // 응답용 ContactFriendDto 변환
+        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDto> contactFriends = contactFriendList.stream()
+                .map(contactFriend -> new UserResponseDTO.UserJoinResultDTO.ContactFriendDto(
+                        contactFriend.getFriend().getId(),
+                        contactFriend.getFriend().getAccountId(),
+                        contactFriend.getFriend().getName(),
+                        contactFriend.getFriend().getProfileImage(),
+                        contactFriend.getFriend().getPhone()
+                ))
+                .collect(Collectors.toList());
 
         return UserConverter.toJoinResultDTO(user, contactFriends);
     }
@@ -74,13 +84,12 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         request.setPassword(passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()));
 
-        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO> contactFriends = Optional.ofNullable(request.getContact())
+        List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(contact -> userRepository.findByPhone(contact.getPhone())
-                        .map(contactFriend -> new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO(
-                                contact.getContactName(),
-                                contactFriend.getId(),
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
                                 contactFriend.getAccountId(),
                                 contactFriend.getName(),
                                 contactFriend.getProfileImage(),
@@ -90,8 +99,19 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .filter(Objects::nonNull) // null 값 제거
                 .collect(Collectors.toList());
 
-        User user = UserConverter.toOAuthUser(request, contactFriends);
+        User user = UserConverter.toOAuthUser(request, contactFriendList);
         userRepository.save(user);
+
+        // 응답용 ContactFriendDto 변환
+        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto> contactFriends = contactFriendList.stream()
+                .map(contactFriend -> new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto(
+                        contactFriend.getFriend().getId(), 
+                        contactFriend.getFriend().getAccountId(),
+                        contactFriend.getFriend().getName(),
+                        contactFriend.getFriend().getProfileImage(),
+                        contactFriend.getFriend().getPhone()
+                ))
+                .collect(Collectors.toList());
 
         return UserConverter.toOAuth2JoinResultDTO(user, contactFriends);
     }

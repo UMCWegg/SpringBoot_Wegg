@@ -24,7 +24,7 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserResponseDTO.UserJoinResultDTO toJoinResultDTO(User user, List<UserResponseDTO.UserJoinResultDTO.ContactFriendDTO> contactFriends){
+    public static UserResponseDTO.UserJoinResultDTO toJoinResultDTO(User user, List<UserResponseDTO.UserJoinResultDTO.ContactFriendDto> contactFriends){
         return UserResponseDTO.UserJoinResultDTO.builder()
                 .userId(user.getId())
                 .createdAt(LocalDateTime.now())
@@ -33,7 +33,7 @@ public class UserConverter {
                 .build();
     }
 
-    public static UserResponseDTO.OAuth2UserJoinResultDTO toOAuth2JoinResultDTO(User user, List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO> contactFriends){
+    public static UserResponseDTO.OAuth2UserJoinResultDTO toOAuth2JoinResultDTO(User user, List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto> contactFriends){
         return UserResponseDTO.OAuth2UserJoinResultDTO.builder()
                 .userId(user.getId())
                 .createdAt(LocalDateTime.now())
@@ -42,7 +42,7 @@ public class UserConverter {
                 .build();
     }
 
-    public static User toUser(UserRequestDTO.UserJoinDto request, List<UserResponseDTO.UserJoinResultDTO.ContactFriendDTO> contactFriends){
+    public static User toUser(UserRequestDTO.UserJoinDto request, List<UserResponseDTO.ContactFriendDTO> contactFriends){
 
         User user = User.builder()
                 .email(request.getEmail())
@@ -84,7 +84,9 @@ public class UserConverter {
             List<ContactFriend> contactFriendList = contactFriends.stream()
                     .map(contactFriend -> ContactFriend.builder()
                             .user(user)
+                            .friend(contactFriend.getFriend())
                             .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
+                            .isFollowing(false)
                             .build())
                     .collect(Collectors.toList());
 
@@ -94,7 +96,7 @@ public class UserConverter {
         return user;
     }
 
-    public static User toOAuthUser(UserRequestDTO.OAuth2UserJoinDto request, List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDTO> contactFriends){
+    public static User toOAuthUser(UserRequestDTO.OAuth2UserJoinDto request, List<UserResponseDTO.ContactFriendDTO> contactFriends){
 
         User user = User.builder()
                 .accountId(request.getAccountId())
@@ -138,7 +140,9 @@ public class UserConverter {
             List<ContactFriend> contactFriendList = contactFriends.stream()
                     .map(contactFriend -> ContactFriend.builder()
                             .user(user)
+                            .friend(contactFriend.getFriend())
                             .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
+                            .isFollowing(false)
                             .build())
                     .collect(Collectors.toList());
 
