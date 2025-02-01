@@ -37,9 +37,9 @@ public class TodoCommandServiceImpl implements TodoCommandService {
         return todoRepository.save(existingTodo);
     }
 
-    public double getAchievementRate() {
+    public double getAchievementRate(Long userId) {
         long totalTodos = todoRepository.count();  // 전체 Todo 개수
-        long doneTodos = todoRepository.countByStatus(TodoListStatus.DONE);  // DONE 상태의 Todo 개수
+        long doneTodos = todoRepository.countByUserIdAndStatus(userId, TodoListStatus.DONE);  // DONE 상태의 Todo 개수
 
         if (totalTodos == 0) {
             return 0.0;  // 전체 할 일이 없다면 0%로 처리
