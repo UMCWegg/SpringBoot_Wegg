@@ -2,8 +2,10 @@ package umc.wegg.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.TodoList;
 import umc.wegg.domain.apiPayload.ApiResponse;
@@ -21,12 +23,13 @@ public class TodoRestController {
     private final TodoCommandService todoCommandService;
 
     @PostMapping("/add")
-    public ApiResponse<TodoResponseDTO.AddResultDTO> join(@RequestBody @Valid TodoRequestDTO.AddDTO request){
+    public ApiResponse<TodoResponseDTO.AddResultDTO> join(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @RequestBody @Valid TodoRequestDTO.AddDTO request) {
+
         // 인증된 사용자 ID 가져오기
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-//        Long userId = userDetails.getId(); // 인증된 사용자 ID
-        Long userId = 2L;
+        Long userId = authenticatedUser.getUserId();
+
         // AddDTO에 userId 설정
         request.setUserId(userId);
 
@@ -43,9 +46,9 @@ public class TodoRestController {
     }
 
     @GetMapping("/achievement")
-    public ApiResponse<Double> getAchievementRate() {
+    public ApiResponse<Double> getAchievementRate(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = 2L;  // 실제 인증된 사용자 ID로 교체
+        Long userId = authenticatedUser.getUserId();
 
         double achievementRate = todoCommandService.getAchievementRate(userId);  // 비율 계산
         return ApiResponse.onSuccess(achievementRate);  // 비율 반환
