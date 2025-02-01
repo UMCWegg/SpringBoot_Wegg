@@ -43,6 +43,7 @@ public class PlanConverter {
                 .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0f) // null일 경우 기본값 설정
                 .address(request.getAddress())
                 .date(startOfDay)
+                .planOn(request.getPlanOn() != null ? request.getPlanOn() : true)
                 .build();
     }
     public static PlanResponseDTO.PlanDetailDTO toPlanDetailDTO(Plan plan) {

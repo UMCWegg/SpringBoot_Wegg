@@ -32,13 +32,15 @@ public class PlanRequestDTO {
         Float longitude;
         @NotNull
         String address;
+        @NotNull
+        Boolean planOn;
 
     }
 
     @Getter
     public static class PlanUpdateDTO {
         PlanStatus status;
-        ReplayStatus replay;
+        ReplayStatus replay; // 이거 대신 날짜로 수정해야됨
         LocalDateTime startTime;
         LocalDateTime finishTime;
         Long userId;
@@ -46,5 +48,10 @@ public class PlanRequestDTO {
         Float latitude;
         Float longitude;
         String address;
+    }
+
+    @Getter
+    public static class PlanOnoffDTO {
+        Boolean planOn;
     }
 }
