@@ -14,6 +14,7 @@ import umc.wegg.service.PlanService.PlanCommandService;
 import umc.wegg.service.PlanService.PlanQueryService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,14 +24,24 @@ public class PlanRestController {
     private final PlanQueryService planQueryService;
 
     @PostMapping("/add")
-    public ApiResponse<PlanResponseDTO.PlanAddResultDTO> join(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody @Valid PlanRequestDTO.PlanAddDTO request){
-    // 인증된 사용자 ID 가져오기
-        Long userId = authenticatedUser.getUserId();
+    public ApiResponse<List<PlanResponseDTO.PlanAddResultDTO>> join(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody @Valid PlanRequestDTO.PlanAddDTO request) {
+        // 인증된 사용자 ID 가져오기
+        //Long userId = authenticatedUser.getUserId();
+        Long userId = 1L;
         // AddDTO에 userId 설정
         request.setUserId(userId);
-        Plan plan = planCommandService.addPlan(request);
-        return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(plan));
+
+        // 여러 날짜에 대해 계획을 추가
+        List<Plan> plans = planCommandService.addPlan(request);
+
+        // 여러 개의 계획을 PlanAddResultDTO 리스트로 변환하여 반환
+        List<PlanResponseDTO.PlanAddResultDTO> result = plans.stream()
+                .map(PlanConverter::toPlanAddResultDTO)
+                .collect(Collectors.toList());
+
+        return ApiResponse.onSuccess(result);
     }
+
 
     @PatchMapping("/{plan_id}")
     public ApiResponse<PlanResponseDTO.PlanAddResultDTO> updatePlan(
