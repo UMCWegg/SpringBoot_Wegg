@@ -20,6 +20,7 @@ import umc.wegg.repository.UserRepository;
 import umc.wegg.util.RedisUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,25 +35,38 @@ public class UserCommandServiceImpl implements UserCommandService{
     @Override
     @Transactional
     public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
-        User user = UserConverter.toUser(request);
+
+        List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null))
+                .filter(Objects::nonNull) // null 값 제거
+                .collect(Collectors.toList());
+
+        User user = UserConverter.toUser(request, contactFriendList);
         user.encodePassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
-        List<UserResponseDTO.UserJoinResultDTO.ExistingUserDTO> existingUsers = new ArrayList<>();
-        if (request.getContact() != null) {
-            for (UserRequestDTO.ContactDto contact : request.getContact()) {
-                userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(existingUser -> {
-                            existingUsers.add(new UserResponseDTO.UserJoinResultDTO.ExistingUserDTO(
-                                    contact.getContactName(),
-                                    existingUser.getName(),
-                                    existingUser.getPhone()
-                            ));
-                        });
-            }
-        }
+        // 응답용 ContactFriendDto 변환
+        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDto> contactFriends = contactFriendList.stream()
+                .map(contactFriend -> new UserResponseDTO.UserJoinResultDTO.ContactFriendDto(
+                        contactFriend.getFriend().getId(),
+                        contactFriend.getFriend().getAccountId(),
+                        contactFriend.getFriend().getName(),
+                        contactFriend.getFriend().getProfileImage(),
+                        contactFriend.getFriend().getPhone()
+                ))
+                .collect(Collectors.toList());
 
-        return UserConverter.toJoinResultDTO(user, existingUsers);
+        return UserConverter.toJoinResultDTO(user, contactFriends);
     }
 
     @Override
@@ -70,24 +84,36 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         request.setPassword(passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()));
 
-        User user = UserConverter.toOAuthUser(request);
+        List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null)) // User가 없으면 null
+                .filter(Objects::nonNull) // null 값 제거
+                .collect(Collectors.toList());
+
+        User user = UserConverter.toOAuthUser(request, contactFriendList);
         userRepository.save(user);
 
-        List<UserResponseDTO.OAuth2UserJoinResultDTO.ExistingUserDTO> existingUsers = new ArrayList<>();
-        if (request.getContact() != null) {
-            for (UserRequestDTO.ContactDto contact : request.getContact()) {
-                userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(existingUser -> {
-                            existingUsers.add(new UserResponseDTO.OAuth2UserJoinResultDTO.ExistingUserDTO(
-                                    contact.getContactName(),
-                                    existingUser.getName(),
-                                    existingUser.getPhone()
-                            ));
-                        });
-            }
-        }
+        // 응답용 ContactFriendDto 변환
+        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto> contactFriends = contactFriendList.stream()
+                .map(contactFriend -> new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto(
+                        contactFriend.getFriend().getId(), 
+                        contactFriend.getFriend().getAccountId(),
+                        contactFriend.getFriend().getName(),
+                        contactFriend.getFriend().getProfileImage(),
+                        contactFriend.getFriend().getPhone()
+                ))
+                .collect(Collectors.toList());
 
-        return UserConverter.toOAuth2JoinResultDTO(user, existingUsers);
+        return UserConverter.toOAuth2JoinResultDTO(user, contactFriends);
     }
 
     @Override
@@ -103,7 +129,7 @@ public class UserCommandServiceImpl implements UserCommandService{
             User user = existingUser.get();
 
             // OAuth2User를 AuthenticatedUser로 변환
-            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // 예시로 existingUser를 AuthenticatedUser로 변환
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // existingUser를 AuthenticatedUser로 변환
 
             // Spring Security에서 인증된 사용자로 설정
             Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, null);
