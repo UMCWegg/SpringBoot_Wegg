@@ -16,26 +16,34 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AmazonS3Manager{
+public class AmazonS3Manager {
 
     private final AmazonS3 amazonS3;
-
     private final AmazonConfig amazonConfig;
-
     private final UuidRepository uuidRepository;
 
-    public String upLoadFile(String KeyName, MultipartFile file) throws IOException {
-        System.out.println(KeyName);
+    public String upLoadFile(String keyName, MultipartFile file) throws IOException {
+        log.info("Uploading file: {}", keyName);
+
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
+        metadata.setContentType(file.getContentType());  // ✅ Content-Type 설정 추가
 
-        amazonS3.putObject(new PutObjectRequest(amazonConfig.getBucket(), KeyName, file.getInputStream(), metadata));
+        amazonS3.putObject(new PutObjectRequest(
+                amazonConfig.getBucket(),
+                keyName,
+                file.getInputStream(),
+                metadata
+        ));
 
-        return amazonS3.getUrl(amazonConfig.getBucket(), KeyName).toString();
+        return amazonS3.getUrl(amazonConfig.getBucket(), keyName).toString();
     }
 
     public String generateProfileKeyName(Uuid uuid) {
-        return amazonConfig.getProfilePath() + '/' + uuid.getUuid();
+        String profilePath = amazonConfig.getProfilePath();
+        if (!profilePath.endsWith("/")) {
+            profilePath += "/";
+        }
+        return profilePath + uuid.getUuid();
     }
-
 }
