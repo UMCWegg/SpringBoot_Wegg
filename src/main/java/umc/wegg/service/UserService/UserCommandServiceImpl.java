@@ -11,14 +11,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.UserConverter;
 import umc.wegg.domain.User;
+import umc.wegg.domain.Uuid;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.repository.UuidRepository;
 import umc.wegg.util.RedisUtil;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +36,10 @@ public class UserCommandServiceImpl implements UserCommandService{
     private final RedisUtil redisUtil;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final AmazonS3Manager s3Manager;
+
+    private final UuidRepository uuidRepository;
 
     @Override
     @Transactional
@@ -168,7 +177,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request) {
+    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
 
         if (authenticatedUser == null) {
             throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
@@ -192,8 +201,15 @@ public class UserCommandServiceImpl implements UserCommandService{
         }
 
         if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
-            user.setProfileImage(request.getProfileImage());
-            updatedFields.put("profileImage", request.getProfileImage());
+
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+                    .uuid(uuid).build());
+
+            String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
+
+            user.setProfileImage(pictureUrl);
+            updatedFields.put("profileImage", pictureUrl);
         }
 
         userRepository.save(user);
