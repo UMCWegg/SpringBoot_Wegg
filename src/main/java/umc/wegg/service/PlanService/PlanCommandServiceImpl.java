@@ -33,6 +33,18 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     }
 
     @Override
+    public Plan onoffPlan(Long planId, PlanRequestDTO.PlanOnoffDTO request) {
+        Plan existingPlan = planRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+
+        if (request.getPlanOn() != null) {
+            existingPlan.setPlanOn(request.getPlanOn());
+        }
+
+        return planRepository.save(existingPlan);
+    }
+
+    @Override
     public void deletePlan(Long planId) {
         if (!planRepository.existsById(planId)) {
             throw new RuntimeException("Plan not found with ID: " + planId);

@@ -45,6 +45,8 @@ public class Plan extends BaseEntity {
 
     private LocalDateTime date; // 계획의 날짜
 
+    private Boolean planOn; // 계획 온오프
+
     @OneToOne(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore // 순환 참조 방지
     private Egg egg; // 알과의 1:1 관계
