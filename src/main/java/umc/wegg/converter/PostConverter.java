@@ -3,13 +3,16 @@ package umc.wegg.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import umc.wegg.domain.*;
+import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.TemplateRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -58,9 +61,7 @@ public class PostConverter {
     public static PostResponseDTO.PostDetailResponseDTO toPostDetailResponseDTO(
             Post post,
             List<Comment> comments,
-            int heartCount,
-            int smileCount,
-            int thumbUpCount,
+            Map<EmojiType, Long> emojiCountsMap, // 모든 이모지 타입과 개수
             List<String> userSelectedEmojis
     ) {
         // 댓글 리스트 변환 (Comment -> CommentDTO)
@@ -74,6 +75,14 @@ public class PostConverter {
                         .build())
                 .collect(Collectors.toList());
 
+        // 모든 이모지 타입을 EmojiCountDTO 리스트로 변환
+        List<PostResponseDTO.EmojiResponseDTO.EmojiCountDTO> emojiCounts = Arrays.stream(EmojiType.values())
+                .map(type -> PostResponseDTO.EmojiResponseDTO.EmojiCountDTO.builder()
+                        .emojiType(type.name()) // 이모지 타입 이름
+                        .count(emojiCountsMap.getOrDefault(type, 0L).intValue()) // 이모지 개수 (기본값 0)
+                        .build())
+                .collect(Collectors.toList());
+
         // Post -> PostDetailResponseDTO 변환
         return PostResponseDTO.PostDetailResponseDTO.builder()
                 .postId(post.getId()) // 게시물 ID
@@ -82,12 +91,11 @@ public class PostConverter {
                 .name(post.getPlan().getUser() != null ? post.getPlan().getUser().getName() : "Unknown") // 작성자 닉네임
                 .createdAt(post.getCreatedAt()) // 게시물 작성 시간
                 .comments(commentDTOs) // 댓글 리스트
-                .heartCount(heartCount) // 하트 개수
-                .smileCount(smileCount) // 웃는 이모지 개수
-                .thumbUpCount(thumbUpCount) // 좋아요 개수
+                .emojiCounts(emojiCounts) // 모든 이모지 타입과 개수 리스트
                 .userSelectedEmojis(userSelectedEmojis) // 사용자가 선택한 이모지
                 .build();
     }
+
 
 
     // 4. Post -> PostPreviewResponseDTO (게시물 둘러보기 응답 DTO)
