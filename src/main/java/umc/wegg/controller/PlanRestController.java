@@ -26,8 +26,7 @@ public class PlanRestController {
     @PostMapping("/add")
     public ApiResponse<List<PlanResponseDTO.PlanAddResultDTO>> join(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody @Valid PlanRequestDTO.PlanAddDTO request) {
         // 인증된 사용자 ID 가져오기
-        //Long userId = authenticatedUser.getUserId();
-        Long userId = 1L;
+        Long userId = authenticatedUser.getUserId();
         // AddDTO에 userId 설정
         request.setUserId(userId);
 
