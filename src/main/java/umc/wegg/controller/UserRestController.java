@@ -5,10 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.UserRequestDTO;
@@ -16,6 +18,8 @@ import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.service.MailService.MailService;
 import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
+
+import java.io.IOException;
 
 @Slf4j
 @Validated
@@ -68,14 +72,19 @@ public class UserRestController {
         return ApiResponse.onSuccess(response);
     }
 
-    @PatchMapping("/update")
-    @Operation(summary = "회원정보 수정",description = "회원정보 수정 API")
-    public ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request){
-
-        UserResponseDTO.UserUpdateResultDTO response = userCommandService.updateUser(authenticatedUser, request);
+    @PatchMapping(value = "/update", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "회원정보 수정", description = "회원정보 수정 API")
+    public ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @RequestPart("request") @Valid UserRequestDTO.UserUpdateDto request,
+            @RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture
+    ) throws IOException {
+        // 회원 정보 업데이트 서비스 호출
+        UserResponseDTO.UserUpdateResultDTO response = userCommandService.updateUser(authenticatedUser, request, profilePicture);
 
         return ApiResponse.onSuccess(response);
     }
+
 
     @PostMapping("/phone/send-verification")
     @Operation(summary = "인증번호 전송(전화번호)",description = "사용자의 전화번호로 인증번호를 전송하는 API")
