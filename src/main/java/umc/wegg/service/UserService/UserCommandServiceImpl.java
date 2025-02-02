@@ -176,46 +176,89 @@ public class UserCommandServiceImpl implements UserCommandService{
         return new UserResponseDTO.UserDeleteResultDTO(true, userId);
     }
 
-    @Override
-    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
+//    @Override
+//    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
+//
+//        if (authenticatedUser == null) {
+//            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+//        }
+//
+//        Long userId = authenticatedUser.getUserId();
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+//
+//        // 수정된 필드를 저장할 Map
+//        Map<String, Object> updatedFields = new HashMap<>();
+//
+//        if (request.getName() != null && !request.getName().isEmpty()) {
+//            user.setName(request.getName());
+//            updatedFields.put("name", request.getName());
+//        }
+//
+//        if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
+//            user.setAccountId(request.getAccountId());
+//            updatedFields.put("accountId", request.getAccountId());
+//        }
+//
+//        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
+//
+//            String uuid = UUID.randomUUID().toString();
+//            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+//                    .uuid(uuid).build());
+//
+//            String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
+//
+//            user.setProfileImage(pictureUrl);
+//            updatedFields.put("profileImage", pictureUrl);
+//        }
+//
+//        userRepository.save(user);
+//
+//        return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
+//    }
 
-        if (authenticatedUser == null) {
-            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-        }
+@Override
+public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
 
-        Long userId = authenticatedUser.getUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
-
-        // 수정된 필드를 저장할 Map
-        Map<String, Object> updatedFields = new HashMap<>();
-
-        if (request.getName() != null && !request.getName().isEmpty()) {
-            user.setName(request.getName());
-            updatedFields.put("name", request.getName());
-        }
-
-        if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
-            user.setAccountId(request.getAccountId());
-            updatedFields.put("accountId", request.getAccountId());
-        }
-
-        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
-
-            String uuid = UUID.randomUUID().toString();
-            Uuid savedUuid = uuidRepository.save(Uuid.builder()
-                    .uuid(uuid).build());
-
-            String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
-
-            user.setProfileImage(pictureUrl);
-            updatedFields.put("profileImage", pictureUrl);
-        }
-
-        userRepository.save(user);
-
-        return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
+    if (authenticatedUser == null) {
+        throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
     }
+
+    Long userId = authenticatedUser.getUserId();
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+
+    // 수정된 필드를 저장할 Map
+    Map<String, Object> updatedFields = new HashMap<>();
+
+    if (request.getName() != null && !request.getName().isEmpty()) {
+        user.setName(request.getName());
+        updatedFields.put("name", request.getName());
+    }
+
+    if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
+        user.setAccountId(request.getAccountId());
+        updatedFields.put("accountId", request.getAccountId());
+    }
+
+    // MultipartFile을 사용해 profilePicture 처리
+    if (profilePicture != null && !profilePicture.isEmpty()) {
+        String uuid = UUID.randomUUID().toString();
+        Uuid savedUuid = uuidRepository.save(Uuid.builder()
+                .uuid(uuid).build());
+
+        // S3에 파일 업로드 후 URL 반환
+        String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
+
+        user.setProfileImage(pictureUrl);
+        updatedFields.put("profileImage", pictureUrl);
+    }
+
+    userRepository.save(user);
+
+    return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
+}
+
 
     @Override
     @Transactional(readOnly = true)

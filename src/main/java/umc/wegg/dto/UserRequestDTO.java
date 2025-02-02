@@ -123,7 +123,7 @@ public class UserRequestDTO {
         @Size(max = 10, message = "계정 ID는 최대 10자까지 가능합니다.")
         private String accountId; // 사용자 계정 ID
 
-        private String profileImage; // 사용자 프로필 이미지
+        //private String profileImage; // 사용자 프로필 이미지
     }
 
     @Getter
