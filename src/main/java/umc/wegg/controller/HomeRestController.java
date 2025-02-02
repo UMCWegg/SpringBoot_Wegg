@@ -62,10 +62,10 @@ public class HomeRestController {
 //    }
 
     // 게시물 조회
-    @GetMapping("/posts/{post_id}/view")
+    /*@GetMapping("/posts/{post_id}/view")
     @Operation(summary = "게시물 조회", description = "달력 클릭 시 해당 게시물을 조회하는 API")
     public ApiResponse<PostResponseDTO.PostDetailResponseDTO> viewPostDetails(@PathVariable("post_id") Long postId) {
         PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId);
         return ApiResponse.onSuccess(responseDTO);
-    }
+    }*/
 }
