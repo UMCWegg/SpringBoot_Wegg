@@ -3,6 +3,8 @@ package umc.wegg.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import umc.wegg.converter.HomeConverter;
+import umc.wegg.domain.Plan;
+import umc.wegg.domain.Post;
 import umc.wegg.domain.TodoList;
 import umc.wegg.domain.User;
 import umc.wegg.domain.enums.TodoListStatus;
@@ -11,7 +13,9 @@ import umc.wegg.repository.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,89 +30,118 @@ public class HomeCommandServiceImpl implements HomeCommandService {
     private final FollowRepository followRepository;
 
     @Override
-    public HomeResponseDTO getHomeWeekData() {
-        Long userId = 1L; // 테스트를 위해 userId를 1로 설정
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData() {
+        Long userId = 1L; // 테스트용 userId
 
         LocalDate today = LocalDate.now();
         LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY); // 이번 주 월요일
         LocalDate weekEnd = today.with(java.time.DayOfWeek.SUNDAY); // 이번 주 일요일
 
-        // 주간 데이터 변환
-        List<HomeResponseDTO.PlanInfo> weeklyPlans = homeConverter.convertPlansToPlanInfos(
-                planRepository.findPlansByUserIdBetween(userId, weekStart.atStartOfDay(), weekEnd.atTime(LocalTime.MAX))
+        List<Plan> allPlans = planRepository.findPlansByUserIdBetween(
+                userId, weekStart.atStartOfDay(), weekEnd.atTime(LocalTime.MAX)
         );
-        List<HomeResponseDTO.PostInfo> weeklyPosts = homeConverter.convertPostsToPostInfos(
-                postRepository.findPostsByUserIdBetween(userId, weekStart.atStartOfDay(), weekEnd.atTime(LocalTime.MAX))
+        List<Post> allPosts = postRepository.findPostsByUserIdBetween(
+                userId, weekStart.atStartOfDay(), weekEnd.atTime(LocalTime.MAX)
         );
 
-        // 투두리스트 통계
+        List<HomeResponseDTO.PlanInfo> weeklyPlans = new ArrayList<>();
+        List<HomeResponseDTO.PostInfo> weeklyPosts = new ArrayList<>();
+
+        for (Plan plan : allPlans) {
+            LocalDate planDate = plan.getStartTime().toLocalDate();
+            Optional<Post> matchingPost = allPosts.stream()
+                    .filter(post -> post.getCreatedAt().toLocalDate().equals(planDate))
+                    .findFirst();
+
+            if (planDate.isBefore(today)) {
+                // 과거 일정 중, post가 존재하는 경우에만 추가
+                matchingPost.ifPresent(post -> weeklyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
+            } else if (planDate.isAfter(today)) {
+                // 미래 일정은 plan 리스트에 추가
+                weeklyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
+            } else {
+                // 오늘 일정
+                weeklyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
+                matchingPost.ifPresent(post -> weeklyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
+            }
+        }
+
+        // 오늘 날짜의 투두리스트 가져오기
         List<TodoList> todos = todoRepository.findTodosByUserIdAndDate(userId, today);
-        int totalTodos = todos.size();
-        int completedTodos = (int) todos.stream().filter(todo -> todo.getStatus() == TodoListStatus.DONE).count();
+        List<HomeResponseDTO.TodoInfo> todayTodos = homeConverter.convertTodosToTodoInfos(todos);
+
+        int totalTodos = todayTodos.size();
+        int completedTodos = (int) todayTodos.stream().filter(HomeResponseDTO.TodoInfo::isCompleted).count();
         double completionRate = totalTodos > 0 ? ((double) completedTodos / totalTodos) * 100 : 0.0;
 
-        // 팔로워/팔로잉 수 계산
-        int followerCount = followRepository.countFollowers(user.getId());
-        int followingCount = followRepository.countFollowing(user.getId());
-
-        // 인증 성공 횟수 계산
-        int successCount = userRepository.findSuccessCountByUserId(userId);
-        // 오늘 날짜의 공부 시간 합산
+        int successCount = Optional.ofNullable(userRepository.findSuccessCountByUserId(userId)).orElse(0);
         int totalStudyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, today)
                 .stream().mapToInt(time -> time.getDuration()).sum();
 
-        return new HomeResponseDTO(
+        return new HomeResponseDTO.HomeWeekResponseDTO(
                 weeklyPlans,
                 weeklyPosts,
-                List.of(),
+                todayTodos,
                 totalTodos,
                 completedTodos,
                 completionRate,
                 successCount,
-                totalStudyTime,
-                followerCount,
-                followingCount
+                totalStudyTime
         );
     }
 
     @Override
-    public HomeResponseDTO getHomeMonthData() {
+    public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData() {
         Long userId = 1L; // 테스트를 위해 userId를 1로 설정
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         LocalDate today = LocalDate.now();
-        LocalDate monthStart = today.withDayOfMonth(1); // 이번 달 첫째 날
-        LocalDate monthEnd = today.withDayOfMonth(today.lengthOfMonth()); // 이번 달 마지막 날
+        LocalDate monthStart = today.withDayOfMonth(1);
+        LocalDate monthEnd = today.withDayOfMonth(today.lengthOfMonth());
 
-        // 월간 데이터 변환
-        List<HomeResponseDTO.PlanInfo> monthlyPlans = homeConverter.convertPlansToPlanInfos(
-                planRepository.findPlansByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
+        List<Plan> allPlans = planRepository.findPlansByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
         );
-        List<HomeResponseDTO.PostInfo> monthlyPosts = homeConverter.convertPostsToPostInfos(
-                postRepository.findPostsByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
+        List<Post> allPosts = postRepository.findPostsByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
         );
+
+        List<HomeResponseDTO.PlanInfo> monthlyPlans = new ArrayList<>();
+        List<HomeResponseDTO.PostInfo> monthlyPosts = new ArrayList<>();
+
+        for (Plan plan : allPlans) {
+            LocalDate planDate = plan.getStartTime().toLocalDate();
+            Optional<Post> matchingPost = allPosts.stream()
+                    .filter(post -> post.getCreatedAt().toLocalDate().equals(planDate))
+                    .findFirst();
+
+            if (planDate.isBefore(today)) {
+                matchingPost.ifPresent(post -> monthlyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
+            } else if (planDate.isAfter(today)) {
+                monthlyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
+            } else {
+                monthlyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
+                matchingPost.ifPresent(post -> monthlyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
+            }
+        }
+
         List<HomeResponseDTO.DateSummaryInfo> dateSummaries = homeConverter.calculateDateSummaries(
                 userId, monthStart, monthEnd, timeRepository, todoRepository
         );
 
-        // 투두리스트 통계
-        List<TodoList> todos = todoRepository.findTodosByUserIdAndDate(userId, today);
-        int totalTodos = todos.size();
-        int completedTodos = (int) todos.stream().filter(todo -> todo.getStatus() == TodoListStatus.DONE).count();
+        int totalTodos = todoRepository.findTodosByUserIdAndDate(userId, today).size();
+        int completedTodos = (int) todoRepository.findTodosByUserIdAndDate(userId, today)
+                .stream()
+                .filter(todo -> todo.getStatus() == TodoListStatus.DONE)
+                .count();
         double completionRate = totalTodos > 0 ? ((double) completedTodos / totalTodos) * 100 : 0.0;
 
-        // 팔로워/팔로잉 수 계산
-        int followerCount = followRepository.countFollowers(user.getId());
-        int followingCount = followRepository.countFollowing(user.getId());
-
-        // 인증 성공 횟수 계산
-        int successCount = userRepository.findSuccessCountByUserId(userId);
-        // 오늘 날짜의 공부 시간 합산
+        int successCount = Optional.ofNullable(userRepository.findSuccessCountByUserId(userId)).orElse(0);
         int totalStudyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, today)
-                .stream().mapToInt(time -> time.getDuration()).sum();
+                .stream()
+                .mapToInt(time -> time.getDuration())
+                .sum();
 
-        return new HomeResponseDTO(
+        return new HomeResponseDTO.HomeMonthResponseDTO(
                 monthlyPlans,
                 monthlyPosts,
                 dateSummaries,
@@ -116,48 +149,87 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 completedTodos,
                 completionRate,
                 successCount,
-                totalStudyTime,
-                followerCount,
-                followingCount
+                totalStudyTime
         );
     }
 
+
     @Override
-    public HomeResponseDTO getHomeMonthDataFor(int year, int month) {
+    public HomeResponseDTO.FollowResponseDTO getHomeFollowData() {
         Long userId = 1L; // 테스트를 위해 userId를 1로 설정
-        LocalDate monthStart = LocalDate.of(year, month, 1); // 해당 달 첫째 날
-        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth()); // 해당 달 마지막 날
-
-        // 월간 데이터 변환
-        List<HomeResponseDTO.PlanInfo> monthlyPlans = homeConverter.convertPlansToPlanInfos(
-                planRepository.findPlansByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
-        );
-        List<HomeResponseDTO.PostInfo> monthlyPosts = homeConverter.convertPostsToPostInfos(
-                postRepository.findPostsByUserIdBetween(userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX))
-        );
-        List<HomeResponseDTO.DateSummaryInfo> dateSummaries = homeConverter.calculateDateSummaries(
-                userId, monthStart, monthEnd, timeRepository, todoRepository
-        );
-
-        // 투두리스트 통계
-        LocalDate today = LocalDate.now();
-        List<TodoList> todos = todoRepository.findTodosByUserIdAndDate(userId, today);
-        int totalTodos = todos.size();
-        int completedTodos = (int) todos.stream().filter(todo -> todo.getStatus() == TodoListStatus.DONE).count();
-        double completionRate = totalTodos > 0 ? ((double) completedTodos / totalTodos) * 100 : 0.0;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 팔로워/팔로잉 수 계산
         int followerCount = followRepository.countFollowers(userId);
         int followingCount = followRepository.countFollowing(userId);
 
+        String profileImage = user.getProfileImage();
+
+        return new HomeResponseDTO.FollowResponseDTO(
+                followerCount,
+                followingCount,
+                profileImage
+        );
+    }
+
+    @Override
+    public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthDataFor(int year, int month) {
+        Long userId = 1L; // 테스트용 userId
+        LocalDate today = LocalDate.now();
+        LocalDate monthStart = LocalDate.of(year, month, 1); // 해당 달 첫째 날
+        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth()); // 해당 달 마지막 날
+
+        // 해당 월의 일정 및 게시물 조회
+        List<Plan> allPlans = planRepository.findPlansByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
+        );
+        List<Post> allPosts = postRepository.findPostsByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
+        );
+
+        List<HomeResponseDTO.PlanInfo> monthlyPlans = new ArrayList<>();
+        List<HomeResponseDTO.PostInfo> monthlyPosts = new ArrayList<>();
+
+        for (Plan plan : allPlans) {
+            LocalDate planDate = plan.getStartTime().toLocalDate();
+            Optional<Post> matchingPost = allPosts.stream()
+                    .filter(post -> post.getCreatedAt().toLocalDate().equals(planDate))
+                    .findFirst();
+
+            if (planDate.isBefore(today)) {
+                // 과거 일정 -> `post`가 존재할 경우만 추가
+                matchingPost.ifPresent(post -> monthlyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
+            } else if (planDate.isAfter(today)) {
+                // 미래 일정 -> `plan` 추가
+                monthlyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
+            } else {
+                // 오늘 일정 -> `plan` 추가
+                monthlyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
+                // `post`가 존재하면 `post` 리스트에도 추가
+                matchingPost.ifPresent(post -> monthlyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
+            }
+        }
+
+        // 날짜별 공부 시간 및 투두리스트 달성률 계산
+        List<HomeResponseDTO.DateSummaryInfo> dateSummaries = homeConverter.calculateDateSummaries(
+                userId, monthStart, monthEnd, timeRepository, todoRepository
+        );
+
+        // 오늘 날짜의 투두리스트 가져오기
+        List<TodoList> todos = todoRepository.findTodosByUserIdAndDate(userId, today);
+        int totalTodos = todos.size();
+        int completedTodos = (int) todos.stream().filter(todo -> todo.getStatus() == TodoListStatus.DONE).count();
+        double completionRate = totalTodos > 0 ? ((double) completedTodos / totalTodos) * 100 : 0.0;
+
         // 인증 성공 횟수 계산
-        int successCount = userRepository.findSuccessCountByUserId(userId);
+        int successCount = Optional.ofNullable(userRepository.findSuccessCountByUserId(userId)).orElse(0);
 
         // 오늘 날짜의 공부 시간 합산
         int totalStudyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, today)
                 .stream().mapToInt(time -> time.getDuration()).sum();
 
-        return new HomeResponseDTO(
+        return new HomeResponseDTO.HomeMonthResponseDTO(
                 monthlyPlans,
                 monthlyPosts,
                 dateSummaries,
@@ -165,9 +237,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 completedTodos,
                 completionRate,
                 successCount,
-                totalStudyTime,
-                followerCount,
-                followingCount
+                totalStudyTime
         );
     }
 
