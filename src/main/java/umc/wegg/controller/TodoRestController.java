@@ -14,6 +14,8 @@ import umc.wegg.dto.TodoRequestDTO;
 import umc.wegg.dto.TodoResponseDTO;
 import org.springframework.security.core.Authentication;
 
+import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -52,6 +54,25 @@ public class TodoRestController {
 
         double achievementRate = todoCommandService.getAchievementRate(userId);  // 비율 계산
         return ApiResponse.onSuccess(achievementRate);  // 비율 반환
+    }
+
+    @GetMapping
+    public ApiResponse<List<TodoResponseDTO.AddResultDTO>> getUserTodos(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        Long userId = authenticatedUser.getUserId();
+        List<TodoList> todos = todoCommandService.getUserTodos(userId);
+
+        List<TodoResponseDTO.AddResultDTO> result = todos.stream()
+                .map(TodoConverter::toAddResultDTO)
+                .toList();
+
+        return ApiResponse.onSuccess(result);
+    }
+
+
+    @DeleteMapping("/{todo_id}")
+    public void deleteTodo(@PathVariable Long todo_id) {
+        todoCommandService.deleteTodo(todo_id);
     }
 
 
