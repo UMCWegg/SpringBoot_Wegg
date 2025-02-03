@@ -231,14 +231,16 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
     // 수정된 필드를 저장할 Map
     Map<String, Object> updatedFields = new HashMap<>();
 
-    if (request.getName() != null && !request.getName().isEmpty()) {
-        user.setName(request.getName());
-        updatedFields.put("name", request.getName());
-    }
+    if (request != null) {
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            user.setName(request.getName());
+            updatedFields.put("name", request.getName());
+        }
 
-    if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
-        user.setAccountId(request.getAccountId());
-        updatedFields.put("accountId", request.getAccountId());
+        if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
+            user.setAccountId(request.getAccountId());
+            updatedFields.put("accountId", request.getAccountId());
+        }
     }
 
     // MultipartFile을 사용해 profilePicture 처리
