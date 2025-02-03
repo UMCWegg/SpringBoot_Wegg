@@ -76,7 +76,7 @@ public class UserRestController {
     @Operation(summary = "회원정보 수정", description = "회원정보 수정 API")
     public ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
-            @RequestPart("request") @Valid UserRequestDTO.UserUpdateDto request,
+            @RequestPart(value = "request", required = false) @Valid UserRequestDTO.UserUpdateDto request,
             @RequestPart(value = "profileImage", required = false) MultipartFile profilePicture
     ) throws IOException {
         // 회원 정보 업데이트 서비스 호출
