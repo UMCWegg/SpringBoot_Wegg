@@ -23,14 +23,23 @@ public class PostRestController {
 
     private final PostCommandService postCommandService;
 
+//    @Operation(summary = "게시물 등록", description = "랜덤 인증을 통해 게시물을 등록하는 API")
+//    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+//    public ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(
+//            @RequestPart("request") @RequestBody PostRequestDTO.CreatePostDTO requestDTO,
+//            @RequestPart(value = "postImage", required = false) MultipartFile postImage) throws IOException {
+//        PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(requestDTO, postImage);
+//        return ApiResponse.onSuccess(responseDTO);
+//    }
     @Operation(summary = "게시물 등록", description = "랜덤 인증을 통해 게시물을 등록하는 API")
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(
-            @RequestPart("request") @RequestBody PostRequestDTO.CreatePostDTO requestDTO,
+            @RequestPart PostRequestDTO.CreatePostDTO requestDTO,  // @RequestBody 제거
             @RequestPart(value = "postImage", required = false) MultipartFile postImage) throws IOException {
         PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(requestDTO, postImage);
         return ApiResponse.onSuccess(responseDTO);
     }
+
 
     @Operation(summary = "댓글 등록", description = "게시물에 댓글을 등록하는 API")
     @PostMapping("/comment")
