@@ -2,7 +2,8 @@ package umc.wegg.service.MypageService;
 
 import umc.wegg.domain.User;
 import umc.wegg.dto.MypageRequestDTO;
+import umc.wegg.dto.MypageResponseDTO;
 
 public interface MypageCommandService {
-    User updateSettings(Long userId, MypageRequestDTO.SettingDTO request);
+    MypageResponseDTO updateSettings(Long userId, MypageRequestDTO.SettingDTO request);
 }
