@@ -3,13 +3,16 @@ package umc.wegg.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.service.PostService.PostCommandService;
 
+import java.io.IOException;
 import java.util.List;
 
 //@Tag(name = "Post API", description = "게시물 관련 API")
@@ -21,10 +24,11 @@ public class PostRestController {
     private final PostCommandService postCommandService;
 
     @Operation(summary = "게시물 등록", description = "랜덤 인증을 통해 게시물을 등록하는 API")
-    @PostMapping
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(
-            @RequestBody PostRequestDTO.CreatePostDTO requestDTO) {
-        PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(requestDTO);
+            @RequestPart("request") @RequestBody PostRequestDTO.CreatePostDTO requestDTO,
+            @RequestPart(value = "postImage", required = false) MultipartFile postImage) throws IOException {
+        PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(requestDTO, postImage);
         return ApiResponse.onSuccess(responseDTO);
     }
 

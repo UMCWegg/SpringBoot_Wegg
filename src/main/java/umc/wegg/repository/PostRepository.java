@@ -23,5 +23,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                         @Param("end") LocalDateTime end);
 
     Page<Post> findAll(Pageable pageable);
+
+    Post save(Post post, String pictureUrl);
 }
 

@@ -49,7 +49,7 @@ public class PostConverter {
     public static PostResponseDTO.PostCreateResponseDTO toPostCreateResponseDTO(Post post) {
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(post.getId())
-                .imageUrl(post.getImageUrl())
+                //.imageUrl(post.getImageUrl())
                 .templateId(post.getTemplate() != null ? post.getTemplate().getId() : null) // Template의 ID 가져오기
                 .planId(post.getPlan() != null ? post.getPlan().getId() : null) // Plan의 ID 가져오기
                 .createdAt(post.getCreatedAt())

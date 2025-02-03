@@ -46,4 +46,12 @@ public class AmazonS3Manager {
         }
         return profilePath + uuid.getUuid();
     }
+
+    public String generatePostKeyName(Uuid uuid) {
+        String profilePath = amazonConfig.getProfilePath();
+        if (!profilePath.endsWith("/")) {
+            profilePath += "/";
+        }
+        return profilePath + uuid.getUuid();
+    }
 }

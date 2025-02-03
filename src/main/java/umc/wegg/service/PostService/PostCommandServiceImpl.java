@@ -1,10 +1,13 @@
 package umc.wegg.service.PostService;
 
+import com.amazonaws.services.s3.AmazonS3;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.domain.*;
 import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.domain.mapping.Emoji;
@@ -13,10 +16,8 @@ import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +29,13 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final PlanRepository planRepository;
     private final TemplateRepository templateRepository;
     private final UserRepository userRepository;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
 
 
 
     @Override
-    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO) {
+    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
         // 1. Template 엔티티 조회
         Template template = templateRepository.findById(requestDTO.getTemplateId())
                 .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + requestDTO.getTemplateId()));
@@ -40,6 +43,7 @@ public class PostCommandServiceImpl implements PostCommandService {
         // 2. Plan 엔티티 조회
         Plan plan = planRepository.findById(requestDTO.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
+
 
         // 3. Post 엔티티 생성
         Post post = Post.builder()
@@ -49,13 +53,19 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .plan(plan)                        // 조회한 Plan 엔티티 설정
                 .build();                          // Post 객체 생성
 
+        String uuid = UUID.randomUUID().toString();
+        Uuid savedUuid = uuidRepository.save(Uuid.builder()
+                .uuid(uuid).build());
+
+        String pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
+
         // 4. Post 엔티티 저장
-        Post savedPost = postRepository.save(post);
+        Post savedPost = postRepository.save(post, pictureUrl);
 
         // 5. DTO 변환 및 반환
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(savedPost.getId())
-                .imageUrl(savedPost.getImageUrl())
+                //.imageUrl(pictureUrl)
                 .templateId(savedPost.getTemplate() != null ? savedPost.getTemplate().getId() : null)
                 .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
                 .createdAt(savedPost.getCreatedAt())

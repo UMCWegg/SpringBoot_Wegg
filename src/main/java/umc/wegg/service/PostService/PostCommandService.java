@@ -1,12 +1,15 @@
 package umc.wegg.service.PostService;
 
+import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
+
+import java.io.IOException;
 import java.util.List;
 
 public interface PostCommandService {
     // 게시물 생성
-    PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO);
+    PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException;
 
     // 댓글 등록
     void addComment(PostRequestDTO.AddCommentDTO requestDTO);
