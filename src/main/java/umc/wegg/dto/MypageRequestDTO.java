@@ -5,12 +5,6 @@ import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.AlarmType;
 
 public class MypageRequestDTO {
-//    @Getter
-//    public static class EditDTO {
-//        private String accountId;
-//        private String name;
-//        private String profileImage;
-//    }
 
     @Getter
     public static class SettingDTO {
@@ -22,6 +16,7 @@ public class MypageRequestDTO {
         private boolean marketingAgree;
         private boolean placeCheck;
         private boolean randomCheck;
+        private boolean breakAllow;
         private AccountVisibility accountVisibility;
     }
 }
