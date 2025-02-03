@@ -9,13 +9,11 @@ import umc.wegg.domain.Plan;
 import umc.wegg.domain.Time;
 import umc.wegg.domain.User;
 import umc.wegg.domain.enums.EggStatus;
+import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.dto.EggRequestDTO;
 import umc.wegg.dto.TimeRequestDTO;
-import umc.wegg.repository.EggRepository;
-import umc.wegg.repository.PlanRepository;
-import umc.wegg.repository.TimeRepository;
-import umc.wegg.repository.UserRepository;
+import umc.wegg.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -29,6 +27,8 @@ public class EggServiceImpl implements EggService {
     private final PlanRepository planRepository;
     private final TimeRepository timeRepository;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
+
     @Override
     @Transactional
     public void recordTime(TimeRequestDTO request) {
@@ -66,6 +66,22 @@ public class EggServiceImpl implements EggService {
         // 플랜 상태가 SUCCEEDED인지 확인
         if (plan.getStatus() != PlanStatus.SUCCEEDED) {
             throw new IllegalStateException("계획이 완료된 상태에서만 알을 깰 수 있습니다.");
+        }
+
+        // 알을 깨려는 사용자 확인
+        User breaker = userRepository.findById(request.getBreakerId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+
+        // 계획을 만든 사용자 (알을 가진 사용자)
+        User eggOwner = plan.getUser();
+
+        // 알을 깨려는 사람이 계획을 만든 사람과 팔로우 관계인지 확인
+        boolean isFollower = followRepository.existsByFollowerAndFolloweeAndFollowStatus(
+                breaker, eggOwner, FollowStatus.SUCCEEDED
+        );
+
+        if (!isFollower) {
+            throw new IllegalStateException("알을 깨려면 해당 사용자와 팔로우 관계여야 합니다.");
         }
 
         // 알 상태 변경 및 사용자 정보 추가
