@@ -93,6 +93,22 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             }
         }
 
+        // 📌 포인트 지급 로직 추가
+        int availablePoints = 0;
+        boolean canReceivePoints = false;
+
+        // 가장 최근에 포인트를 받은 successCount 조회 (DB 또는 저장소에서 가져와야 함)
+        Integer lastReceivedSuccessCount = userRepository.findLastReceivedSuccessCount(userId).orElse(0);
+
+        // 현재 successCount 중에서 3의 배수인 것 중, 아직 받지 않은 것 찾기
+        for (int i = lastReceivedSuccessCount + 3; i <= successCount; i += 3) {
+            availablePoints += 3;
+        }
+
+        if (availablePoints > 0) {
+            canReceivePoints = true;
+        }
+
         // ✅ 빌더 패턴 사용하여 DTO 생성
         return HomeResponseDTO.HomeWeekResponseDTO.builder()
                 .weeklyPlans(weeklyPlans)
@@ -104,6 +120,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 .successCount(successCount)
                 .totalStudyTime(totalStudyTime)
                 .upcomingPlanAddress(upcomingPlanAddress) // 📌 10분 남은 일정이 있으면 추가
+                .availablePoints(availablePoints) // 📌 받을 수 있는 포인트
+                .canReceivePoints(canReceivePoints) // 📌 포인트 받을 수 있는지 여부
                 .build();
     }
 
