@@ -12,8 +12,10 @@ import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.repository.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,8 +36,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         Long userId = 1L; // 테스트용 userId
 
         LocalDate today = LocalDate.now();
-        LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY); // 이번 주 월요일
-        LocalDate weekEnd = today.with(java.time.DayOfWeek.SUNDAY); // 이번 주 일요일
+        LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
+        LocalDate weekEnd = today.with(java.time.DayOfWeek.SUNDAY);
 
         List<Plan> allPlans = planRepository.findPlansByUserIdBetween(
                 userId, weekStart.atStartOfDay(), weekEnd.atTime(LocalTime.MAX)
@@ -54,13 +56,10 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                     .findFirst();
 
             if (planDate.isBefore(today)) {
-                // 과거 일정 중, post가 존재하는 경우에만 추가
                 matchingPost.ifPresent(post -> weeklyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
             } else if (planDate.isAfter(today)) {
-                // 미래 일정은 plan 리스트에 추가
                 weeklyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
             } else {
-                // 오늘 일정
                 weeklyPlans.add(homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0));
                 matchingPost.ifPresent(post -> weeklyPosts.add(homeConverter.convertPostsToPostInfos(List.of(post)).get(0)));
             }
@@ -78,17 +77,36 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         int totalStudyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, today)
                 .stream().mapToInt(time -> time.getDuration()).sum();
 
-        return new HomeResponseDTO.HomeWeekResponseDTO(
-                weeklyPlans,
-                weeklyPosts,
-                todayTodos,
-                totalTodos,
-                completedTodos,
-                completionRate,
-                successCount,
-                totalStudyTime
-        );
+        // 📌 가장 최근의 계획 찾기
+        LocalDateTime now = LocalDateTime.now();
+        Plan closestPlan = allPlans.stream()
+                .filter(plan -> plan.getStartTime().isAfter(now))
+                .min(Comparator.comparing(Plan::getStartTime))
+                .orElse(null);
+
+        String upcomingPlanAddress = null;
+
+        if (closestPlan != null) {
+            long minutesUntilStart = java.time.Duration.between(now, closestPlan.getStartTime()).toMinutes();
+            if (minutesUntilStart <= 10) {
+                upcomingPlanAddress = closestPlan.getAddress();
+            }
+        }
+
+        // ✅ 빌더 패턴 사용하여 DTO 생성
+        return HomeResponseDTO.HomeWeekResponseDTO.builder()
+                .weeklyPlans(weeklyPlans)
+                .weeklyPosts(weeklyPosts)
+                .todayTodos(todayTodos)
+                .totalTodos(totalTodos)
+                .completedTodos(completedTodos)
+                .completionRate(completionRate)
+                .successCount(successCount)
+                .totalStudyTime(totalStudyTime)
+                .upcomingPlanAddress(upcomingPlanAddress) // 📌 10분 남은 일정이 있으면 추가
+                .build();
     }
+
 
     @Override
     public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData() {

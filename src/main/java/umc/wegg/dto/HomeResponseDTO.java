@@ -15,6 +15,7 @@ public class HomeResponseDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class HomeWeekResponseDTO {
 
         private List<HomeResponseDTO.PlanInfo> weeklyPlans;  // 주간 일정 리스트
@@ -29,6 +30,8 @@ public class HomeResponseDTO {
         // 학습 통계
         private int successCount;                // 인증 성공 횟수
         private int totalStudyTime;              // 총 공부 시간 (분 단위)
+
+        private String upcomingPlanAddress; // 📌 추가된 필드 (10분 남은 일정의 주소)
 
     }
 
