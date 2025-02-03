@@ -17,7 +17,7 @@ public class PostResponseDTO {
     @AllArgsConstructor
     public static class PostCreateResponseDTO {
         private Long postId;         // 게시물 ID
-        private String imageUrl;     // 게시물 이미지URL
+        //private String imageUrl;     // 게시물 이미지URL
         //private String comment;      // 게시물 코멘트 **게시한 직후 본인게시물이 화면에 렌더링된다고 가정하고, 게시한 직후라 댓글이 없는데 댓글을 반환해줄 필요가 있을지 의문.
         private Long templateId;     // 템플릿 ID
         private Long planId;         // 계획 ID

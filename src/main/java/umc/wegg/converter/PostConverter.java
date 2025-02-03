@@ -26,9 +26,6 @@ public class PostConverter {
 
     // 1. CreatePostDTO -> Post (게시물 등록 요청 -> 엔티티 변환)
     public Post toPost(PostRequestDTO.CreatePostDTO dto, User user) {
-        // Template 엔티티 조회
-        Template template = templateRepository.findById(dto.getTemplateId())
-                .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + dto.getTemplateId()));
 
         // Plan 엔티티 조회
         Plan plan = planRepository.findById(dto.getPlanId())
@@ -36,9 +33,7 @@ public class PostConverter {
 
         // Post 엔티티 생성
         return Post.builder()
-                .imageUrl(dto.getImageUrl())
-                .comment(dto.getComment())
-                .template(template) // 조회한 Template 엔티티 설정
+                //.template(template) // 조회한 Template 엔티티 설정
                 .plan(plan)         // 조회한 Plan 엔티티 설정
                 //.user(user)         // 게시물 작성자
                 //.createdAt(LocalDateTime.now()) // base엔티티에서 생성 시점과 수정 시점을 자동으로 설정
@@ -49,7 +44,7 @@ public class PostConverter {
     public static PostResponseDTO.PostCreateResponseDTO toPostCreateResponseDTO(Post post) {
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(post.getId())
-                .imageUrl(post.getImageUrl())
+                //.imageUrl(post.getImageUrl())
                 .templateId(post.getTemplate() != null ? post.getTemplate().getId() : null) // Template의 ID 가져오기
                 .planId(post.getPlan() != null ? post.getPlan().getId() : null) // Plan의 ID 가져오기
                 .createdAt(post.getCreatedAt())

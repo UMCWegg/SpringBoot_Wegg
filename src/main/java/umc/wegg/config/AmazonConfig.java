@@ -30,6 +30,9 @@ public class AmazonConfig {
     @Value("${cloud.aws.s3.path.profile}")
     private String profilePath;
 
+    @Value("${cloud.aws.s3.path.post}")
+    private String postPath;
+
     @Bean
     public AWSCredentials awsCredentials() {
         return new BasicAWSCredentials(accessKey, secretKey);
