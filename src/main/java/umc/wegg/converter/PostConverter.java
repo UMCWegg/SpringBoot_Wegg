@@ -3,13 +3,16 @@ package umc.wegg.converter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import umc.wegg.domain.*;
+import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.TemplateRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -23,9 +26,6 @@ public class PostConverter {
 
     // 1. CreatePostDTO -> Post (게시물 등록 요청 -> 엔티티 변환)
     public Post toPost(PostRequestDTO.CreatePostDTO dto, User user) {
-        // Template 엔티티 조회
-        Template template = templateRepository.findById(dto.getTemplateId())
-                .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + dto.getTemplateId()));
 
         // Plan 엔티티 조회
         Plan plan = planRepository.findById(dto.getPlanId())
@@ -33,9 +33,7 @@ public class PostConverter {
 
         // Post 엔티티 생성
         return Post.builder()
-                .imageUrl(dto.getImageUrl())
-                .comment(dto.getComment())
-                .template(template) // 조회한 Template 엔티티 설정
+                //.template(template) // 조회한 Template 엔티티 설정
                 .plan(plan)         // 조회한 Plan 엔티티 설정
                 //.user(user)         // 게시물 작성자
                 //.createdAt(LocalDateTime.now()) // base엔티티에서 생성 시점과 수정 시점을 자동으로 설정
@@ -46,8 +44,8 @@ public class PostConverter {
     public static PostResponseDTO.PostCreateResponseDTO toPostCreateResponseDTO(Post post) {
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(post.getId())
-                .imageUrl(post.getImageUrl())
-                .templateId(post.getTemplate() != null ? post.getTemplate().getId() : null) // Template의 ID 가져오기
+                //.imageUrl(post.getImageUrl())
+                //.templateId(post.getTemplate() != null ? post.getTemplate().getId() : null) // Template의 ID 가져오기
                 .planId(post.getPlan() != null ? post.getPlan().getId() : null) // Plan의 ID 가져오기
                 .createdAt(post.getCreatedAt())
                 .build();
@@ -58,9 +56,7 @@ public class PostConverter {
     public static PostResponseDTO.PostDetailResponseDTO toPostDetailResponseDTO(
             Post post,
             List<Comment> comments,
-            int heartCount,
-            int smileCount,
-            int thumbUpCount,
+            Map<EmojiType, Long> emojiCountsMap, // 모든 이모지 타입과 개수
             List<String> userSelectedEmojis
     ) {
         // 댓글 리스트 변환 (Comment -> CommentDTO)
@@ -74,6 +70,14 @@ public class PostConverter {
                         .build())
                 .collect(Collectors.toList());
 
+        // 모든 이모지 타입을 EmojiCountDTO 리스트로 변환
+        List<PostResponseDTO.EmojiResponseDTO.EmojiCountDTO> emojiCounts = Arrays.stream(EmojiType.values())
+                .map(type -> PostResponseDTO.EmojiResponseDTO.EmojiCountDTO.builder()
+                        .emojiType(type.name()) // 이모지 타입 이름
+                        .count(emojiCountsMap.getOrDefault(type, 0L).intValue()) // 이모지 개수 (기본값 0)
+                        .build())
+                .collect(Collectors.toList());
+
         // Post -> PostDetailResponseDTO 변환
         return PostResponseDTO.PostDetailResponseDTO.builder()
                 .postId(post.getId()) // 게시물 ID
@@ -82,12 +86,11 @@ public class PostConverter {
                 .name(post.getPlan().getUser() != null ? post.getPlan().getUser().getName() : "Unknown") // 작성자 닉네임
                 .createdAt(post.getCreatedAt()) // 게시물 작성 시간
                 .comments(commentDTOs) // 댓글 리스트
-                .heartCount(heartCount) // 하트 개수
-                .smileCount(smileCount) // 웃는 이모지 개수
-                .thumbUpCount(thumbUpCount) // 좋아요 개수
+                .emojiCounts(emojiCounts) // 모든 이모지 타입과 개수 리스트
                 .userSelectedEmojis(userSelectedEmojis) // 사용자가 선택한 이모지
                 .build();
     }
+
 
 
     // 4. Post -> PostPreviewResponseDTO (게시물 둘러보기 응답 DTO)

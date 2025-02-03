@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import umc.wegg.domain.enums.LateStatus;
 import umc.wegg.domain.enums.PlanStatus;
-import umc.wegg.domain.enums.ReplayStatus;
 
 import java.time.LocalDateTime;
 
@@ -27,10 +27,9 @@ public class PlanResponseDTO {
     public static class PlanDetailDTO {
         Long planId;
         PlanStatus status;
-        ReplayStatus replay;
         LocalDateTime startTime;
         LocalDateTime finishTime;
-        Integer lateTime;
+        LateStatus lateTime;
         Float latitude;
         Float longitude;
         String address;

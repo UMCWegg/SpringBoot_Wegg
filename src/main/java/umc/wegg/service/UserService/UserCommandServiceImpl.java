@@ -11,15 +11,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.UserConverter;
 import umc.wegg.domain.User;
+import umc.wegg.domain.Uuid;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.repository.UuidRepository;
 import umc.wegg.util.RedisUtil;
 
+import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,28 +37,45 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     private final PasswordEncoder passwordEncoder;
 
+    private final AmazonS3Manager s3Manager;
+
+    private final UuidRepository uuidRepository;
+
     @Override
     @Transactional
     public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
-        User user = UserConverter.toUser(request);
+
+        List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null))
+                .filter(Objects::nonNull) // null 값 제거
+                .collect(Collectors.toList());
+
+        User user = UserConverter.toUser(request, contactFriendList);
         user.encodePassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
 
-        List<UserResponseDTO.UserJoinResultDTO.ExistingUserDTO> existingUsers = new ArrayList<>();
-        if (request.getContact() != null) {
-            for (UserRequestDTO.ContactDto contact : request.getContact()) {
-                userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(existingUser -> {
-                            existingUsers.add(new UserResponseDTO.UserJoinResultDTO.ExistingUserDTO(
-                                    contact.getContactName(),
-                                    existingUser.getName(),
-                                    existingUser.getPhone()
-                            ));
-                        });
-            }
-        }
+        // 응답용 ContactFriendDto 변환
+        List<UserResponseDTO.UserJoinResultDTO.ContactFriendDto> contactFriends = contactFriendList.stream()
+                .map(contactFriend -> new UserResponseDTO.UserJoinResultDTO.ContactFriendDto(
+                        contactFriend.getFriend().getId(),
+                        contactFriend.getFriend().getAccountId(),
+                        contactFriend.getFriend().getName(),
+                        contactFriend.getFriend().getProfileImage(),
+                        contactFriend.getFriend().getPhone()
+                ))
+                .collect(Collectors.toList());
 
-        return UserConverter.toJoinResultDTO(user, existingUsers);
+        return UserConverter.toJoinResultDTO(user, contactFriends);
     }
 
     @Override
@@ -70,24 +93,36 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         request.setPassword(passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()));
 
-        User user = UserConverter.toOAuthUser(request);
+        List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null)) // User가 없으면 null
+                .filter(Objects::nonNull) // null 값 제거
+                .collect(Collectors.toList());
+
+        User user = UserConverter.toOAuthUser(request, contactFriendList);
         userRepository.save(user);
 
-        List<UserResponseDTO.OAuth2UserJoinResultDTO.ExistingUserDTO> existingUsers = new ArrayList<>();
-        if (request.getContact() != null) {
-            for (UserRequestDTO.ContactDto contact : request.getContact()) {
-                userRepository.findByPhone(contact.getPhone())
-                        .ifPresent(existingUser -> {
-                            existingUsers.add(new UserResponseDTO.OAuth2UserJoinResultDTO.ExistingUserDTO(
-                                    contact.getContactName(),
-                                    existingUser.getName(),
-                                    existingUser.getPhone()
-                            ));
-                        });
-            }
-        }
+        // 응답용 ContactFriendDto 변환
+        List<UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto> contactFriends = contactFriendList.stream()
+                .map(contactFriend -> new UserResponseDTO.OAuth2UserJoinResultDTO.ContactFriendDto(
+                        contactFriend.getFriend().getId(), 
+                        contactFriend.getFriend().getAccountId(),
+                        contactFriend.getFriend().getName(),
+                        contactFriend.getFriend().getProfileImage(),
+                        contactFriend.getFriend().getPhone()
+                ))
+                .collect(Collectors.toList());
 
-        return UserConverter.toOAuth2JoinResultDTO(user, existingUsers);
+        return UserConverter.toOAuth2JoinResultDTO(user, contactFriends);
     }
 
     @Override
@@ -103,7 +138,7 @@ public class UserCommandServiceImpl implements UserCommandService{
             User user = existingUser.get();
 
             // OAuth2User를 AuthenticatedUser로 변환
-            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // 예시로 existingUser를 AuthenticatedUser로 변환
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // existingUser를 AuthenticatedUser로 변환
 
             // Spring Security에서 인증된 사용자로 설정
             Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, null);
@@ -141,20 +176,62 @@ public class UserCommandServiceImpl implements UserCommandService{
         return new UserResponseDTO.UserDeleteResultDTO(true, userId);
     }
 
-    @Override
-    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request) {
+//    @Override
+//    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
+//
+//        if (authenticatedUser == null) {
+//            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+//        }
+//
+//        Long userId = authenticatedUser.getUserId();
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+//
+//        // 수정된 필드를 저장할 Map
+//        Map<String, Object> updatedFields = new HashMap<>();
+//
+//        if (request.getName() != null && !request.getName().isEmpty()) {
+//            user.setName(request.getName());
+//            updatedFields.put("name", request.getName());
+//        }
+//
+//        if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
+//            user.setAccountId(request.getAccountId());
+//            updatedFields.put("accountId", request.getAccountId());
+//        }
+//
+//        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
+//
+//            String uuid = UUID.randomUUID().toString();
+//            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+//                    .uuid(uuid).build());
+//
+//            String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
+//
+//            user.setProfileImage(pictureUrl);
+//            updatedFields.put("profileImage", pictureUrl);
+//        }
+//
+//        userRepository.save(user);
+//
+//        return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
+//    }
 
-        if (authenticatedUser == null) {
-            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-        }
+@Override
+public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
 
-        Long userId = authenticatedUser.getUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+    if (authenticatedUser == null) {
+        throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+    }
 
-        // 수정된 필드를 저장할 Map
-        Map<String, Object> updatedFields = new HashMap<>();
+    Long userId = authenticatedUser.getUserId();
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
 
+    // 수정된 필드를 저장할 Map
+    Map<String, Object> updatedFields = new HashMap<>();
+
+    if (request != null) {
         if (request.getName() != null && !request.getName().isEmpty()) {
             user.setName(request.getName());
             updatedFields.put("name", request.getName());
@@ -164,16 +241,26 @@ public class UserCommandServiceImpl implements UserCommandService{
             user.setAccountId(request.getAccountId());
             updatedFields.put("accountId", request.getAccountId());
         }
-
-        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
-            user.setProfileImage(request.getProfileImage());
-            updatedFields.put("profileImage", request.getProfileImage());
-        }
-
-        userRepository.save(user);
-
-        return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
     }
+
+    // MultipartFile을 사용해 profilePicture 처리
+    if (profilePicture != null && !profilePicture.isEmpty()) {
+        String uuid = UUID.randomUUID().toString();
+        Uuid savedUuid = uuidRepository.save(Uuid.builder()
+                .uuid(uuid).build());
+
+        // S3에 파일 업로드 후 URL 반환
+        String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
+
+        user.setProfileImage(pictureUrl);
+        updatedFields.put("profileImage", pictureUrl);
+    }
+
+    userRepository.save(user);
+
+    return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
+}
+
 
     @Override
     @Transactional(readOnly = true)

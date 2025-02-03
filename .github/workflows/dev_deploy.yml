@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3  # 저장소 코드 체크아웃
+      - uses: actions/checkout@v4  # 저장소 코드 체크아웃
 
       - name: Set up JDK 17  # Java 개발 킷 설정
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -32,7 +32,7 @@ jobs:
           arguments: build --info
 
       - name: Upload build artifact  # 빌드된 아티팩트 업로드
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: weggServer
           path: build/libs/*.jar
@@ -43,7 +43,7 @@ jobs:
 
     steps:
       - name: Download build artifact  # 이전 단계에서 업로드한 아티팩트 다운로드
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: weggServer
           path: build/libs/
@@ -61,6 +61,6 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
             pgrep java | xargs -r kill -15  # 기존에 실행 중인 Java 프로세스 종료
             sleep 10
-            nohup java -jar /home/$EC2_USERNAME/weggServer.jar > app.log 2>&1 &  # 새 버전 애플리케이션 실행
+            sudo nohup java -jar /home/$EC2_USERNAME/weggServer.jar > app.log 2>&1 &  # 새 버전 애플리케이션 실행
           "
           rm -f private_key.pem  # 민감한 정보 삭제

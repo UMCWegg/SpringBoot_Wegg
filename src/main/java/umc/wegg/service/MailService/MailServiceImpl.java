@@ -9,8 +9,6 @@ import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.util.EmailUtil;
 import umc.wegg.util.RedisUtil;
 
-import java.util.Random;
-
 @Service
 @RequiredArgsConstructor
 public class MailServiceImpl implements MailService {
@@ -22,7 +20,8 @@ public class MailServiceImpl implements MailService {
 
     @Override
     public UserResponseDTO.VerificationResultDTO sendMail(UserRequestDTO.SendEmailVerificationDto request) {
-        String number = createNumber(); // 랜덤 인증번호 생성
+        // 인증번호 생성 (6자리)
+        String number = String.format("%06d", (int) (Math.random() * 1000000));
         String sendEmail = request.getEmail();
         String subject = "이메일 인증";
         String body = "요청하신 인증 번호입니다.<p><h3>" + number + "</h3>";
@@ -41,21 +40,5 @@ public class MailServiceImpl implements MailService {
         }
 
         return new UserResponseDTO.VerificationResultDTO("인증번호가 전송되었습니다.");
-    }
-
-    private String createNumber() {
-        Random random = new Random();
-        StringBuilder key = new StringBuilder();
-
-        for (int i = 0; i < 8; i++) { // 인증 코드 8자리
-            int index = random.nextInt(3);
-
-            switch (index) {
-                case 0 -> key.append((char) (random.nextInt(26) + 97)); // 소문자
-                case 1 -> key.append((char) (random.nextInt(26) + 65)); // 대문자
-                case 2 -> key.append(random.nextInt(10)); // 숫자
-            }
-        }
-        return key.toString();
     }
 }

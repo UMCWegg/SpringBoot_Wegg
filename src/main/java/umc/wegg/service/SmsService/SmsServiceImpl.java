@@ -26,8 +26,8 @@ public class SmsServiceImpl implements SmsService {
             redisUtil.deleteData(phone);
         }
 
-        // 인증번호 생성
-        String number = Integer.toString((int) (Math.random() * 900000) + 100000);
+        // 인증번호 생성 (6자리)
+        String number = String.format("%06d", (int) (Math.random() * 1000000));
         // SMS 전송
         smsCertificationUtil.sendSMS(phone, number);
 
