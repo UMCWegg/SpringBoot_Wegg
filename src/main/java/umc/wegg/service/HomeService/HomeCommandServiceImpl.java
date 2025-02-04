@@ -115,9 +115,13 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 .min(Comparator.comparing(Plan::getStartTime))
                 .orElse(null);
 
-        String upcomingPlanAddress = (closestPlan != null &&
-                java.time.Duration.between(now, closestPlan.getStartTime()).toMinutes() <= 10) ? null : null;
-//                ? closestPlan.getAddress() : null;
+        String upcomingPlanAddress = null;
+        if (closestPlan != null) {
+            long minutesUntilStart = java.time.Duration.between(now, closestPlan.getStartTime()).toMinutes();
+            if (minutesUntilStart <= 10) {
+                upcomingPlanAddress = closestPlan.getAddress().getAddress(); // ✅ Address 객체에서 가져오기
+            }
+        }
 
         //  포인트 지급 로직 추가
         int availablePoints = 0;
@@ -258,7 +262,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         return new HomeResponseDTO.FollowResponseDTO(
                 followerCount,
                 followingCount,
-                profileImage
+                profileImage,
+                user.getAccountId()
         );
     }
 
@@ -360,5 +365,106 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 dateSummaries
         );
     }
+
+    @Override
+    public HomeResponseDTO.HomeMonthResponseDTO getFriendHomeMonthData(Long userId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+        LocalDate monthEnd = today.withDayOfMonth(today.lengthOfMonth());
+
+        List<Plan> allPlans = planRepository.findPlansByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
+        );
+        List<Post> allPosts = postRepository.findPostsByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
+        );
+
+        List<HomeResponseDTO.DailyData> monthlyData = new ArrayList<>();
+        List<HomeResponseDTO.DateSummaryInfo> dateSummaries = new ArrayList<>();
+
+        for (LocalDate date = monthStart; !date.isAfter(monthEnd); date = date.plusDays(1)) {
+            final LocalDate currentDate = date;
+
+            Plan plan = allPlans.stream()
+                    .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
+                    .findFirst()
+                    .orElse(null);
+
+            Post post = allPosts.stream()
+                    .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
+                    .findFirst()
+                    .orElse(null);
+
+            HomeResponseDTO.PlanInfo planInfo = (plan != null)
+                    ? homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0)
+                    : null;
+
+            HomeResponseDTO.PostInfo postInfo = (post != null)
+                    ? homeConverter.convertPostsToPostInfos(List.of(post)).get(0)
+                    : null;
+
+            monthlyData.add(new HomeResponseDTO.DailyData(currentDate, planInfo, postInfo));
+        }
+
+        return new HomeResponseDTO.HomeMonthResponseDTO(monthlyData, dateSummaries);
+    }
+
+
+    @Override
+    public HomeResponseDTO.HomeMonthResponseDTO getFriendHomeMonthDataFor(Long userId, int year, int month) {
+        LocalDate monthStart = LocalDate.of(year, month, 1);
+        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+
+        List<Plan> allPlans = planRepository.findPlansByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
+        );
+        List<Post> allPosts = postRepository.findPostsByUserIdBetween(
+                userId, monthStart.atStartOfDay(), monthEnd.atTime(LocalTime.MAX)
+        );
+
+        List<HomeResponseDTO.DailyData> monthlyData = new ArrayList<>();
+        List<HomeResponseDTO.DateSummaryInfo> dateSummaries = new ArrayList<>();
+
+        for (LocalDate date = monthStart; !date.isAfter(monthEnd); date = date.plusDays(1)) {
+            final LocalDate currentDate = date;
+
+            Plan plan = allPlans.stream()
+                    .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
+                    .findFirst()
+                    .orElse(null);
+
+            Post post = allPosts.stream()
+                    .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
+                    .findFirst()
+                    .orElse(null);
+
+            HomeResponseDTO.PlanInfo planInfo = (plan != null)
+                    ? homeConverter.convertPlansToPlanInfos(List.of(plan)).get(0)
+                    : null;
+
+            HomeResponseDTO.PostInfo postInfo = (post != null)
+                    ? homeConverter.convertPostsToPostInfos(List.of(post)).get(0)
+                    : null;
+
+            monthlyData.add(new HomeResponseDTO.DailyData(currentDate, planInfo, postInfo));
+        }
+
+        return new HomeResponseDTO.HomeMonthResponseDTO(monthlyData, dateSummaries);
+    }
+
+
+    @Override
+    public HomeResponseDTO.FollowResponseDTO getFriendHomeFollowData(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        int followerCount = followRepository.countFollowers(userId);
+        int followingCount = followRepository.countFollowing(userId);
+        String profileImage = user.getProfileImage();
+
+        return new HomeResponseDTO.FollowResponseDTO(followerCount, followingCount, profileImage,user.getAccountId());
+    }
+
 
 }

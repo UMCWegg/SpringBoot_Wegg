@@ -54,20 +54,33 @@ public class HomeRestController {
         return ApiResponse.onSuccess(response);
     }
 
-//    // 사진, 시간 토글 버튼
-//    @GetMapping("/month/{photo_or_time}")
-//    @Operation(summary = "사진, 시간 토글 버튼", description = "홈 화면에서 사진과 시간을 토글하는 API")
-//    public ApiResponse<Void> togglePhotoOrTime(@PathVariable String photo_or_time) {
-//        return ApiResponse.onSuccess(null);
-//    }
+    @GetMapping("/month/{userId}")
+    @Operation(summary = "친구의 월간 화면 렌더링", description = "특정 사용자의 홈(월간) 화면을 렌더링하는 API")
+    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderFriendMonthView(@PathVariable("userId") Long userId) {
+        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getFriendHomeMonthData(userId);
+        return ApiResponse.onSuccess(response);
+    }
 
-    // 게시물 조회
-//    @GetMapping("/posts/{post_id}/view")
-//    @Operation(summary = "게시물 조회", description = "달력 클릭 시 해당 게시물을 조회하는 API")
-//    public ApiResponse<PostResponseDTO.PostDetailResponseDTO> viewPostDetails(@PathVariable("post_id") Long postId) {
-//        PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId);
-//        return ApiResponse.onSuccess(responseDTO);
-//    }
+    @GetMapping("/follow/{userId}")
+    @Operation(summary = "친구의 팔로우/팔로잉 정보 조회", description = "특정 사용자의 팔로우 및 팔로잉 정보를 조회하는 API")
+    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFriendFollowView(@PathVariable("userId") Long userId) {
+        HomeResponseDTO.FollowResponseDTO response = homeService.getFriendHomeFollowData(userId);
+        return ApiResponse.onSuccess(response);
+    }
+
+    @GetMapping("/calendar/{userId}/{year}/{month}")
+    @Operation(summary = "친구의 이전달/다음달 버튼", description = "특정 사용자의 홈(월간) 화면에서 이전/다음 달로 이동하는 API")
+    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> getFriendCalendarData(
+            @PathVariable("userId") Long userId,
+            @PathVariable("year") int year,
+            @PathVariable("month") int month
+    ) {
+        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getFriendHomeMonthDataFor(userId, year, month);
+        return ApiResponse.onSuccess(response);
+    }
+
+
+
     @PostMapping("/receive-points")
     @Operation(summary = "포인트 받기", description = "3의 배수 성공 횟수마다 포인트 지급")
     public ApiResponse<Integer> receivePoints() {
