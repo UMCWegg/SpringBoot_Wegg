@@ -256,105 +256,171 @@ public class PostCommandServiceImpl implements PostCommandService {
         emojiRepository.delete(emoji);
     }
 
-
-    @Override
-    public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts(int page, int size) {
-        // 1. 현재 사용자 조회
-        Long userId = 1L; // 로그인 구현 시 변경
-        User currentUser = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
-
-        // 2. 페이징 처리를 위한 Pageable 객체 생성
-        Pageable pageable = PageRequest.of(page, size);
-
-        // 3. 페이징된 게시물 조회
-        Page<Post> postPage = postRepository.findAll(pageable);
-
-        // 4. 게시물 데이터를 정렬
-        List<Post> sortedPosts = postPage.getContent().stream()
-                .filter(post -> post.getPlan() != null) // Plan이 없는 게시물 필터링
-                .sorted((post1, post2) -> {
-                    // 작성자 가져오기
-                    User user1 = post1.getPlan().getUser();
-                    User user2 = post2.getPlan().getUser();
-
-                    // 같은 Job인지 확인
-                    boolean sameJob1 = user1.getJob() != null && user1.getJob().equals(currentUser.getJob());
-                    boolean sameJob2 = user2.getJob() != null && user2.getJob().equals(currentUser.getJob());
-
-                    if (sameJob1 && !sameJob2) {
-                        return -1; // 같은 Job이면 우선순위 높게
-                    } else if (!sameJob1 && sameJob2) {
-                        return 1; // 다른 Job이면 우선순위 낮게
-                    } else {
-                        // 같은 Job끼리는 이모지 개수로 정렬
-                        int emojiCount1 = emojiRepository.countByPost(post1);
-                        int emojiCount2 = emojiRepository.countByPost(post2);
-                        return Integer.compare(emojiCount2, emojiCount1); // 이모지 개수가 많은 순서
-                    }
-                })
-                .collect(Collectors.toList());
-
-        // 5. 정렬된 게시물을 DTO로 변환하여 반환
-        return sortedPosts.stream()
-                .map(post -> {
-                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
-                    return PostResponseDTO.PostPreviewResponseDTO.builder()
-                            .postId(post.getId())
-                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
-                            .nickname(postUser.getName()) // 작성자 닉네임
-                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
-                            .build();
-                })
-                .collect(Collectors.toList());
-    }
-
-
-
 //    @Override
-//    public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts() {
+//    public Map<String, List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size) {
 //        // 1. 현재 사용자 조회
-//        Long userId = 1L; // 예: 인증된 사용자 ID (로그인 구현 시 변경)
+//        Long userId = 1L; // 로그인 구현 시 변경
 //        User currentUser = userRepository.findById(userId)
 //                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 //
-//        // 2. 모든 게시물 조회
-//        List<Post> allPosts = postRepository.findAll();
+//        // 2. 페이징된 게시물 조회
+//        Pageable pageable = PageRequest.of(page, size);
+//        Page<Post> postPage = postRepository.findAll(pageable);
+//        List<Post> allPosts = postPage.getContent();
 //
-//        // 3. 게시물 이모지 개수를 계산하고 정렬 기준 적용
-//        List<PostResponseDTO.PostPreviewResponseDTO> sortedPosts = allPosts.stream()
-//                // 게시물을 DTO로 변환
+//        // 3. 현재 사용자가 팔로우하는 사용자 목록 조회
+//        Set<Long> followingUserIds = currentUser.getFollowingList().stream()
+//                .map(follow -> follow.getFollowee().getId())
+//                .collect(Collectors.toSet());
+//
+//        // 4. 게시물 정렬
+//        List<Post> followingPosts = new ArrayList<>();
+//        List<Post> nonFollowingPosts = new ArrayList<>();
+//
+//        for (Post post : allPosts) {
+//            if (post.getPlan() == null) continue; // Plan이 없는 게시물 제외
+//            User postUser = post.getPlan().getUser();
+//            if (followingUserIds.contains(postUser.getId())) {
+//                followingPosts.add(post);
+//            } else {
+//                nonFollowingPosts.add(post);
+//            }
+//        }
+//
+//        Comparator<Post> postComparator = (post1, post2) -> {
+//            User user1 = post1.getPlan().getUser();
+//            User user2 = post2.getPlan().getUser();
+//
+//            boolean sameJob1 = user1.getJob() != null && user1.getJob().equals(currentUser.getJob());
+//            boolean sameJob2 = user2.getJob() != null && user2.getJob().equals(currentUser.getJob());
+//
+//            int emojiCount1 = emojiRepository.countByPost(post1);
+//            int emojiCount2 = emojiRepository.countByPost(post2);
+//
+//            if (sameJob1 && !sameJob2) return -1;
+//            if (!sameJob1 && sameJob2) return 1;
+//            return Integer.compare(emojiCount2, emojiCount1);
+//        };
+//
+//        // 5. 정렬 수행
+//        List<Post> sortedFollowingPosts = followingPosts.stream().sorted(postComparator).collect(Collectors.toList());
+//        List<Post> sortedNonFollowingPosts = nonFollowingPosts.stream().sorted(postComparator).collect(Collectors.toList());
+//
+//        // 6. DTO 변환
+//        List<PostResponseDTO.PostPreviewResponseDTO> followingPostDTOs = sortedFollowingPosts.stream()
+//                .map(post -> convertToDTO(post)).collect(Collectors.toList());
+//
+//        List<PostResponseDTO.PostPreviewResponseDTO> nonFollowingPostDTOs = sortedNonFollowingPosts.stream()
+//                .map(post -> convertToDTO(post)).collect(Collectors.toList());
+//
+//        // 7. 결과 반환 (팔로잉 게시물과 비팔로잉 게시물을 다른 리스트로 구분)
+//        Map<String, List<PostResponseDTO.PostPreviewResponseDTO>> result = new HashMap<>();
+//        result.put("followingPosts", followingPostDTOs); // 스트링,
+//        result.put("nonFollowingPosts", nonFollowingPostDTOs);
+//        return result;
+//    }
+@Override
+public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size) {
+    // 1. 현재 사용자 조회
+    Long userId = 1L; // 로그인 구현 시 변경
+    User currentUser = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+    // 2. 페이징된 게시물 조회
+    Pageable pageable = PageRequest.of(page, size);
+    Page<Post> postPage = postRepository.findAll(pageable);
+    List<Post> allPosts = postPage.getContent();
+
+    // 3. 현재 사용자가 팔로우하는 사용자 목록 조회
+    Set<Long> followingUserIds = currentUser.getFollowingList().stream()
+            .map(follow -> follow.getFollowee().getId())
+            .collect(Collectors.toSet());
+
+    // 4. 게시물 정렬
+    List<Post> followingPosts = new ArrayList<>();
+    List<Post> nonFollowingPosts = new ArrayList<>();
+
+    for (Post post : allPosts) {
+        if (post.getPlan() == null) continue; // Plan이 없는 게시물 제외
+        User postUser = post.getPlan().getUser();
+        if (followingUserIds.contains(postUser.getId())) {
+            followingPosts.add(post);
+        } else {
+            nonFollowingPosts.add(post);
+        }
+    }
+
+    Comparator<Post> postComparator = (post1, post2) -> {
+        User user1 = post1.getPlan().getUser();
+        User user2 = post2.getPlan().getUser();
+
+        boolean sameJob1 = user1.getJob() != null && user1.getJob().equals(currentUser.getJob());
+        boolean sameJob2 = user2.getJob() != null && user2.getJob().equals(currentUser.getJob());
+
+        int emojiCount1 = emojiRepository.countByPost(post1);
+        int emojiCount2 = emojiRepository.countByPost(post2);
+
+        if (sameJob1 && !sameJob2) return -1;
+        if (!sameJob1 && sameJob2) return 1;
+        return Integer.compare(emojiCount2, emojiCount1);
+    };
+
+    // 5. 정렬 수행
+    List<Post> sortedFollowingPosts = followingPosts.stream().sorted(postComparator).collect(Collectors.toList());
+    List<Post> sortedNonFollowingPosts = nonFollowingPosts.stream().sorted(postComparator).collect(Collectors.toList());
+
+    // 6. DTO 변환
+    List<PostResponseDTO.PostPreviewResponseDTO> followingPostDTOs = sortedFollowingPosts.stream()
+            .map(post -> convertToDTO(post)).collect(Collectors.toList());
+
+    List<PostResponseDTO.PostPreviewResponseDTO> nonFollowingPostDTOs = sortedNonFollowingPosts.stream()
+            .map(post -> convertToDTO(post)).collect(Collectors.toList());
+
+    // 7. 결과 반환 (팔로잉 게시물과 비팔로잉 게시물을 리스트로 구분)
+    return Arrays.asList(followingPostDTOs, nonFollowingPostDTOs);
+}
+
+    private PostResponseDTO.PostPreviewResponseDTO convertToDTO(Post post) {
+        User postUser = post.getPlan().getUser();
+        return PostResponseDTO.PostPreviewResponseDTO.builder()
+                .postId(post.getId())
+                .profileImageUrl(postUser.getProfileImage())
+                .nickname(postUser.getName())
+                .postImageUrl(post.getImageUrl())
+                .build();
+    }
+
+//    @Override
+//    public List<PostResponseDTO.PostPreviewResponseDTO> browsePosts(int page, int size) {
+//        // 1. 현재 사용자 조회
+//        Long userId = 1L; // 로그인 구현 시 변경
+//        User currentUser = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+//
+//        // 2. 페이징 처리를 위한 Pageable 객체 생성
+//        Pageable pageable = PageRequest.of(page, size);
+//
+//        // 3. 페이징된 게시물 조회
+//        Page<Post> postPage = postRepository.findAll(pageable);
+//
+//        // 4. 게시물 데이터를 정렬
+//        List<Post> sortedPosts = postPage.getContent().stream()
 //                .filter(post -> post.getPlan() != null) // Plan이 없는 게시물 필터링
-//                .map(post -> {
-//                    int emojiCount = emojiRepository.countByPost(post); // 이모지 개수 계산
-//                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
-//
-//                    return PostResponseDTO.PostPreviewResponseDTO.builder()
-//                            .postId(post.getId())
-//                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
-//                            .nickname(postUser.getName()) // 작성자 닉네임
-//                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
-//                            .build();
-//                })
-//                // 정렬 로직
-//                .sorted((dto1, dto2) -> {
-//                    Post post1 = postRepository.findById(dto1.getPostId())
-//                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto1.getPostId()));
-//                    Post post2 = postRepository.findById(dto2.getPostId())
-//                            .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + dto2.getPostId()));
-//
+//                .sorted((post1, post2) -> {
+//                    // 작성자 가져오기
 //                    User user1 = post1.getPlan().getUser();
 //                    User user2 = post2.getPlan().getUser();
 //
-//                    boolean sameJob1 = user1.getJob().equals(currentUser.getJob());
-//                    boolean sameJob2 = user2.getJob().equals(currentUser.getJob());
+//                    // 같은 Job인지 확인
+//                    boolean sameJob1 = user1.getJob() != null && user1.getJob().equals(currentUser.getJob());
+//                    boolean sameJob2 = user2.getJob() != null && user2.getJob().equals(currentUser.getJob());
 //
 //                    if (sameJob1 && !sameJob2) {
-//                        return -1; // 같은 job인 경우 우선순위 높게
+//                        return -1; // 같은 Job이면 우선순위 높게
 //                    } else if (!sameJob1 && sameJob2) {
-//                        return 1; // 다른 job인 경우 우선순위 낮게
+//                        return 1; // 다른 Job이면 우선순위 낮게
 //                    } else {
-//                        // 같은 job끼리는 이모지 개수로 정렬
+//                        // 같은 Job끼리는 이모지 개수로 정렬
 //                        int emojiCount1 = emojiRepository.countByPost(post1);
 //                        int emojiCount2 = emojiRepository.countByPost(post2);
 //                        return Integer.compare(emojiCount2, emojiCount1); // 이모지 개수가 많은 순서
@@ -362,8 +428,18 @@ public class PostCommandServiceImpl implements PostCommandService {
 //                })
 //                .collect(Collectors.toList());
 //
-//        // 4. 정렬된 게시물 리스트 반환
-//        return sortedPosts;
+//        // 5. 정렬된 게시물을 DTO로 변환하여 반환
+//        return sortedPosts.stream()
+//                .map(post -> {
+//                    User postUser = post.getPlan().getUser(); // 작성자 가져오기
+//                    return PostResponseDTO.PostPreviewResponseDTO.builder()
+//                            .postId(post.getId())
+//                            .profileImageUrl(postUser.getProfileImage()) // 작성자 프로필 이미지
+//                            .nickname(postUser.getName()) // 작성자 닉네임
+//                            .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
+//                            .build();
+//                })
+//                .collect(Collectors.toList());
 //    }
 
 
