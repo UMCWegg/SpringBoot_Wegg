@@ -29,10 +29,7 @@ public class Plan extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PlanStatus status; // 계획 상태(YET,SUCCEEDED,FAILED)
-
-    private float latitude; // 공부할 위치 위도
-    private float longitude; // 공부할 위치 경도
+    private PlanStatus status; // 계획 상태(YET, SUCCEEDED, FAILED)
 
     private LocalDateTime startTime; // 공부 시작 시간 (랜덤 인증 시작 시간)
     private LocalDateTime finishTime; // 공부 종료 시간 (랜덤 인증 종료 시간)
@@ -40,14 +37,12 @@ public class Plan extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LateStatus lateTime; // 지각 허용 시간
-//
-//    @Enumerated(EnumType.STRING)
-//    private ReplayStatus replay; // 반복 -> 아이폰 알람 반복 참고하는 걸로 이해하고 enum 만들었음.
+
     private LocalDate planDate; // 반복 대신 날짜 설정
 
-    private String address; // 공부할 위치의 이름 ex) 스타벅스 신용산점
-
-//    private LocalDateTime date; // 계획의 날짜
+    @ManyToOne
+    @JoinColumn(name = "address_id", nullable = false) // 외래 키로 Address 연결
+    private Address address; // 공부할 위치의 주소 정보
 
     private Boolean planOn; // 계획 온오프
 

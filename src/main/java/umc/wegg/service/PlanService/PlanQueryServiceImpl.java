@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.User;
+import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
 
@@ -26,7 +27,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
     }
 
     @Override
-    public boolean isUserInPlan(Long planId, Long userId) {
+    public PlanResponseDTO.LocationVerificationResponseDTO isUserInPlan(Long planId, Long userId) {
         // 계획 정보 가져오기
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
@@ -36,15 +37,21 @@ public class PlanQueryServiceImpl implements PlanQueryService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // 계획의 위치 (latitude, longitude)
-        double planLat = plan.getLatitude();
-        double planLon = plan.getLongitude();
+        double planLat = plan.getAddress().getLatitude();
+        double planLon = plan.getAddress().getLongitude();
 
         // 사용자의 위치 (latitude, longitude)
         double userLat = user.getCurrentLat();
         double userLon = user.getCurrentLon();
 
         // 경계 확인 (500미터 이내인지 확인하는 메서드 호출)
-        return GeoUtils.isWithinPlanBoundary(planLat, planLon, userLat, userLon, 0.5);  // 0.5km (500m)
+        boolean isWithinBoundary = GeoUtils.isWithinPlanBoundary(planLat, planLon, userLat, userLon, 0.5);  // 0.5km (500m)
+
+        // 결과에 맞는 메시지를 설정
+        String message = isWithinBoundary ? "장소 인증에 성공했습니다!" : "장소 인증에 실패했습니다!";
+
+        // LocationVerificationResponseDTO 반환
+        return new PlanResponseDTO.LocationVerificationResponseDTO(message);
     }
     public class GeoUtils {
 

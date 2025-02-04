@@ -15,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class PlanRequestDTO {
+
     @Getter
     @Setter
     public static class PlanAddDTO{
@@ -39,13 +40,8 @@ public class PlanRequestDTO {
         LateStatus lateTime;
 
         @NotNull
-        Float latitude;
+        Long addressId; // Address 엔티티와 연결하기 위한 addressId 추가
 
-        @NotNull
-        Float longitude;
-
-        @NotNull
-        String address;
 
         @NotNull
         Boolean planOn;
