@@ -2,53 +2,58 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ dev ]  # develop 브랜치에 push가 일어날 때 실행
+    branches: [ dev ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4  # 저장소 코드 체크아웃
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17  # Java 개발 킷 설정
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make application.yml  # application.yml 파일 생성
+      - name: Make application.yml
         run: |
           cd ./src/main/resources
           echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
-        shell: bash
 
-      - name: Grant execute permission for gradlew  # gradlew 실행 권한 부여
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle  # Gradle을 사용하여 프로젝트 빌드
+      - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build --info
 
-      - name: Upload build artifact  # 빌드된 아티팩트 업로드
+      - name: Compress JAR file
+        run: |
+          cd build/libs
+          jar_file=$(ls *.jar | grep -v 'plain')
+          tar -czvf weggServer.tar.gz "$jar_file"
+
+      - name: Upload compressed artifact
         uses: actions/upload-artifact@v4
         with:
           name: weggServer
-          path: build/libs/*.jar
+          path: build/libs/weggServer.tar.gz
 
   deploy:
-    needs: build  # build 작업이 성공적으로 완료된 후 실행
-    runs-on: ubuntu-latest
+    needs: build
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Download build artifact  # 이전 단계에서 업로드한 아티팩트 다운로드
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: weggServer
           path: build/libs/
 
-      - name: Deploy to EC2  # EC2에 배포
+      - name: Deploy to EC2 (Fast Transfer)
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
@@ -56,16 +61,21 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
-          jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" $EC2_USERNAME@$EC2_HOST:/home/ubuntu/weggServer.jar
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            sudo pkill -f 'java -jar'  # 기존 프로세스 종료
-            sleep 10
-            sudo nohup java -Xms512m -Xmx1024m -jar -Dserver.port=8080 \
-            -Dserver.ssl.key-store=/home/$EC2_USERNAME/keystore.p12 \
-            -Dserver.ssl.key-store-password=1234 \
-            -Dserver.ssl.key-store-type=PKCS12 \
-            -Dserver.ssl.key-alias=weggServer \
-            /home/$EC2_USERNAME/weggServer.jar > app.log 2>&1 & disown
-          "
-          rm -f private_key.pem  # 민감한 정보 삭제
+
+          # 압축된 파일 전송 (SCP 대신 RSYNC 사용)
+          rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
+          build/libs/weggServer.tar.gz $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/
+
+          # EC2에서 직접 압축 해제 및 재시작
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << 'EOF'
+            cd /home/$EC2_USERNAME
+            tar -xzvf weggServer.tar.gz
+            jar_file=$(ls *.jar | grep -v 'plain')
+            mv "$jar_file" weggServer.jar
+
+            sudo systemctl stop weggServer
+            sudo systemctl start weggServer
+            echo "Deployment completed"
+          EOF
+
+          rm -f private_key.pem
