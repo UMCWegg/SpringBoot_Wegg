@@ -6,6 +6,8 @@ import umc.wegg.dto.PlanResponseDTO;
 
 import java.util.List;
 
+import java.util.List;
+
 public interface PlanCommandService {
     List<Plan> addPlan(PlanRequestDTO.PlanAddDTO request);
     Plan updatePlan(Long planId, PlanRequestDTO.PlanUpdateDTO request); // updateTodo 추가

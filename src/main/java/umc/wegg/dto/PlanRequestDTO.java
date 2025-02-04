@@ -42,6 +42,7 @@ public class PlanRequestDTO {
         @NotNull
         Long addressId; // Address 엔티티와 연결하기 위한 addressId 추가
 
+
         @NotNull
         Boolean planOn;
 
@@ -53,6 +54,7 @@ public class PlanRequestDTO {
             return finishTime.truncatedTo(ChronoUnit.MINUTES);  // 초와 나노초를 잘라냄
         }
     }
+
 
     @Getter
     public static class PlanUpdateDTO {

@@ -15,6 +15,7 @@ import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.service.NotificationService.NotificationService;
 
 import java.io.IOException;
 import java.util.*;
@@ -31,6 +32,7 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final UserRepository userRepository;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
+    private final NotificationService notificationService;
 
 
 
@@ -111,6 +113,13 @@ public class PostCommandServiceImpl implements PostCommandService {
     }
 
 
+    // 게시글 작성자를 가져오는 메서드
+    public User getPostOwner(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."))
+                .getPlan()          // Post 엔티티에서 Plan을 가져옴
+                .getUser();         // Plan 엔티티에서 User를 가져옴
+    }
 
 
 
@@ -134,6 +143,23 @@ public class PostCommandServiceImpl implements PostCommandService {
 
         // 4. 댓글 저장
         commentRepository.save(comment);
+
+        // 5. 게시글 작성자 조회
+        User postOwner = getPostOwner(requestDTO.getPostingId());
+
+        // 6. 댓글 작성자 이름
+        String commenterName = user.getAccountId();
+
+        // 7. 본인이 댓글을 단 경우를 제외하고 알림 전송
+        if (!postOwner.getId().equals(userId)) {
+            // 알림 메시지 작성
+            String message = commenterName + "님이 댓글을 달았습니다!";
+
+            // 알림 전송
+            notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT");
+        }
+
+
     }
 
 
@@ -185,6 +211,21 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .type(type)
                 .build();
         emojiRepository.save(emoji);
+
+        // 6. 게시글 작성자 조회
+        User postOwner = getPostOwner(postId);
+
+        // 6. 이모지 작성자 이름
+        String emojiName = user.getAccountId();
+
+        if (!postOwner.getId().equals(userId)) {
+            // 알림 메시지 작성
+            String message = emojiName + "님이 " + emojiType +"을 달았습니다!";
+
+            // 알림 전송
+            notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI");
+        }
+
     }
 
 
