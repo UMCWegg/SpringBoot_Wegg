@@ -38,4 +38,14 @@ public class TodoConverter {
                 .date(startOfDay) // date 필드 설정
                 .build();
     }
+    public static TodoResponseDTO.DeleteResultDTO toDeleteResultDTO(TodoList todo) {
+        String message = todo.getId() + "번 투두를 삭제했습니다";  // 삭제된 todoId 메시지 생성
+
+        return TodoResponseDTO.DeleteResultDTO.builder()
+                .todoId(todo.getId())               // TodoList에서 todoId 가져오기
+                .content(todo.getContent())         // TodoList에서 content 가져오기
+                .status(todo.getStatus())           // TodoList에서 status 가져오기
+                .message(message)                   // 메시지 필드에 추가
+                .build();
+    }
 }

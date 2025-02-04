@@ -3,8 +3,10 @@ package umc.wegg.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import umc.wegg.converter.TodoConverter;
+import umc.wegg.domain.Plan;
 import umc.wegg.domain.TodoList;
 import umc.wegg.domain.enums.TodoListStatus;
+import umc.wegg.dto.TodoResponseDTO;
 import umc.wegg.repository.TodoRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.dto.TodoRequestDTO;
@@ -29,11 +31,20 @@ public class TodoCommandServiceImpl implements TodoCommandService {
         TodoList existingTodo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new RuntimeException("Todo not found"));
 
-        if (request.getStatus() != null) {
-            existingTodo.setStatus(request.getStatus());
-        }
         if (request.getContent() != null) {
             existingTodo.setContent(request.getContent());
+        }
+
+        return todoRepository.save(existingTodo);
+    }
+
+    @Override
+    public TodoList checkTodo(Long todoId, TodoRequestDTO.CheckDTO request) {
+        TodoList existingTodo = todoRepository.findById(todoId)
+                .orElseThrow(() -> new RuntimeException("Todo not found"));
+
+        if (request.getStatus() != null) {
+            existingTodo.setStatus(request.getStatus());
         }
 
         return todoRepository.save(existingTodo);
@@ -55,10 +66,22 @@ public class TodoCommandServiceImpl implements TodoCommandService {
     }
 
     @Override
-    public void deleteTodo(Long todoId) {
-        if (!todoRepository.existsById(todoId)) {
-            throw new RuntimeException("Plan not found with ID: " + todoId);
-        }
+    public TodoResponseDTO.DeleteResultDTO deleteTodo(Long todoId) {
+        TodoList existingTodo = todoRepository.findById(todoId)
+                .orElseThrow(() -> new RuntimeException("Plan not found with ID: " + todoId));
         todoRepository.deleteById(todoId);
+        return TodoConverter.toDeleteResultDTO(existingTodo);
     }
+
+//    @Override
+//    public PlanResponseDTO.PlanDeleteResponseDTO deletePlan(Long planId) {
+//        Plan existingPlan = planRepository.findById(planId)
+//                .orElseThrow(() -> new RuntimeException("Plan not found with ID: " + planId));
+//
+//        // Deleting the plan
+//        planRepository.deleteById(planId);
+//
+//        // Return the response DTO after deletion
+//        return PlanConverter.toPlanDeleteResponseDTO(existingPlan);
+//    }
 }
