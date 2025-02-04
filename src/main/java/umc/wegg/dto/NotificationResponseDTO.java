@@ -23,4 +23,12 @@ public class NotificationResponseDTO {
         String url;
         ReadStatus readStatus;
     }
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NotificationReadDTO {
+        Long notificationId;
+        ReadStatus readStatus;
+    }
 }
