@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.service.MailService.MailService;
+import umc.wegg.service.MapService.MapServiceImpl;
 import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
 
@@ -31,6 +33,7 @@ public class UserRestController {
     private final UserCommandService userCommandService;
     private final SmsService smsService;
     private final MailService mailService;
+    private final MapServiceImpl mapServiceImpl;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입",description = "회원가입 API")
