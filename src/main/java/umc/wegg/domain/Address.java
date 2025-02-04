@@ -3,7 +3,9 @@ package umc.wegg.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import umc.wegg.domain.common.BaseEntity;
+import umc.wegg.domain.mapping.MyAddress;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,4 +28,7 @@ public class Address extends BaseEntity {
     // Plan과의 관계 설정 (1:N 관계)
     @OneToMany(mappedBy = "address", cascade = CascadeType.ALL)
     private List<Plan> plans; // 여러 계획에 연결될 수 있습니다
+
+    @OneToMany(mappedBy = "address", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MyAddress> myAddressList = new ArrayList<>();
 }
