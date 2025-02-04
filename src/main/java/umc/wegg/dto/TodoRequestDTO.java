@@ -21,7 +21,11 @@ public class TodoRequestDTO {
 
     @Getter
     public static class UpdateDTO {
-        private TodoListStatus status;
         private String content;
+    }
+
+    @Getter
+    public static class CheckDTO {
+        private TodoListStatus status;
     }
 }
