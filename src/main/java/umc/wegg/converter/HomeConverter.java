@@ -22,7 +22,8 @@ public class HomeConverter {
                 .map(plan -> new HomeResponseDTO.PlanInfo(
                         plan.getId(),
                         plan.getStartTime(),
-                        plan.getFinishTime()
+                        plan.getFinishTime(),
+                        plan.getStatus()
                 ))
                 .collect(Collectors.toList());
     }

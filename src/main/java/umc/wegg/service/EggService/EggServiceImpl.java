@@ -63,9 +63,9 @@ public class EggServiceImpl implements EggService {
             throw new IllegalStateException("이미 깨진 알입니다.");
         }
 
-        // 플랜 상태가 SUCCEEDED인지 확인
-        if (plan.getStatus() != PlanStatus.SUCCEEDED) {
-            throw new IllegalStateException("계획이 완료된 상태에서만 알을 깰 수 있습니다.");
+        // 플랜 상태가 YET인지 확인
+        if (plan.getStatus() != PlanStatus.YET) {
+            throw new IllegalStateException("계획이 완료되지 않은 상태에서만 알을 깰 수 있습니다.");
         }
 
         // 알을 깨려는 사용자 확인
