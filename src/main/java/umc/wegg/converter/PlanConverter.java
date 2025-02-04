@@ -26,6 +26,12 @@ public class PlanConverter {
                 .createdAt(LocalDateTime.now())
                 .build();
     }
+    public static PlanResponseDTO.PlanUpdateResultDTO toPlanUpdateResultDTO(Plan plan){
+        return PlanResponseDTO.PlanUpdateResultDTO.builder()
+                .planId(plan.getId())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
 
     // PlanRequestDTO에서 Plan으로 변환
     public static List<Plan> toPlan(PlanRequestDTO.PlanAddDTO request, UserRepository userRepository, AddressRepository addressRepository) {
@@ -53,6 +59,29 @@ public class PlanConverter {
                         .planDate(planDate) // 각 날짜에 해당하는 planDate 추가
                         .build())
                 .collect(Collectors.toList());
+    }
+    // PlanRequestDTO를 사용하여 기존 Plan을 업데이트하는 메서드 추가
+    public static Plan toPlanUpdate(PlanRequestDTO.PlanUpdateDTO requestDTO, Plan existingPlan, AddressRepository addressRepository) {
+        // 주어진 requestDTO의 값을 기존 Plan 엔티티에 업데이트
+        if (requestDTO.getStartTime() != null) {
+            existingPlan.setStartTime(LocalDateTime.of(existingPlan.getPlanDate(), requestDTO.getStartTime().truncatedTo(ChronoUnit.MINUTES)));
+        }
+
+        if (requestDTO.getFinishTime() != null) {
+            existingPlan.setFinishTime(LocalDateTime.of(existingPlan.getPlanDate(), requestDTO.getFinishTime().truncatedTo(ChronoUnit.MINUTES)));
+        }
+
+        if (requestDTO.getLateTime() != null) {
+            existingPlan.setLateTime(requestDTO.getLateTime());
+        }
+
+        if (requestDTO.getAddressId() != null) {
+            Address address = addressRepository.findById(requestDTO.getAddressId())
+                    .orElseThrow(() -> new RuntimeException("Address not found"));
+            existingPlan.setAddress(address);  // Address를 업데이트
+        }
+
+        return existingPlan; // 업데이트된 Plan 반환
     }
 
     // Plan 상세 DTO 변환
