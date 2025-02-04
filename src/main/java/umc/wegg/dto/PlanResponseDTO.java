@@ -21,6 +21,14 @@ public class PlanResponseDTO {
         Long planId;
         LocalDateTime createdAt;
     }
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlanUpdateResultDTO{
+        Long planId;
+        LocalDateTime updatedAt;
+    }
 
     @Builder
     @Getter
