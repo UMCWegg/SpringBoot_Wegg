@@ -102,4 +102,14 @@ public class PostConverter {
                 .postImageUrl(post.getImageUrl())
                 .build();
     }
+    // 게시물 둘러보기 RESPONSEBODY 구성에 쓰이는 DTO로 변환
+    private PostResponseDTO.PostPreviewResponseDTO convertToDTO(Post post) {
+        User postUser = post.getPlan().getUser();
+        return PostResponseDTO.PostPreviewResponseDTO.builder()
+                .postId(post.getId())
+                .profileImageUrl(postUser.getProfileImage())
+                .nickname(postUser.getName())
+                .postImageUrl(post.getImageUrl())
+                .build();
+    }
 }

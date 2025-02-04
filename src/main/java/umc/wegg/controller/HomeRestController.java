@@ -2,13 +2,12 @@ package umc.wegg.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.dto.PostResponseDTO;
+import umc.wegg.repository.UserRepository;
 import umc.wegg.service.HomeService.HomeCommandService;
 import umc.wegg.service.PostService.PostCommandService;
 
@@ -19,6 +18,7 @@ public class HomeRestController {
 
     private final HomeCommandService homeService;
     private final PostCommandService postCommandService;
+    private final UserRepository userRepository;
 
     // 주간 화면 렌더링
     @GetMapping("/week")
@@ -62,10 +62,45 @@ public class HomeRestController {
 //    }
 
     // 게시물 조회
-    /*@GetMapping("/posts/{post_id}/view")
-    @Operation(summary = "게시물 조회", description = "달력 클릭 시 해당 게시물을 조회하는 API")
-    public ApiResponse<PostResponseDTO.PostDetailResponseDTO> viewPostDetails(@PathVariable("post_id") Long postId) {
-        PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId);
-        return ApiResponse.onSuccess(responseDTO);
-    }*/
+//    @GetMapping("/posts/{post_id}/view")
+//    @Operation(summary = "게시물 조회", description = "달력 클릭 시 해당 게시물을 조회하는 API")
+//    public ApiResponse<PostResponseDTO.PostDetailResponseDTO> viewPostDetails(@PathVariable("post_id") Long postId) {
+//        PostResponseDTO.PostDetailResponseDTO responseDTO = postCommandService.viewPostDetails(postId);
+//        return ApiResponse.onSuccess(responseDTO);
+//    }
+    @PostMapping("/receive-points")
+    @Operation(summary = "포인트 받기", description = "3의 배수 성공 횟수마다 포인트 지급")
+    public ApiResponse<Integer> receivePoints() {
+        Long userId = 1L; // 테스트용 userId
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        int successCount = user.getSuccessCount();
+
+        // 가장 최근에 포인트를 받은 successCount 조회
+        int lastReceivedSuccessCount = user.getLastReceivedSuccessCount();
+
+        int pointsToReceive = 0;
+
+        // 현재 successCount까지 중에서 3의 배수이고, 아직 받지 않은 포인트를 계산
+        for (int i = lastReceivedSuccessCount + 3; i <= successCount; i += 3) {
+            pointsToReceive += 3;
+        }
+
+        if (pointsToReceive > 0) {
+            // 📌 포인트 지급
+            user.setPoints(user.getPoints() + pointsToReceive);
+
+            // 📌 마지막 받은 successCount 업데이트
+            user.setLastReceivedSuccessCount(successCount);
+            userRepository.save(user); // 변경 사항 저장
+
+            return ApiResponse.onSuccess(pointsToReceive);
+        } else {
+            return null;
+            //ApiResponse.onError("받을 수 있는 포인트가 없습니다.");
+        }
+    }
+
+
 }

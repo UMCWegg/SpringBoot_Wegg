@@ -6,6 +6,6 @@ public enum Job {
     HIGH_SCHOOL, // 중/고등학생
     ELEMENTARY_SCHOOL, // 초등학생
     NONE,     // 무직
-    Developer,
+    DEVELOPER,
     OTHER           // 기타
 }
