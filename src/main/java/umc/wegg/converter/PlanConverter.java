@@ -84,6 +84,13 @@ public class PlanConverter {
         return existingPlan; // 업데이트된 Plan 반환
     }
 
+    public static PlanResponseDTO.PlanStatusDTO toPlanStatusDTO(Plan plan) {
+        return PlanResponseDTO.PlanStatusDTO.builder()
+                .planId(plan.getId())
+                .planStatus(plan.getStatus())
+                .build();
+    }
+
     // Plan 상세 DTO 변환
     public static PlanResponseDTO.PlanDetailDTO toPlanDetailDTO(Plan plan) {
         return PlanResponseDTO.PlanDetailDTO.builder()
