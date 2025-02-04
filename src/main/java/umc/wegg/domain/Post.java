@@ -18,13 +18,6 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private String imageUrl; // 게시물 이미지 URL
 
-    @Column(nullable = false)
-    private String comment; // 게시물 코멘트
-
-    @ManyToOne
-    @JoinColumn(name = "template_id")
-    private Template template; // 게시물의 사용된 템플릿
-
     @ManyToOne
     @JoinColumn(name = "plan_id", nullable = false)
     private Plan plan; // 연결된 계획

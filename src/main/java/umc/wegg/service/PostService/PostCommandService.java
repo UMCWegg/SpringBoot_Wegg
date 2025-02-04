@@ -1,13 +1,15 @@
 package umc.wegg.service.PostService;
 
-import umc.wegg.domain.User;
+import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
+
+import java.io.IOException;
 import java.util.List;
 
 public interface PostCommandService {
     // 게시물 생성
-    PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO);
+    PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException;
 
     // 댓글 등록
     void addComment(PostRequestDTO.AddCommentDTO requestDTO);
@@ -16,24 +18,21 @@ public interface PostCommandService {
     void deleteComment(Long postId, Long commentId);
 
     // 이모지 등록
-    void addEmoji(Long postId, String emojiType, Long userId);
+    void addEmoji(Long postId, String emojiType);
 
     // 이모지 삭제
-    void deleteEmoji(Long postId, String emojiType, Long userId);
+    void deleteEmoji(Long postId, String emojiType);
 
     // 게시물 둘러보기
-    List<PostResponseDTO.PostPreviewResponseDTO> browsePosts();
+    List<PostResponseDTO.PostPreviewResponseDTO> browsePosts(int page, int size);
 
     // 작성물 상세보기
-    PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId);
+    PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size);
 
     // 댓글 조회
-    List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId);
+    List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId, int page, int size);
 
     // 이모지 조회
     PostResponseDTO.EmojiResponseDTO getEmojis(Long postId);
-
-    // 게시글 작성자 조회
-    User getPostOwner(Long postId);
 }
 

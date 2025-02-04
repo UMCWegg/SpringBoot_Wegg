@@ -10,26 +10,32 @@ import umc.wegg.dto.TodoResponseDTO;
 import java.time.LocalDateTime;
 
 public class TodoConverter {
-    public static TodoResponseDTO.AddResultDTO toAddResultDTO(TodoList todo){
+    public static TodoResponseDTO.AddResultDTO toAddResultDTO(TodoList todo) {
         return TodoResponseDTO.AddResultDTO.builder()
                 .todoId(todo.getId())
-                .createdAt(LocalDateTime.now())
+                .content(todo.getContent())
+                .status(todo.getStatus())
+                .createdAt(todo.getCreatedAt()) // TodoList의 createdAt 사용
                 .build();
     }
 
     public static TodoList toTodo(TodoRequestDTO.AddDTO request, UserRepository userRepository) {
-        // status가 null이면 기본값으로 YET
         TodoListStatus status = request.getStatus() != null ? request.getStatus() : TodoListStatus.YET;
 
-        // userId로 User 객체를 찾아서 설정
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 현재 시간을 기준으로 date 필드 계산
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfDay = now.getHour() < 4
+                ? now.minusDays(1).withHour(4).withMinute(0).withSecond(0).withNano(0)
+                : now.withHour(4).withMinute(0).withSecond(0).withNano(0);
 
         return TodoList.builder()
                 .status(status)
                 .content(request.getContent())
-                .user(user)  // User 객체 설정
+                .user(user)
+                .date(startOfDay) // date 필드 설정
                 .build();
     }
-
 }

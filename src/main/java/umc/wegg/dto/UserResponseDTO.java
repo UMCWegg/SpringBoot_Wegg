@@ -1,6 +1,7 @@
 package umc.wegg.dto;
 
 import lombok.*;
+import umc.wegg.domain.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,14 +16,16 @@ public class UserResponseDTO {
     public static class UserJoinResultDTO{
         Long userId;
         LocalDateTime createdAt;
-        List<ExistingUserDTO> existingUsers;
+        List<ContactFriendDto> contactFriends;
 
         //연락처에 있는 user
         @Getter
         @AllArgsConstructor
-        public static class ExistingUserDTO {
-            private String contactName;
+        public static class ContactFriendDto {
+            private Long friendId;
+            private String accountId;
             private String name;
+            private String profileImage;
             private String phone;
         }
     }
@@ -34,16 +37,28 @@ public class UserResponseDTO {
     public static class OAuth2UserJoinResultDTO{
         Long userId;
         LocalDateTime createdAt;
-        List<ExistingUserDTO> existingUsers;
+        List<ContactFriendDto> contactFriends;
 
         //연락처에 있는 user
         @Getter
         @AllArgsConstructor
-        public static class ExistingUserDTO {
-            private String contactName;
+        public static class ContactFriendDto {
+            private Long friendId;
+            private String accountId;
             private String name;
+            private String profileImage;
             private String phone;
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ContactFriendDTO {
+        private User friend;
+        private String accountId;
+        private String name;
+        private String profileImage;
+        private String phone;
     }
 
     @Getter

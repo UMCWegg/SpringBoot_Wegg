@@ -9,6 +9,8 @@ import umc.wegg.repository.TodoRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.dto.TodoRequestDTO;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TodoCommandServiceImpl implements TodoCommandService {
@@ -37,14 +39,26 @@ public class TodoCommandServiceImpl implements TodoCommandService {
         return todoRepository.save(existingTodo);
     }
 
-    public double getAchievementRate() {
+    public double getAchievementRate(Long userId) {
         long totalTodos = todoRepository.count();  // 전체 Todo 개수
-        long doneTodos = todoRepository.countByStatus(TodoListStatus.DONE);  // DONE 상태의 Todo 개수
+        long doneTodos = todoRepository.countByUserIdAndStatus(userId, TodoListStatus.DONE);  // DONE 상태의 Todo 개수
 
         if (totalTodos == 0) {
             return 0.0;  // 전체 할 일이 없다면 0%로 처리
         }
 
         return (doneTodos * 100.0) / totalTodos;  // 비율 계산
+    }
+
+    public List<TodoList> getUserTodos(Long userId) {
+        return todoRepository.findByUserId(userId);
+    }
+
+    @Override
+    public void deleteTodo(Long todoId) {
+        if (!todoRepository.existsById(todoId)) {
+            throw new RuntimeException("Plan not found with ID: " + todoId);
+        }
+        todoRepository.deleteById(todoId);
     }
 }
