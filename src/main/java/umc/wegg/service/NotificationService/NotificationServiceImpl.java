@@ -13,6 +13,8 @@ import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.domain.enums.ReadStatus;
+import umc.wegg.dto.NotificationRequestDTO;
+import umc.wegg.dto.TodoRequestDTO;
 import umc.wegg.repository.EmitterRepository;
 import umc.wegg.repository.NotificationRepository;
 import umc.wegg.repository.PlanRepository;
@@ -125,5 +127,15 @@ public class NotificationServiceImpl implements NotificationService {
     public List<Notification> getUserNotifications(Long userId) {
         return notificationRepository.findByUserId(userId);
     }
+    public Notification readNotification(Long notificationId, NotificationRequestDTO.ReadDTO request) {
+        Notification existingNoti = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Todo not found"));
 
+        if (request.getReadStatus() != null) {
+            existingNoti.setReadStatus(request.getReadStatus());
+        }
+
+        return notificationRepository.save(existingNoti);
+
+    }
 }
