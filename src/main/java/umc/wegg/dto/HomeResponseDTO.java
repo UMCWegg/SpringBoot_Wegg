@@ -1,6 +1,8 @@
 package umc.wegg.dto;
 
 import lombok.*;
+import umc.wegg.domain.enums.EggStatus;
+import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.enums.TodoListStatus;
 
 import java.time.LocalDate;
@@ -15,10 +17,10 @@ public class HomeResponseDTO {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class HomeWeekResponseDTO {
 
-        private List<HomeResponseDTO.PlanInfo> weeklyPlans;  // 주간 일정 리스트
-        private List<HomeResponseDTO.PostInfo> weeklyPosts;  // 주간 게시물 리스트
+        private List<DailyData> weeklyData;                 // 날짜별 통합 리스트
         private List<HomeResponseDTO.TodoInfo> todayTodos;   // 오늘 날짜의 투두리스트
 
         // 투두리스트 통계
@@ -30,6 +32,10 @@ public class HomeResponseDTO {
         private int successCount;                // 인증 성공 횟수
         private int totalStudyTime;              // 총 공부 시간 (분 단위)
 
+        private String upcomingPlanAddress; //  추가된 필드 (10분 남은 일정의 주소)
+        private int availablePoints; //  받을 수 있는 포인트 (3의 배수일 때만)
+        private boolean canReceivePoints; //  포인트 받을 수 있는지 여부
+
     }
 
     @Getter
@@ -38,18 +44,8 @@ public class HomeResponseDTO {
     @AllArgsConstructor
     public static class HomeMonthResponseDTO {
 
-        private List<HomeResponseDTO.PlanInfo> monthlyPlans;  // 월간 일정 리스트
-        private List<HomeResponseDTO.PostInfo> monthlyPosts;  // 월간 게시물 리스트
+        private List<DailyData> monthlyData;                          // 날짜별 통합 리스트
         private List<HomeResponseDTO.DateSummaryInfo> dateSummaries;  // 날짜별 학습 정보
-
-        // 투두리스트 통계
-        private int totalTodos;                  // 총 투두리스트 항목 수
-        private int completedTodos;              // 완료된 항목 수
-        private double completionRate;           // 이번 달의 투두리스트 달성률
-
-        // 학습 통계
-        private int successCount;                // 인증 성공 횟수
-        private int totalStudyTime;              // 총 공부 시간 (분 단위)
     }
 
     @Getter
@@ -62,6 +58,17 @@ public class HomeResponseDTO {
         private String profileImage; // 프로필 사진
     }
 
+    // plan 데이터와 post 데이터를 합침
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyData {
+        private LocalDate date;  // 해당 날짜
+        private PlanInfo plan;   // 일정 (존재하면 포함)
+        private PostInfo post;   // 게시물 (존재하면 포함)
+    }
+
 
     // Plan 정보 구조
     @AllArgsConstructor
@@ -71,6 +78,7 @@ public class HomeResponseDTO {
         private Long id;                     // Plan ID
         private LocalDateTime startTime;     // 시작 시간
         private LocalDateTime endTime;       // 종료 시간
+        private PlanStatus status;           // 계획 상태(YET, SUCCEEDED, FAILED)
     }
 
     // Post 정보 구조
@@ -81,6 +89,15 @@ public class HomeResponseDTO {
         private Long id;                     // Post ID
         private String imageUrl;             // 게시물 이미지 URL
         private LocalDateTime createdAt;     // 작성 시간
+    }
+
+    // Egg 정보 구조
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class EggInfo {
+        private Long id;                     // Egg ID
+        private EggStatus status;            // 알 상태
     }
 
     // 투두리스트 상세 정보 DTO
@@ -94,7 +111,7 @@ public class HomeResponseDTO {
         private TodoListStatus status;         // 완료 여부
         private LocalDateTime createdAt; // 작성
 
-        // ✅ Enum 값을 기반으로 isCompleted() 메서드 추가
+        //  Enum 값을 기반으로 isCompleted() 메서드 추가
         public boolean isCompleted() {
             return this.status == TodoListStatus.DONE;
         }

@@ -53,10 +53,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private int successCount = 0; // 연속 인증 성공 횟수
 
-    @ColumnDefault("0")
+    @ColumnDefault("0") //  마지막으로 포인트를 받은 successCount 저장
     @Builder.Default
-    @Column(nullable = false)
-    private int successPoint = 0; // 받을 수 있는 포인트
+    private int lastReceivedSuccessCount = 0;
 
     @Column(nullable = true)
     private Float currentLat; // 현재 위치 위도

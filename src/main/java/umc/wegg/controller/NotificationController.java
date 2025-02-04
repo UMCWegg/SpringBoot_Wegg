@@ -11,7 +11,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import umc.wegg.config.security.AuthenticatedUser;
+import umc.wegg.converter.NotificationConverter;
+import umc.wegg.converter.TodoConverter;
+import umc.wegg.domain.Notification;
+import umc.wegg.domain.TodoList;
+import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.dto.NotificationResponseDTO;
+import umc.wegg.dto.TodoResponseDTO;
 import umc.wegg.service.NotificationService.NotificationService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/notifications")
@@ -25,6 +34,19 @@ public class NotificationController {
     public ResponseEntity<SseEmitter> subscribe(@AuthenticationPrincipal AuthenticatedUser authenticatedUser,
                                                 @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         return ResponseEntity.ok(notificationService.subscribe(authenticatedUser.getUserId(), lastEventId));
+    }
+
+    @GetMapping
+    public ApiResponse<List<NotificationResponseDTO.ResultDTO>> getUserNotifications(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        Long userId = authenticatedUser.getUserId();
+        List<Notification> notifications = notificationService.getUserNotifications(userId);
+
+        List<NotificationResponseDTO.ResultDTO> result = notifications.stream()
+                .map(NotificationConverter::toResultDTO)
+                .toList();
+
+        return ApiResponse.onSuccess(result);
     }
 
 }
