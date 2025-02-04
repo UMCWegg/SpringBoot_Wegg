@@ -6,13 +6,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.EggRequestDTO;
+import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.dto.TimeRequestDTO;
 import umc.wegg.service.EggService.EggService;
+import umc.wegg.service.HomeService.HomeCommandService;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/eggs")
 public class EggRestController {
+
+    private final HomeCommandService homeService;
 
     private final EggService eggService;
 
@@ -31,8 +35,9 @@ public class EggRestController {
             summary = "캘린더 조회",
             description = "캘린더 화면에서 사용자의 계획(Plan)을 조회하는 API"
     )
-    public ApiResponse<Object> getCalendarPlans() {
-        return ApiResponse.onSuccess(eggService.getCalendarPlans());
+    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView() {
+        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthData();
+        return ApiResponse.onSuccess(response);
     }
 
     @PatchMapping("/{plan_id}")

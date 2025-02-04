@@ -38,6 +38,18 @@ public class HomeConverter {
                 .collect(Collectors.toList());
     }
 
+    // TodoList -> TodoInfo 변환
+    public List<HomeResponseDTO.TodoInfo> convertTodosToTodoInfos(List<TodoList> todos) {
+        return todos.stream()
+                .map(todo -> new HomeResponseDTO.TodoInfo(
+                        todo.getId(),
+                        todo.getContent(),
+                        todo.getStatus(),
+                        todo.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
 
     // 날짜별 공부 시간 및 투두리스트 달성률 계산
     public List<HomeResponseDTO.DateSummaryInfo> calculateDateSummaries(

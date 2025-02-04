@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface PlanRepository extends JpaRepository<Plan, Long> {
     List<Plan> findByUserId(Long userId);
-
+    List<Plan> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
     // 특정 기간 동안의 일정 검색
 //    @Query("SELECT p FROM Plan p WHERE p.startTime >= :start AND p.finishTime <= :end")
 //    List<Plan> findPlansBetween(LocalDateTime start, LocalDateTime end);

@@ -59,8 +59,13 @@ jobs:
           jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
           scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/weggServer.jar
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
-            pgrep java | xargs -r kill -15  # 기존에 실행 중인 Java 프로세스 종료
+            sudo pkill -f 'java -jar'  # 기존 프로세스 종료
             sleep 10
-            nohup java -jar /home/$EC2_USERNAME/weggServer.jar > app.log 2>&1 &  # 새 버전 애플리케이션 실행
+            sudo nohup java -Xms512m -Xmx1024m -jar -Dserver.port=8080 \
+            -Dserver.ssl.key-store=/home/$EC2_USERNAME/keystore.p12 \
+            -Dserver.ssl.key-store-password=1234 \
+            -Dserver.ssl.key-store-type=PKCS12 \
+            -Dserver.ssl.key-alias=weggServer \
+            /home/$EC2_USERNAME/weggServer.jar > app.log 2>&1 & disown
           "
           rm -f private_key.pem  # 민감한 정보 삭제

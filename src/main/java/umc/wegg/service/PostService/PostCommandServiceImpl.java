@@ -1,10 +1,13 @@
 package umc.wegg.service.PostService;
 
+import com.amazonaws.services.s3.AmazonS3;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.domain.*;
 import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.domain.mapping.Emoji;
@@ -12,11 +15,10 @@ import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.service.NotificationService.NotificationService;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,38 +30,95 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final PlanRepository planRepository;
     private final TemplateRepository templateRepository;
     private final UserRepository userRepository;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
+    private final NotificationService notificationService;
 
 
+
+//    @Override
+//    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
+//        // 1. Template 엔티티 조회
+//        Template template = templateRepository.findById(requestDTO.getTemplateId())
+//                .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + requestDTO.getTemplateId()));
+//
+//        // 2. Plan 엔티티 조회
+//        Plan plan = planRepository.findById(requestDTO.getPlanId())
+//                .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
+//
+//        String uuid = UUID.randomUUID().toString();
+//        Uuid savedUuid = uuidRepository.save(Uuid.builder()
+//                .uuid(uuid).build());
+//
+//        String pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
+//
+//        // 3. Post 엔티티 생성
+//        Post post = Post.builder()
+//                .imageUrl(pictureUrl) // 요청에서 받은 이미지 URL 설정
+//                .comment(requestDTO.getComment())  // 요청에서 받은 댓글 설정
+//                .template(template)                // 조회한 Template 엔티티 설정
+//                .plan(plan)                        // 조회한 Plan 엔티티 설정
+//                .build();                          // Post 객체 생성
+//
+//
+//
+//        // 4. Post 엔티티 저장
+//        Post savedPost = postRepository.save(post);
+//
+//        // 5. DTO 변환 및 반환
+//        return PostResponseDTO.PostCreateResponseDTO.builder()
+//                .postId(savedPost.getId())
+//                //.imageUrl(pictureUrl)
+//                .templateId(savedPost.getTemplate() != null ? savedPost.getTemplate().getId() : null)
+//                .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
+//                .createdAt(savedPost.getCreatedAt())
+//                .build();
+//    }
 
     @Override
-    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO) {
-        // 1. Template 엔티티 조회
-        Template template = templateRepository.findById(requestDTO.getTemplateId())
-                .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + requestDTO.getTemplateId()));
-
-        // 2. Plan 엔티티 조회
+    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
+        // 1. Plan 엔티티 조회
         Plan plan = planRepository.findById(requestDTO.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
 
-        // 3. Post 엔티티 생성
-        Post post = Post.builder()
-                .imageUrl(requestDTO.getImageUrl()) // 요청에서 받은 이미지 URL 설정
-                .comment(requestDTO.getComment())  // 요청에서 받은 댓글 설정
-                .template(template)                // 조회한 Template 엔티티 설정
-                .plan(plan)                        // 조회한 Plan 엔티티 설정
-                .build();                          // Post 객체 생성
+        // 2. UUID 생성 및 저장 (필요한 경우)
+        String uuid = UUID.randomUUID().toString();
+        Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());  // UUID 저장 검토
 
-        // 4. Post 엔티티 저장
+        // 3. S3 이미지 업로드 (예외 처리 추가)
+        String pictureUrl = null;
+        if (postImage != null && !postImage.isEmpty()) { // 이미지가 존재하는 경우에만 업로드
+            try {
+                pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
+            } catch (Exception e) {
+                throw new IOException("S3 파일 업로드 실패: " + e.getMessage(), e);
+            }
+        }
+
+        // 4. Post 엔티티 생성
+        Post post = Post.builder()
+                .imageUrl(pictureUrl) // 이미지 URL 설정 (null 허용)
+                .plan(plan) // Plan 설정
+                .build();
+
+        // 5. Post 엔티티 저장
         Post savedPost = postRepository.save(post);
 
-        // 5. DTO 변환 및 반환
+        // 6. DTO 변환 및 반환
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(savedPost.getId())
-                .imageUrl(savedPost.getImageUrl())
-                .templateId(savedPost.getTemplate() != null ? savedPost.getTemplate().getId() : null)
                 .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
-                .createdAt(savedPost.getCreatedAt())
+                .createdAt(savedPost.getCreatedAt()) // createdAt이 null이 아닌지 확인 필요
                 .build();
+    }
+
+
+    // 게시글 작성자를 가져오는 메서드
+    public User getPostOwner(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."))
+                .getPlan()          // Post 엔티티에서 Plan을 가져옴
+                .getUser();         // Plan 엔티티에서 User를 가져옴
     }
 
 
@@ -84,6 +143,23 @@ public class PostCommandServiceImpl implements PostCommandService {
 
         // 4. 댓글 저장
         commentRepository.save(comment);
+
+        // 5. 게시글 작성자 조회
+        User postOwner = getPostOwner(requestDTO.getPostingId());
+
+        // 6. 댓글 작성자 이름
+        String commenterName = user.getAccountId();
+
+        // 7. 본인이 댓글을 단 경우를 제외하고 알림 전송
+        if (!postOwner.getId().equals(userId)) {
+            // 알림 메시지 작성
+            String message = commenterName + "님이 댓글을 달았습니다!";
+
+            // 알림 전송
+            notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT");
+        }
+
+
     }
 
 
@@ -135,6 +211,21 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .type(type)
                 .build();
         emojiRepository.save(emoji);
+
+        // 6. 게시글 작성자 조회
+        User postOwner = getPostOwner(postId);
+
+        // 6. 이모지 작성자 이름
+        String emojiName = user.getAccountId();
+
+        if (!postOwner.getId().equals(userId)) {
+            // 알림 메시지 작성
+            String message = emojiName + "님이 " + emojiType +"을 달았습니다!";
+
+            // 알림 전송
+            notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI");
+        }
+
     }
 
 

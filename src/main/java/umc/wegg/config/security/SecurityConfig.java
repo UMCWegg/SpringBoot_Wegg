@@ -17,6 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -28,6 +33,7 @@ public class SecurityConfig {
     @Order(0)
     public SecurityFilterChain filterChain(HttpSecurity http, CustomOAuth2SuccessHandler customOAuth2SuccessHandler, CustomOAuth2UserService customOAuth2UserService) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(login -> login.disable()) // 폼로그인 비허용
@@ -80,5 +86,36 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // 허용할 Origin 목록 (AWS 서버와 로컬 개발 환경 포함)
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:8080",
+                "https://localhost:8080",
+                "http://localhost:3000",
+                "https://localhost:3000",
+                "http://3.38.86.106",   // AWS EC2 HTTP (80포트)
+                "https://3.38.86.106",   // AWS EC2 HTTPS (443포트)
+                "https://weggserver.store" // 도메인
+        ));
+
+        // 허용할 HTTP 메서드
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // 허용할 헤더
+        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "Accept"));
+
+        // Credentials (쿠키, 인증 정보) 허용
+        configuration.setAllowCredentials(true);
+
+        // CORS 설정을 특정 경로에 적용
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }

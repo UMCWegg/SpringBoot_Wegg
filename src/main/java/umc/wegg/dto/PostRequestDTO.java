@@ -9,9 +9,9 @@ public class PostRequestDTO {
     @Getter
     @NoArgsConstructor
     public static class CreatePostDTO { // 랜덤 인증(게시물 등록)
-        private String imageUrl;   // 게시물 이미지 URL
-        private String comment;    // 게시물 코멘트
-        private Long templateId;   // 템플릿 ID
+        //private String imageUrl;   // 게시물 이미지 URL
+        //private String comment;    // 게시물 코멘트
+        //private Long templateId;   // 템플릿 ID
         private Long planId;   // 계획 ID
     }
 
