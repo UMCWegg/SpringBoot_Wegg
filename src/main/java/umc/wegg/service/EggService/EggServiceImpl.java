@@ -14,6 +14,7 @@ import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.dto.EggRequestDTO;
 import umc.wegg.dto.TimeRequestDTO;
 import umc.wegg.repository.*;
+import umc.wegg.service.NotificationService.NotificationService;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -27,6 +28,8 @@ public class EggServiceImpl implements EggService {
     private final PlanRepository planRepository;
     private final TimeRepository timeRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+
     private final FollowRepository followRepository;
 
     @Override
@@ -91,5 +94,12 @@ public class EggServiceImpl implements EggService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다.")));
 
         eggRepository.save(egg);
+
+        User breakUser = egg.getUser();
+        // 알림 메시지 작성
+        String message = breakUser.getAccountId() + "님이 알을 깨고 달아났습니다!";
+
+        // 알림 전송
+        notificationService.sendNotificationToEggOwner(plan.getUser(), message, "EGG");
     }
 }

@@ -2,14 +2,24 @@ package umc.wegg.converter;
 
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.User;
+import umc.wegg.domain.Address;
+import umc.wegg.domain.enums.LateStatus;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.repository.AddressRepository;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PlanConverter {
+
+    // Plan 추가 결과 DTO 변환
     public static PlanResponseDTO.PlanAddResultDTO toPlanAddResultDTO(Plan plan){
         return PlanResponseDTO.PlanAddResultDTO.builder()
                 .planId(plan.getId())
@@ -17,48 +27,55 @@ public class PlanConverter {
                 .build();
     }
 
-    public static Plan toPlan(PlanRequestDTO.PlanAddDTO request, UserRepository userRepository) {
-        // status가 null이면 기본값으로 YET
+    // PlanRequestDTO에서 Plan으로 변환
+    public static List<Plan> toPlan(PlanRequestDTO.PlanAddDTO request, UserRepository userRepository, AddressRepository addressRepository) {
         PlanStatus status = request.getStatus() != null ? request.getStatus() : PlanStatus.YET;
-
-        // userId로 User 객체를 찾아서 설정
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 현재 시간을 기준으로 date 필드 계산
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startOfDay = now.getHour() < 4
-                ? now.minusDays(1).withHour(4).withMinute(0).withSecond(0).withNano(0)
-                : now.withHour(4).withMinute(0).withSecond(0).withNano(0);
+        // Address를 찾아서 처리
+        Address address = addressRepository.findById(request.getAddressId())
+                .orElseThrow(() -> new RuntimeException("Address not found"));
 
+        // 시간을 포맷하는 DateTimeFormatter 설정
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        return Plan.builder()
-                .status(status)
-                .replay(request.getReplay())
-                .startTime(request.getStartTime())
-                .finishTime(request.getFinishTime())
-                .user(user)
-                .lateTime(request.getLateTime() != null ? request.getLateTime() : 0) // null일 경우 기본값 설정
-                .latitude(request.getLatitude() != null ? request.getLatitude() : 0.0f) // null일 경우 기본값 설정
-                .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0f) // null일 경우 기본값 설정
-                .address(request.getAddress())
-                .date(startOfDay)
-                .build();
+        // 각 날짜에 대해 계획을 추가하는 방식으로 변경
+        return request.getPlanDates().stream()
+                .map(planDate -> Plan.builder()
+                        .status(status)
+                        .startTime(LocalDateTime.of(planDate, request.getStartTime().truncatedTo(ChronoUnit.MINUTES))) // 초와 나노초를 제거
+                        .finishTime(LocalDateTime.of(planDate, request.getFinishTime().truncatedTo(ChronoUnit.MINUTES))) // 초와 나노초를 제거
+                        .user(user)
+                        .lateTime(request.getLateTime() != null ? request.getLateTime() : LateStatus.ZERO)
+                        .address(address) // Address 정보 할당
+                        .planOn(request.getPlanOn() != null ? request.getPlanOn() : true)
+                        .planDate(planDate) // 각 날짜에 해당하는 planDate 추가
+                        .build())
+                .collect(Collectors.toList());
     }
+
+    // Plan 상세 DTO 변환
     public static PlanResponseDTO.PlanDetailDTO toPlanDetailDTO(Plan plan) {
         return PlanResponseDTO.PlanDetailDTO.builder()
                 .planId(plan.getId())
                 .status(plan.getStatus())
-                .replay(plan.getReplay())
-                .startTime(plan.getStartTime())
-                .finishTime(plan.getFinishTime())
+                .startTime(plan.getStartTime().truncatedTo(ChronoUnit.MINUTES)) // 초, 나노초 제거
+                .finishTime(plan.getFinishTime().truncatedTo(ChronoUnit.MINUTES)) // 초, 나노초 제거
                 .lateTime(plan.getLateTime())
-                .latitude(plan.getLatitude())
-                .longitude(plan.getLongitude())
-                .address(plan.getAddress())
+                .latitude(plan.getAddress().getLatitude()) // Address의 latitude 사용
+                .longitude(plan.getAddress().getLongitude()) // Address의 longitude 사용
+                .address(plan.getAddress().getAddress()) // Address의 address 사용
                 .userId(plan.getUser().getId()) // Plan에 User가 연관되어 있다고 가정
                 .build();
     }
 
-
+    public static PlanResponseDTO.PlanDeleteResponseDTO toPlanDeleteResponseDTO(Plan plan) {
+        return PlanResponseDTO.PlanDeleteResponseDTO.builder()
+                .planId(plan.getId())
+                .planDate(plan.getPlanDate())
+                .startTime(LocalTime.from(plan.getStartTime()))
+                .address(plan.getAddress().getAddress())
+                .build();
+    }
 }

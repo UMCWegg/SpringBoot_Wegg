@@ -7,6 +7,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import umc.wegg.domain.common.BaseEntity;
 import umc.wegg.domain.enums.Job;
+import umc.wegg.domain.enums.ReasonType;
 import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.domain.mapping.Follow;
 import umc.wegg.domain.mapping.MyTemplate;
@@ -64,7 +65,8 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Job job; // 사용자 신분
 
-    private String reason; // 이 앱을 시작한 이유
+    @Enumerated(EnumType.STRING)
+    private ReasonType reason; // 이 앱을 시작한 이유
 
     @Column(nullable = false, length = 100)
     private String phone; // 사용자 전화번호
@@ -100,6 +102,12 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MyTemplate> myTemplateList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContactFriend> contactUserList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContactFriend> contactFriendList = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Setting setting;

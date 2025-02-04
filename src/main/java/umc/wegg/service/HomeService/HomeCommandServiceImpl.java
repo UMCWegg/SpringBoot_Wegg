@@ -116,8 +116,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 .orElse(null);
 
         String upcomingPlanAddress = (closestPlan != null &&
-                java.time.Duration.between(now, closestPlan.getStartTime()).toMinutes() <= 10)
-                ? closestPlan.getAddress() : null;
+                java.time.Duration.between(now, closestPlan.getStartTime()).toMinutes() <= 10) ? null : null;
+//                ? closestPlan.getAddress() : null;
 
         //  포인트 지급 로직 추가
         int availablePoints = 0;

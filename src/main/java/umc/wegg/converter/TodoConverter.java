@@ -13,6 +13,8 @@ public class TodoConverter {
     public static TodoResponseDTO.AddResultDTO toAddResultDTO(TodoList todo) {
         return TodoResponseDTO.AddResultDTO.builder()
                 .todoId(todo.getId())
+                .content(todo.getContent())
+                .status(todo.getStatus())
                 .createdAt(todo.getCreatedAt()) // TodoList의 createdAt 사용
                 .build();
     }
