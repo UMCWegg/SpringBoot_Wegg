@@ -83,7 +83,7 @@ public class PostConverter {
                 .postId(post.getId()) // 게시물 ID
                 .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
                 .profileImage(post.getPlan().getUser() != null ? post.getPlan().getUser().getProfileImage() : null) // 작성자 프로필 이미지
-                .name(post.getPlan().getUser() != null ? post.getPlan().getUser().getName() : "Unknown") // 작성자 닉네임
+                .accountId(post.getPlan().getUser().getAccountId() != null ? post.getPlan().getUser().getAccountId() : "Unknown") // 작성자 닉네임
                 .createdAt(post.getCreatedAt()) // 게시물 작성 시간
                 .comments(commentDTOs) // 댓글 리스트
                 .emojiCounts(emojiCounts) // 모든 이모지 타입과 개수 리스트

@@ -106,3 +106,18 @@ sms:
   api-secret: [api-secret]
   provider: https://api.coolsms.co.kr
   sender: [sender]
+
+cloud:
+  aws:
+    s3:
+      bucket: wegg-bucket
+      path:
+        profile: profile
+        post : post
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    credentials:
+      accessKey: [accessKey]
+      secretKey: [secretKey]
