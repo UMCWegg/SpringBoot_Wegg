@@ -21,9 +21,22 @@ public class Address extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 주소 고유 ID
 
-    private String address; // 주소 이름 (예: 스타벅스 신용산점)
+    @Column(nullable = false)
+    private String placeName; // 주소 이름 (예: 스타벅스 신용산점)
+
+    @Column(nullable = false)
     private float latitude; // 위도
+
+    @Column(nullable = false)
     private float longitude; // 경도
+
+    private String phone;
+
+    private String placeLabel;
+
+    private String address; //지번 주소
+
+    private String roadAddress; //도로명 주소
 
     // Plan과의 관계 설정 (1:N 관계)
     @OneToMany(mappedBy = "address", cascade = CascadeType.ALL)
