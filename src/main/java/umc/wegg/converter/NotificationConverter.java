@@ -16,4 +16,10 @@ public class NotificationConverter {
                 .readStatus(notification.getReadStatus()) // 알림 읽음 여부
                 .build();
     }
+    public static NotificationResponseDTO.NotificationReadDTO toNotificationReadDTO(Notification notification) {
+        return NotificationResponseDTO.NotificationReadDTO.builder()
+                .notificationId(notification.getId())
+                .readStatus(notification.getReadStatus())
+                .build();
+    }
 }

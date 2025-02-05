@@ -8,6 +8,7 @@ import umc.wegg.domain.enums.ReadStatus;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
