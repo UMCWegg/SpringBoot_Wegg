@@ -1,8 +1,8 @@
 package umc.wegg.service.MapService;
 
+import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
 
 public interface MapService {
-//    MapResponseDTO.ReverseGeocodingDTO reverseGeocoding(String latitude, String longitude);
-    MapResponseDTO.SearchDTO searchPlacesByKeyword(String keyword, String latitude, String longitude, Integer radius);
+    MapResponseDTO.PlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchDTO request);
 }

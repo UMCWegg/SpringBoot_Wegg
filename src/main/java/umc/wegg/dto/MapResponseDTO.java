@@ -103,7 +103,6 @@ public class MapResponseDTO {
         @Setter
         @NoArgsConstructor
         public static class SearchByKeywordDTO {
-            private String id;               //장소 ID
             @JsonProperty("place_name")
             private String placeName;       // 장소 이름
             @JsonProperty("address_name")
@@ -115,6 +114,20 @@ public class MapResponseDTO {
             private String phone;            // 전화번호
             @JsonProperty("category_name")
             private String categoryName;    // 카테고리 정보
+        }
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlaceListDTO {
+        private List<PlaceNameDTO> placeList;
+
+        @Getter
+        @AllArgsConstructor
+        public static class PlaceNameDTO {
+            private String placeName;
         }
     }
 }

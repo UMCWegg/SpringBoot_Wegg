@@ -1,76 +1,48 @@
 package umc.wegg.service.MapService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
+import umc.wegg.util.MapUtil;
+import umc.wegg.util.RedisUtil;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MapServiceImpl implements MapService {
 
-    @Value("${spring.kakao.api.client-id}")
-    private String CLIENT_ID;
+    private final MapUtil mapUtil;
+    private final RedisUtil redisUtil;
+    private final ObjectMapper objectMapper; // JSON 직렬화/역직렬화에 사용
 
-    private final RestTemplate restTemplate = new RestTemplate();
-
-//    // 장소 검색
-//    @Override
-//    public MapResponseDTO.ReverseGeocodingDTO reverseGeocoding(String latitude, String longitude) {
-//        String url = "https://dapi.kakao.com/v2/local/geo/coord2address.json?x="
-//                + longitude + "&y=" + latitude;
-//
-//        // HTTP 요청 헤더 설정
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.set("Authorization", "KakaoAK " + CLIENT_ID);
-//
-//        HttpEntity<String> entity = new HttpEntity<>(headers);
-//
-//        //ResTemplate를 이용해 요청을 보내고 KakaoSearchDto로 받아 response에 담음
-//        ResponseEntity<MapResponseDTO.ReverseGeocodingDTO> response = restTemplate.exchange(
-//                url,
-//                HttpMethod.GET,
-//                entity,
-//                MapResponseDTO.ReverseGeocodingDTO.class
-//        );
-//
-//        // 응답 값 반환
-//        return response.getBody();
-//    }
-
-    // 장소 검색
     @Override
-    public MapResponseDTO.SearchDTO searchPlacesByKeyword(String keyword, String latitude, String longitude, Integer radius) {
-        StringBuilder url = new StringBuilder("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + keyword);
+    public MapResponseDTO.PlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchDTO request) {
+        MapResponseDTO.SearchDTO searchPlaces = mapUtil.searchPlacesByKeyword(request.getKeyword(), request.getLatitude(), request.getLongitude(), 2000);
 
-        // latitude, longitude, radius가 null이 아닐 때만 추가
-        if (longitude != null && latitude != null) {
-            url.append("&x=").append(longitude).append("&y=").append(latitude);
+        // PlaceListDTO 생성 및 검색된 장소 이름 추가
+        List<MapResponseDTO.PlaceListDTO.PlaceNameDTO> placeList = searchPlaces.getSearchByKeywordList().stream()
+                .map(place -> new MapResponseDTO.PlaceListDTO.PlaceNameDTO(place.getPlaceName())) // 장소 이름 DTO로 변환
+                .collect(Collectors.toList());
+
+        // Redis에 검색 결과 저장
+        for (MapResponseDTO.SearchDTO.SearchByKeywordDTO place : searchPlaces.getSearchByKeywordList()) {
+            try {
+                String key = place.getPlaceName();
+                String value = objectMapper.writeValueAsString(place); // place detail
+                redisUtil.setDataExpire(key, value, 10 * 60); // Redis에 저장(key-place name/value-place detail)
+            } catch (Exception e) {
+                e.printStackTrace(); // 직렬화 실패 시 예외 처리
+            }
         }
-        if (radius != null) {
-            url.append("&radius=").append(radius);
-        }
 
-        // HTTP 요청 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK " + CLIENT_ID);
+        // PlaceListDTO 생성
+        return MapResponseDTO.PlaceListDTO.builder()
+                .placeList(placeList)
+                .build();
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        //ResTemplate를 이용해 요청을 보내고 KakaoSearchDto로 받아 response에 담음
-        ResponseEntity<MapResponseDTO.SearchDTO> response = restTemplate.exchange(
-                url.toString(),
-                HttpMethod.GET,
-                entity,
-                MapResponseDTO.SearchDTO.class
-        );
-
-        // 응답 값 반환
-        return response.getBody();
     }
 }
