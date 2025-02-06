@@ -29,7 +29,7 @@ public class MapServiceImpl implements MapService {
                 .collect(Collectors.toList());
 
         // Redis에 검색 결과 저장
-        for (MapResponseDTO.SearchDTO.SearchByKeywordDTO place : searchPlaces.getSearchByKeywordList()) {
+        for (MapResponseDTO.SearchDTO.PlaceDetailDTO place : searchPlaces.getSearchByKeywordList()) {
             try {
                 String key = place.getPlaceName();
                 String value = objectMapper.writeValueAsString(place); // place detail

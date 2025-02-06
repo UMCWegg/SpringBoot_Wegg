@@ -97,12 +97,12 @@ public class MapResponseDTO {
     @AllArgsConstructor
     public static class SearchDTO {
         @JsonProperty("documents")
-        private List<SearchByKeywordDTO> searchByKeywordList;  // 검색 결과 리스트
+        private List<PlaceDetailDTO> searchByKeywordList;  // 검색 결과 리스트
 
         @Getter
         @Setter
         @NoArgsConstructor
-        public static class SearchByKeywordDTO {
+        public static class PlaceDetailDTO {
             @JsonProperty("place_name")
             private String placeName;       // 장소 이름
             @JsonProperty("address_name")
