@@ -142,6 +142,7 @@ public class MapResponseDTO {
         @Getter
         @AllArgsConstructor
         public static class SearchHotPlaceDTO {
+            private Long addressId;
             private String placeName;
             private String roadAddress;
             private Double distance;
@@ -167,7 +168,14 @@ public class MapResponseDTO {
             private Long authCount;
             private Long saveCount;
             private Double distance;
-            private List<String> postImageList = new ArrayList<>();
+            private List<PostDTO> postList = new ArrayList<>();
+
+            @Getter
+            @AllArgsConstructor
+            public static class PostDTO {
+                private Long postId;
+                private String imageUrl;
+            }
         }
     }
 }

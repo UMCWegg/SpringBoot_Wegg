@@ -22,6 +22,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findAll(Pageable pageable);
 
+    List<Post> findByPlanId(Long planId);
+
     Long countByPlanId(Long planId);
 
     // 잘못된 save 메서드 제거
