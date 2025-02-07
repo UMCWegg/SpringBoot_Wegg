@@ -122,13 +122,30 @@ public class MapResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PlaceListDTO {
+    public static class SearchPlanPlaceListDTO {
         private List<PlaceNameDTO> placeList;
 
         @Getter
         @AllArgsConstructor
         public static class PlaceNameDTO {
             private String placeName;
+        }
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SearchHotPlaceListDTO {
+        private List<SearchHotPlaceDTO> placeList;
+
+        @Getter
+        @AllArgsConstructor
+        public static class SearchHotPlaceDTO {
+            private String placeName;
+            private String roadAddress;
+            private Double distance;
+            private Long authCount;
         }
     }
 

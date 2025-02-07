@@ -32,12 +32,12 @@ public class MapServiceImpl implements MapService {
     private final ObjectMapper objectMapper; // JSON 직렬화/역직렬화에 사용
 
     @Override
-    public MapResponseDTO.PlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchDTO request) {
+    public MapResponseDTO.SearchPlanPlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchPlanDTO request) {
         MapResponseDTO.SearchDTO searchPlaces = mapUtil.searchPlacesByKeyword(request.getKeyword(), request.getLatitude(), request.getLongitude(), 2000);
 
         // PlaceListDTO 생성 및 검색된 장소 이름 추가
-        List<MapResponseDTO.PlaceListDTO.PlaceNameDTO> placeList = searchPlaces.getSearchByKeywordList().stream()
-                .map(place -> new MapResponseDTO.PlaceListDTO.PlaceNameDTO(place.getPlaceName())) // 장소 이름 DTO로 변환
+        List<MapResponseDTO.SearchPlanPlaceListDTO.PlaceNameDTO> placeList = searchPlaces.getSearchByKeywordList().stream()
+                .map(place -> new MapResponseDTO.SearchPlanPlaceListDTO.PlaceNameDTO(place.getPlaceName())) // 장소 이름 DTO로 변환
                 .collect(Collectors.toList());
 
         // Redis에 검색 결과 저장
@@ -52,10 +52,40 @@ public class MapServiceImpl implements MapService {
         }
 
         // PlaceListDTO 생성
-        return MapResponseDTO.PlaceListDTO.builder()
+        return MapResponseDTO.SearchPlanPlaceListDTO.builder()
                 .placeList(placeList)
                 .build();
 
+    }
+
+    public MapResponseDTO.SearchHotPlaceListDTO searchHotPlaceListByKeyword(MapRequestDTO.SearchHotPlaceDTO request) {
+        List<Address> addresses = addressRepository.findNearbyAddressesWithKeyword(request.getLatitude(), request.getLongitude(), 2, request.getKeyword());
+
+        List<MapResponseDTO.SearchHotPlaceListDTO.SearchHotPlaceDTO> placeList = addresses.stream()
+                .map(address -> {
+                    // 거리 계산
+                    double distance = mapUtil.calculateDistance(request.getLatitude(), request.getLongitude(), address.getLatitude(), address.getLongitude());
+
+                    // 게시물 인증 수 계산 (예시로 postRepository.countByPlanId 사용)
+                    List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
+                    Long authCount = plans.stream()
+                            .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
+                            .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
+
+                    // SearchHotPlaceDTO 객체 생성
+                    return new MapResponseDTO.SearchHotPlaceListDTO.SearchHotPlaceDTO(
+                            address.getPlaceName(),
+                            address.getRoadAddress(),
+                            distance,
+                            authCount
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // SearchHotPlaceListDTO 객체 반환
+        return MapResponseDTO.SearchHotPlaceListDTO.builder()
+                .placeList(placeList)
+                .build();
     }
 
     @Override
