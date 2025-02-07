@@ -3,6 +3,7 @@ package umc.wegg.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapResponseDTO {
@@ -128,6 +129,28 @@ public class MapResponseDTO {
         @AllArgsConstructor
         public static class PlaceNameDTO {
             private String placeName;
+        }
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HotPlaceListDTO {
+        private List<HotPlaceDTO> hotPlaceList;
+
+        @Getter
+        @AllArgsConstructor
+        public static class HotPlaceDTO {
+            private Long addressId;
+            private Float latitude;
+            private Float longitude;
+            private String placeName;
+            private String placeLabel;
+            private Long authCount;
+            private Long saveCount;
+            private Double distance;
+            private List<String> postImageList = new ArrayList<>();
         }
     }
 }

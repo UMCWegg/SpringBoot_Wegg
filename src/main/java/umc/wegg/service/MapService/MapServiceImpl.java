@@ -3,17 +3,29 @@ package umc.wegg.service.MapService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import umc.wegg.domain.Address;
+import umc.wegg.domain.Plan;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
+import umc.wegg.repository.AddressRepository;
+import umc.wegg.repository.MyAddressRepository;
+import umc.wegg.repository.PlanRepository;
+import umc.wegg.repository.PostRepository;
 import umc.wegg.util.MapUtil;
 import umc.wegg.util.RedisUtil;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MapServiceImpl implements MapService {
+
+    private final AddressRepository addressRepository;
+    private final MyAddressRepository myAddressRepository;
+    private final PostRepository postRepository;
+    private final PlanRepository planRepository;
 
     private final MapUtil mapUtil;
     private final RedisUtil redisUtil;
@@ -45,4 +57,57 @@ public class MapServiceImpl implements MapService {
                 .build();
 
     }
+
+    @Override
+    public MapResponseDTO.HotPlaceListDTO viewHotPlaceList(double minX, double maxX, double minY, double maxY, String sortBy){
+        List<Address> addressList = addressRepository.findAddressesInRange(minX, maxX, minY, maxY);
+
+        // 1. 범위 안에 있는 주소 필터링
+        MapResponseDTO.HotPlaceListDTO hotPlaceList = new MapResponseDTO.HotPlaceListDTO(
+                addressList.stream()
+                        .map(address -> {
+                            // Plan을 거쳐서 Post 개수 계산 (Address -> Plan -> Post)
+                            List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
+                            Long authCount = plans.stream()
+                                    .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
+                                    .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
+
+                            // Plan을 거쳐서 이미지 URL 목록 가져오기 (Post에서 이미지 URL 가져오기)
+                            List<String> imageUrlList = plans.stream()
+                                    .flatMap(plan -> postRepository.findImageUrlsByPlanId(plan.getId()).stream()) // Plan을 거쳐서 Post에서 이미지 URL 가져오기
+                                    .collect(Collectors.toList());
+
+                            // 2.3 saveCount 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
+                            Long saveCount = myAddressRepository.countByAddressId(address.getId());
+
+                            double centerLon = (minX + maxX) / 2;  // 경도 중심값
+                            double centerLat = (minY + maxY) / 2;  // 위도 중심값
+
+                            Double distance = mapUtil.calculateDistance(centerLat, centerLon, address.getLatitude(), address.getLongitude()); // 거리 계산
+
+                            return new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO(
+                                    address.getId(),
+                                    address.getLatitude(),
+                                    address.getLongitude(),
+                                    address.getPlaceName(),
+                                    address.getPlaceLabel(),
+                                    authCount,
+                                    saveCount,
+                                    distance,
+                                    imageUrlList
+                            );
+                        })
+                        .collect(Collectors.toList()) // List<HotPlaceDTO> 생성
+        );
+
+        // 정렬
+        if ("distance".equals(sortBy)) {
+            hotPlaceList.getHotPlaceList().sort(Comparator.comparingDouble(MapResponseDTO.HotPlaceListDTO.HotPlaceDTO::getDistance));
+        } else if ("authCount".equals(sortBy)) {
+            hotPlaceList.getHotPlaceList().sort(Comparator.comparingLong(MapResponseDTO.HotPlaceListDTO.HotPlaceDTO::getAuthCount).reversed());
+        }
+
+        return hotPlaceList;
+    }
+
 }

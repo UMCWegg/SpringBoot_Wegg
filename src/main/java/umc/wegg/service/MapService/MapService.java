@@ -5,4 +5,5 @@ import umc.wegg.dto.MapResponseDTO;
 
 public interface MapService {
     MapResponseDTO.PlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchDTO request);
+    MapResponseDTO.HotPlaceListDTO viewHotPlaceList(double minX, double maxX, double minY, double maxY, String sortBy);
 }
