@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.UserConverter;
+import umc.wegg.domain.ContactFriend;
 import umc.wegg.domain.User;
 import umc.wegg.domain.Uuid;
 import umc.wegg.dto.UserRequestDTO;
@@ -295,5 +296,48 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
         } else {
             return new UserResponseDTO.VerifyNumberResultDTO(false);
         }
+    }
+
+    @Override
+    public UserResponseDTO.ContactUpdateResultDTO updateContactList(AuthenticatedUser authenticatedUser, List<UserRequestDTO.ContactDto> newContacts) {
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        Long userId = authenticatedUser.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        // 기존 연락처 리스트 (현재 저장된 친구 ID 리스트)
+        Set<Long> existingFriendIds = user.getContactFriendList().stream()
+                .map(contact -> contact.getFriend().getId())
+                .collect(Collectors.toSet());
+
+        // 새로운 연락처 중 가입된 유저만 찾기
+        List<UserResponseDTO.ContactFriendDTO> newContactFriends = newContacts.stream()
+                .map(contact -> userRepository.findByPhone(contact.getPhone())
+                        .map(contactFriend -> new UserResponseDTO.ContactFriendDTO(
+                                contactFriend,
+                                contactFriend.getAccountId(),
+                                contactFriend.getName(),
+                                contactFriend.getProfileImage(),
+                                contactFriend.getPhone()
+                        ))
+                        .orElse(null))
+                .filter(Objects::nonNull) // 가입된 유저만 유지
+                .filter(contactFriend -> !existingFriendIds.contains(contactFriend.getFriend().getId())) // 중복 제거
+                .collect(Collectors.toList());
+
+        // 새로운 연락처가 있을 경우 추가
+        if (!newContactFriends.isEmpty()) {
+            List<ContactFriend> contactFriendEntities = UserConverter.toContactFriendEntities(user, newContactFriends);
+            user.getContactFriendList().addAll(contactFriendEntities);
+            userRepository.save(user); // 변경사항 저장
+        }
+
+        Map<String, Object> updatedFields = new HashMap<>();
+        updatedFields.put("newContactsCount", newContactFriends.size());
+
+        return new UserResponseDTO.ContactUpdateResultDTO(true);
     }
 }

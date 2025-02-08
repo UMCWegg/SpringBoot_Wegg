@@ -1,6 +1,8 @@
 package umc.wegg.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.config.security.AuthenticatedUser;
@@ -8,6 +10,7 @@ import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface UserCommandService {
     UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request);
@@ -17,4 +20,6 @@ public interface UserCommandService {
     UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException;
     UserResponseDTO.CheckAccountIdResultDTO checkAccountIdDuplication(String accountId);
     UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request);
-}
+
+    UserResponseDTO.ContactUpdateResultDTO updateContactList(AuthenticatedUser authenticatedUser, List<UserRequestDTO.ContactDto> newContacts);
+    }

@@ -124,4 +124,15 @@ public class UserRestController {
         UserResponseDTO.CheckAccountIdResultDTO response = userCommandService.checkAccountIdDuplication(accountId);
         return ApiResponse.onSuccess(response);
     }
+
+    @PostMapping("/update-contacts")
+    @Operation(summary = "연락처 갱신", description = "새롭게 가입한 친구를 추가하는 API")
+    public ApiResponse<UserResponseDTO.ContactUpdateResultDTO> updateContacts(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @RequestBody @Valid UserRequestDTO.UpdateContactListDTO request) {
+
+        UserResponseDTO.ContactUpdateResultDTO response = userCommandService.updateContactList(authenticatedUser, request.getContacts());
+
+        return ApiResponse.onSuccess(response);
+    }
 }
