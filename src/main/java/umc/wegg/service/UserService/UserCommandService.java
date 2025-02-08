@@ -1,8 +1,6 @@
 package umc.wegg.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.config.security.AuthenticatedUser;
