@@ -8,8 +8,8 @@ public class MypageRequestDTO {
 
     @Getter
     public static class SettingDTO {
-        private AlarmType postAlarm;
-        private AlarmType commentAlarm;
+        private boolean postAlarm;
+        private boolean commentAlarm;
         private AlarmType placeAlarm;
         private AlarmType randomAlarm;
         private AlarmType eggAlarm;
