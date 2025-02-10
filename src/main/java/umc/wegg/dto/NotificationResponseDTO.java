@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.domain.enums.ReadStatus;
 import umc.wegg.domain.enums.TodoListStatus;
-
 import java.time.LocalDateTime;
 
 public class NotificationResponseDTO {
