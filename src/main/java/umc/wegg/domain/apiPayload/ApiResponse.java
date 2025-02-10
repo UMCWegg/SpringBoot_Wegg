@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import umc.wegg.domain.apiPayload.code.BaseCode;
+import umc.wegg.domain.apiPayload.code.ErrorReasonDTO;
 import umc.wegg.domain.apiPayload.code.status.SuccessStatus;
 
 @Getter
@@ -33,5 +34,10 @@ public class ApiResponse<T> {
     //실패한 경우 응답 생성, 리턴
     public static <T> ApiResponse<T> onFailure(String code, String message, T data){
         return new ApiResponse<>(false, code, message, data);
+    }
+
+    // ErrorReasonDTO를 받는 실패 응답 생성 메서드의 이름 변경
+    public static <T> ApiResponse<T> fromErrorReason(ErrorReasonDTO errorReason) {
+        return new ApiResponse<>(false, errorReason.getCode(), errorReason.getMessage(), null);
     }
 }
