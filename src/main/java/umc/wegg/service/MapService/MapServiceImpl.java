@@ -99,9 +99,6 @@ public class MapServiceImpl implements MapService {
                         .map(address -> {
                             // Plan을 거쳐서 Post 개수 계산 (Address -> Plan -> Post)
                             List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
-                            Long authCount = plans.stream()
-                                    .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
-                                    .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
 
                             // Plan을 거쳐서 Post 목록 가져오기 (Post 가져오기)
                             List<MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO> postList = plans.stream()
@@ -111,6 +108,8 @@ public class MapServiceImpl implements MapService {
                                             post.getImageUrl() // Post의 이미지 URL
                                     ))
                                     .collect(Collectors.toList());
+
+                            Long authCount = (long) postList.size();
 
                             // 2.3 saveCount 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
                             Long saveCount = myAddressRepository.countByAddressId(address.getId());
