@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.domain.*;
 import umc.wegg.domain.enums.EmojiType;
+import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
@@ -35,51 +36,15 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final NotificationService notificationService;
 
 
-
-//    @Override
-//    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
-//        // 1. Template 엔티티 조회
-//        Template template = templateRepository.findById(requestDTO.getTemplateId())
-//                .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + requestDTO.getTemplateId()));
-//
-//        // 2. Plan 엔티티 조회
-//        Plan plan = planRepository.findById(requestDTO.getPlanId())
-//                .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
-//
-//        String uuid = UUID.randomUUID().toString();
-//        Uuid savedUuid = uuidRepository.save(Uuid.builder()
-//                .uuid(uuid).build());
-//
-//        String pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
-//
-//        // 3. Post 엔티티 생성
-//        Post post = Post.builder()
-//                .imageUrl(pictureUrl) // 요청에서 받은 이미지 URL 설정
-//                .comment(requestDTO.getComment())  // 요청에서 받은 댓글 설정
-//                .template(template)                // 조회한 Template 엔티티 설정
-//                .plan(plan)                        // 조회한 Plan 엔티티 설정
-//                .build();                          // Post 객체 생성
-//
-//
-//
-//        // 4. Post 엔티티 저장
-//        Post savedPost = postRepository.save(post);
-//
-//        // 5. DTO 변환 및 반환
-//        return PostResponseDTO.PostCreateResponseDTO.builder()
-//                .postId(savedPost.getId())
-//                //.imageUrl(pictureUrl)
-//                .templateId(savedPost.getTemplate() != null ? savedPost.getTemplate().getId() : null)
-//                .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
-//                .createdAt(savedPost.getCreatedAt())
-//                .build();
-//    }
-
     @Override
     public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
         // 1. Plan 엔티티 조회
         Plan plan = planRepository.findById(requestDTO.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
+
+        // 상태 업데이트 (YET -> SUCCEEDED)
+        plan.setStatus(PlanStatus.SUCCEEDED);
+        planRepository.save(plan); // 변경된 상태 저장
 
         // 2. UUID 생성 및 저장 (필요한 경우)
         String uuid = UUID.randomUUID().toString();
@@ -120,7 +85,6 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .getPlan()          // Post 엔티티에서 Plan을 가져옴
                 .getUser();         // Plan 엔티티에서 User를 가져옴
     }
-
 
 
     @Override
@@ -454,9 +418,7 @@ public class PostCommandServiceImpl implements PostCommandService {
                         .collect(Collectors.toList())) // Map -> List<EmojiCountDTO> 변환
                 .userSelectedEmojis(userSelectedEmojis) // 사용자 선택 이모지 리스트
                 .build();
-
     }
-
 
 }
 

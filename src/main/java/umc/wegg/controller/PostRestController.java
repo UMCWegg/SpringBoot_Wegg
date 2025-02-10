@@ -23,14 +23,6 @@ public class PostRestController {
 
     private final PostCommandService postCommandService;
 
-//    @Operation(summary = "게시물 등록", description = "랜덤 인증을 통해 게시물을 등록하는 API")
-//    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-//    public ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(
-//            @RequestPart("request") @RequestBody PostRequestDTO.CreatePostDTO requestDTO,
-//            @RequestPart(value = "postImage", required = false) MultipartFile postImage) throws IOException {
-//        PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(requestDTO, postImage);
-//        return ApiResponse.onSuccess(responseDTO);
-//    }
     @Operation(summary = "게시물 등록", description = "랜덤 인증을 통해 게시물을 등록하는 API")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(
@@ -39,7 +31,6 @@ public class PostRestController {
         PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(requestDTO, postImage);
         return ApiResponse.onSuccess(responseDTO);
     }
-
 
     @Operation(summary = "댓글 등록", description = "게시물에 댓글을 등록하는 API")
     @PostMapping("/comment")
@@ -58,7 +49,6 @@ public class PostRestController {
         List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> comments = postCommandService.getComments(postId, page, size);
         return ApiResponse.onSuccess(comments);
     }
-
 
     @Operation(summary = "댓글 삭제", description = "특정 게시물의 특정 댓글을 삭제하는 API")
     @DeleteMapping("/{post_id}/comment/{comment_id}")
@@ -94,12 +84,6 @@ public class PostRestController {
         return ApiResponse.onSuccess("Emojis deleted for post: " + postId);
     }
 
-//    @Operation(summary = "게시물 둘러보기", description = "모든 게시물을 정렬된 리스트로 반환하는 API")
-//    @GetMapping("/view")
-//    public ApiResponse<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts() {
-//        List<PostResponseDTO.PostPreviewResponseDTO> responseDTOs = postCommandService.browsePosts();
-//        return ApiResponse.onSuccess(responseDTOs);
-//    }
     @Operation(summary = "게시물 둘러보기", description = "팔로우한 사용자와 팔로우하지 않은 사용자의 게시물을 각각 리스트로 반환하는 API")
     @GetMapping("/view")
     public ApiResponse<List<List<PostResponseDTO.PostPreviewResponseDTO>>> browsePosts(
@@ -109,7 +93,6 @@ public class PostRestController {
         List<List<PostResponseDTO.PostPreviewResponseDTO>> responseDTOs = postCommandService.browsePosts(page, size);
         return ApiResponse.onSuccess(responseDTOs);
     }
-
 
     @Operation(summary = "게시물 상세보기", description = "특정 게시물의 모든 정보를 조회하는 API (댓글 15개씩 페이징 포함)")
     @GetMapping("/{post_id}/view")
