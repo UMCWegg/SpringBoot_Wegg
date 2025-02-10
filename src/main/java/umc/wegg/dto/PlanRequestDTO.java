@@ -1,6 +1,7 @@
 package umc.wegg.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,9 +40,8 @@ public class PlanRequestDTO {
         @NotNull
         LateStatus lateTime;
 
-        @NotNull
-        Long addressId; // Address 엔티티와 연결하기 위한 addressId 추가
-
+        @NotBlank
+        String placeName; //장소 설정
 
         @NotNull
         Boolean planOn;
