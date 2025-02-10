@@ -275,6 +275,18 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
         return new UserResponseDTO.CheckAccountIdResultDTO(isDuplicate, message);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponseDTO.CheckEmailResultDTO checkEmailDuplication(String email) {
+        boolean isDuplicate = userRepository.existsByEmail(email);
+
+        String message = isDuplicate
+                ? "이미 사용 중인 이메일입니다."
+                : "사용 가능한 이메일입니다.";
+
+        return new UserResponseDTO.CheckEmailResultDTO(isDuplicate, message);
+    }
+
     public UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request) {
 
         if (!request.validateFormat()) {

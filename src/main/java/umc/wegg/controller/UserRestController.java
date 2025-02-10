@@ -3,6 +3,8 @@ package umc.wegg.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -13,11 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
-import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.service.MailService.MailService;
-import umc.wegg.service.MapService.MapServiceImpl;
 import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
 
@@ -34,7 +34,6 @@ public class UserRestController {
     private final UserCommandService userCommandService;
     private final SmsService smsService;
     private final MailService mailService;
-    private final MapServiceImpl mapServiceImpl;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입",description = "회원가입 API")
@@ -121,8 +120,16 @@ public class UserRestController {
     @GetMapping("/id-check")
     @Operation(summary = "아이디 중복 체크", description = "아이디의 중복 여부를 확인하는 API. 중복일 경우 result 값 true")
     public ApiResponse<UserResponseDTO.CheckAccountIdResultDTO> checkAccountIdDuplication(
-            @RequestParam("accountId") String accountId) {
+            @RequestParam("accountId") @NotBlank String accountId) {
         UserResponseDTO.CheckAccountIdResultDTO response = userCommandService.checkAccountIdDuplication(accountId);
+        return ApiResponse.onSuccess(response);
+    }
+
+    @GetMapping("/email-check")
+    @Operation(summary = "아메일 중복 체크", description = "이메일의 중복 여부를 확인하는 API. 중복일 경우 result 값 true")
+    public ApiResponse<UserResponseDTO.CheckEmailResultDTO> checkEmailDuplication(
+            @RequestParam("email") @Email @NotBlank String email) {
+        UserResponseDTO.CheckEmailResultDTO response = userCommandService.checkEmailDuplication(email);
         return ApiResponse.onSuccess(response);
     }
 

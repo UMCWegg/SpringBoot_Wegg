@@ -27,6 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
 
     Optional<User> findByOauthId(String oauthId);
     boolean existsByAccountId(String accountId);
+    boolean existsByEmail(String email);
     boolean existsByOauthId(String oauthId);
     // 📌 가장 최근에 포인트를 받은 successCount 조회
     @Query("SELECT u.lastReceivedSuccessCount FROM User u WHERE u.id = :userId")

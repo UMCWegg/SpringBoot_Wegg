@@ -123,6 +123,15 @@ public class UserResponseDTO {
         private String message;  // 결과 메시지
     }
 
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CheckEmailResultDTO {
+        private boolean isDuplicate;
+        private String message;  // 결과 메시지
+    }
+
     @Data
     @AllArgsConstructor
     public static class UserSearchDTO {

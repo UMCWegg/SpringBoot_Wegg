@@ -17,6 +17,7 @@ public interface UserCommandService {
     UserResponseDTO.UserDeleteResultDTO deleteUser(AuthenticatedUser authenticatedUser);
     UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException;
     UserResponseDTO.CheckAccountIdResultDTO checkAccountIdDuplication(String accountId);
+    UserResponseDTO.CheckEmailResultDTO checkEmailDuplication(String email);
     UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request);
 
     UserResponseDTO.ContactUpdateResultDTO updateContactList(AuthenticatedUser authenticatedUser, List<UserRequestDTO.ContactDto> newContacts);
