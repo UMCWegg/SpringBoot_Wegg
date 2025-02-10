@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import umc.wegg.domain.User;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>{
@@ -36,4 +37,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
     @Transactional
     @Query("UPDATE User u SET u.lastReceivedSuccessCount = :successCount WHERE u.id = :userId")
     void updateLastReceivedSuccessCount(@Param("userId") Long userId, @Param("successCount") int successCount);
+
+    @Query("SELECT u FROM User u WHERE u.accountId LIKE %?1%")
+    List<User> findByAccountIdContaining(String keyword);
 }

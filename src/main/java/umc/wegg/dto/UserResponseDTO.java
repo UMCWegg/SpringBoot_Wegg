@@ -123,6 +123,14 @@ public class UserResponseDTO {
         private String message;  // 결과 메시지
     }
 
+    @Data
+    @AllArgsConstructor
+    public static class UserSearchDTO {
+        private Long userId;
+        private String accountId;
+        private String profileImage;
+    }
+
     @Getter
     @Builder
     @NoArgsConstructor

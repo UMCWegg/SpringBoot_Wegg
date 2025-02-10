@@ -121,8 +121,18 @@ public class PostResponseDTO {
         }
     }
 
+    //10. 사용자에게 반환할 템플릿 데이터를 담는 DTO
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TemplateDTO {
+        private Long templateId;       // 템플릿 ID
+        private String type;           // 템플릿 타입
 
-
+        // 이 타입은 TemplateType ENUM의 이름을 문자열로 사용하므로,
+        // 사용자에게 전달될 때는 이 ENUM을 기반으로 이름이 설정됩니다.
+    }
 
     //7.댓글삭제api에 대한 response는 성공여부만 알려줄 것
     //8.이모지등록api에 대한 response는 성공여부만 알려줄 것

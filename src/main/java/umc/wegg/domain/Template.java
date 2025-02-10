@@ -3,6 +3,7 @@ package umc.wegg.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import umc.wegg.domain.common.BaseEntity;
+import umc.wegg.domain.enums.TemplateType;
 
 @Entity
 @Getter
@@ -17,7 +18,7 @@ public class Template extends BaseEntity {
     private Long id; // 템플릿 고유 식별자 (Primary Key)
 
     @Column(nullable = false)
-    private String name; // 템플릿 이름 (예: 특정 디자인 또는 형식의 이름)
+    private TemplateType templateType; // 템플릿 이름 (예: 특정 디자인 또는 형식의 이름)
 
     @Column(nullable = false)
     private int cost; // 템플릿 비용 (템플릿 구매에 필요한 포인트)

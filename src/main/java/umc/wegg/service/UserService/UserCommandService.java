@@ -20,4 +20,6 @@ public interface UserCommandService {
     UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request);
 
     UserResponseDTO.ContactUpdateResultDTO updateContactList(AuthenticatedUser authenticatedUser, List<UserRequestDTO.ContactDto> newContacts);
-    }
+    List<UserResponseDTO.UserSearchDTO> searchUsersByAccountId(String keyword);
+
+}
