@@ -31,7 +31,6 @@ public class UserRestController {
     private final UserCommandService userCommandService;
     private final SmsService smsService;
     private final MailService mailService;
-    private final MapServiceImpl mapServiceImpl;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입",description = "회원가입 API")
