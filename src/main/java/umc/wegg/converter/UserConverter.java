@@ -65,8 +65,8 @@ public class UserConverter {
         Setting setting = Setting.builder()
                 .user(user) // 양방향 관계 설정
                 .marketingAgree(request.getMarketingAgree())
-                .postAlarm(alarmType)
-                .commentAlarm(alarmType)
+                .postAlarm(true)
+                .commentAlarm(true)
                 .placeAlarm(alarmType)
                 .randomAlarm(alarmType)
                 .eggAlarm(alarmType)
@@ -121,8 +121,8 @@ public class UserConverter {
         Setting setting = Setting.builder()
                 .user(user) // 양방향 관계 설정
                 .marketingAgree(request.getMarketingAgree())
-                .postAlarm(alarmType)
-                .commentAlarm(alarmType)
+                .postAlarm(true)
+                .commentAlarm(true)
                 .placeAlarm(alarmType)
                 .randomAlarm(alarmType)
                 .eggAlarm(alarmType)
