@@ -1,11 +1,14 @@
 package umc.wegg.repository;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import umc.wegg.domain.User;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long>{
@@ -17,10 +20,24 @@ public interface UserRepository extends JpaRepository<User, Long>{
 //    @Query("SELECT u.successCount FROM User u WHERE u.id = :userId")
 //    int findSuccessCount();
 
+
+
     @Query("SELECT u.successCount FROM User u WHERE u.id = :userId")
     int findSuccessCountByUserId(@Param("userId") Long userId);
 
     Optional<User> findByOauthId(String oauthId);
     boolean existsByAccountId(String accountId);
     boolean existsByOauthId(String oauthId);
+    // 📌 가장 최근에 포인트를 받은 successCount 조회
+    @Query("SELECT u.lastReceivedSuccessCount FROM User u WHERE u.id = :userId")
+    Optional<Integer> findLastReceivedSuccessCount(@Param("userId") Long userId);
+
+    // 📌 lastReceivedSuccessCount 업데이트
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.lastReceivedSuccessCount = :successCount WHERE u.id = :userId")
+    void updateLastReceivedSuccessCount(@Param("userId") Long userId, @Param("successCount") int successCount);
+
+    @Query("SELECT u FROM User u WHERE u.accountId LIKE %?1%")
+    List<User> findByAccountIdContaining(String keyword);
 }

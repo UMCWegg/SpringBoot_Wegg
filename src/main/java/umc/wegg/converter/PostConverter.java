@@ -83,7 +83,7 @@ public class PostConverter {
                 .postId(post.getId()) // 게시물 ID
                 .postImageUrl(post.getImageUrl()) // 게시물 이미지 URL
                 .profileImage(post.getPlan().getUser() != null ? post.getPlan().getUser().getProfileImage() : null) // 작성자 프로필 이미지
-                .name(post.getPlan().getUser() != null ? post.getPlan().getUser().getName() : "Unknown") // 작성자 닉네임
+                .accountId(post.getPlan().getUser().getAccountId() != null ? post.getPlan().getUser().getAccountId() : "Unknown") // 작성자 닉네임
                 .createdAt(post.getCreatedAt()) // 게시물 작성 시간
                 .comments(commentDTOs) // 댓글 리스트
                 .emojiCounts(emojiCounts) // 모든 이모지 타입과 개수 리스트
@@ -99,6 +99,16 @@ public class PostConverter {
                 .postId(post.getId())
                 .profileImageUrl(post.getPlan().getUser().getProfileImage())
                 .nickname(post.getPlan().getUser().getName())
+                .postImageUrl(post.getImageUrl())
+                .build();
+    }
+    // 게시물 둘러보기 RESPONSEBODY 구성에 쓰이는 DTO로 변환
+    private PostResponseDTO.PostPreviewResponseDTO convertToDTO(Post post) {
+        User postUser = post.getPlan().getUser();
+        return PostResponseDTO.PostPreviewResponseDTO.builder()
+                .postId(post.getId())
+                .profileImageUrl(postUser.getProfileImage())
+                .nickname(postUser.getName())
                 .postImageUrl(post.getImageUrl())
                 .build();
     }

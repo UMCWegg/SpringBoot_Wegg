@@ -10,6 +10,7 @@ import umc.wegg.domain.enums.Job;
 import umc.wegg.domain.enums.ReasonType;
 import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.domain.mapping.Follow;
+import umc.wegg.domain.mapping.MyAddress;
 import umc.wegg.domain.mapping.MyTemplate;
 
 import java.util.ArrayList;
@@ -53,10 +54,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private int successCount = 0; // 연속 인증 성공 횟수
 
-    @ColumnDefault("0")
+    @ColumnDefault("0") //  마지막으로 포인트를 받은 successCount 저장
     @Builder.Default
-    @Column(nullable = false)
-    private int successPoint = 0; // 받을 수 있는 포인트
+    private int lastReceivedSuccessCount = 0;
 
     @Column(nullable = true)
     private Float currentLat; // 현재 위치 위도
@@ -109,6 +109,9 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContactFriend> contactFriendList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MyAddress> myAddressList = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Setting setting;

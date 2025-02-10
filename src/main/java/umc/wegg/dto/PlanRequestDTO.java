@@ -1,6 +1,7 @@
 package umc.wegg.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,9 +40,8 @@ public class PlanRequestDTO {
         @NotNull
         LateStatus lateTime;
 
-        @NotNull
-        Long addressId; // Address 엔티티와 연결하기 위한 addressId 추가
-
+        @NotBlank
+        String placeName; //장소 설정
 
         @NotNull
         Boolean planOn;
@@ -57,15 +57,21 @@ public class PlanRequestDTO {
 
 
     @Getter
+    @Setter
     public static class PlanUpdateDTO {
-        PlanStatus status;
-        LocalDateTime startTime;
-        LocalDateTime finishTime;
-        Long userId;
+        @JsonFormat(pattern = "HH:mm")  // 시와 분만 받도록 포맷을 지정
+        LocalTime startTime;
+        @JsonFormat(pattern = "HH:mm")  // 시와 분만 받도록 포맷을 지정
+        LocalTime finishTime;
         LateStatus lateTime;
-        Float latitude;
-        Float longitude;
-        String address;
+        Long addressId;
+        public LocalTime getStartTime() {
+            return startTime.truncatedTo(ChronoUnit.MINUTES);  // 초와 나노초를 잘라냄
+        }
+
+        public LocalTime getFinishTime() {
+            return finishTime.truncatedTo(ChronoUnit.MINUTES);  // 초와 나노초를 잘라냄
+        }
     }
 
     @Getter

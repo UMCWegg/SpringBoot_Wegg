@@ -1,17 +1,26 @@
 package umc.wegg.service.PlanService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import umc.wegg.converter.AddressConverter;
 import umc.wegg.converter.PlanConverter;
+import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
+import umc.wegg.domain.enums.NotificationType;
+import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.repository.AddressRepository;
 import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.service.NotificationService.NotificationService;
+import umc.wegg.util.RedisUtil;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,30 +28,54 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final NotificationService notificationService;
+    private final RedisUtil redisUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
     public List<Plan> addPlan(PlanRequestDTO.PlanAddDTO request) {
+
+        MapResponseDTO.SearchDTO.PlaceDetailDTO addressDetail = null;
+        try {
+            // Redis에서 JSON 데이터 가져오기
+            String addressStr = redisUtil.getData(request.getPlaceName());
+            if (addressStr != null) {
+                addressDetail = objectMapper.readValue(addressStr, MapResponseDTO.SearchDTO.PlaceDetailDTO.class);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // 변환 실패 시 처리
+        }
+
+        Address address = addressRepository.findByPlaceName(request.getPlaceName()).orElse(null);
+        if (address == null){
+            assert addressDetail != null;
+            address = AddressConverter.toAddress(addressDetail);
+            addressRepository.save(address);
+        }
+
         // planDates에 대해 각각 Plan을 생성하여 반환
-        List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, addressRepository);
+        List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, address);
+
         // 반환된 계획을 저장
         newPlans.forEach(planRepository::save);
 
+        // 각 계획에 대해 알림 예약
+        newPlans.forEach(plan -> scheduleNotifications(plan));
+
         return newPlans;
     }
-
-
-
 
     @Override
     public Plan updatePlan(Long planId, PlanRequestDTO.PlanUpdateDTO request) {
         Plan existingPlan = planRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
-        if (request.getStatus() != null) {
-            existingPlan.setStatus(request.getStatus());
-        }
+        // PlanConverter를 사용하여 기존 Plan 엔티티를 업데이트
+        Plan updatedPlan = PlanConverter.toPlanUpdate(request, existingPlan, addressRepository);
 
-        return planRepository.save(existingPlan);
+        // 업데이트된 Plan을 저장하고 반환
+        return planRepository.save(updatedPlan);
     }
 
     @Override
@@ -67,5 +100,27 @@ public class PlanCommandServiceImpl implements PlanCommandService{
 
         // Return the response DTO after deletion
         return PlanConverter.toPlanDeleteResponseDTO(existingPlan);
+    }
+
+    private void scheduleNotifications(Plan plan) {
+        // 계획의 startTime을 가져옴
+        LocalDateTime startTime = plan.getStartTime();
+        LocalDateTime finishTime = plan.getFinishTime();
+        // 10분 전 알림 예약
+        LocalDateTime fiveMinutesBefore = startTime.minusMinutes(5);
+        notificationService.scheduleNotification(plan.getUser(), NotificationType.PLACE_VERIFY, fiveMinutesBefore, "장소를 인증하고 공부를 시작하는데 5분 남았어요.", "/plans/" + plan.getId() + "/check");
+
+        // 계획의 startTime에 알림 예약
+        notificationService.scheduleNotification(plan.getUser(), NotificationType.PLACE_VERIFY, startTime, "시간이 다 되었습니다! 인증을 진행해주세요.", "/plans/" + plan.getId() + "/check");
+        // startTime과 finishTime 사이의 랜덤 알림 예약
+        long min = startTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long max = finishTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        // 랜덤한 시간 생성 (startTime과 finishTime 사이)
+        long randomTimeMillis = min + (long) (Math.random() * (max - min));
+        LocalDateTime randomTime = Instant.ofEpochMilli(randomTimeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        // 랜덤 알림 예약
+        notificationService.scheduleNotification(plan.getUser(), NotificationType.RANDOM_VERIFY, randomTime, "2분 안에 사진을 찍어 나의 공부를 인증하세요.", "/posts");
     }
 }

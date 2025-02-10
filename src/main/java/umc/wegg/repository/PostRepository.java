@@ -17,7 +17,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                                         @Param("start") LocalDateTime start,
                                         @Param("end") LocalDateTime end);
 
+    @Query("SELECT p.imageUrl FROM Post p WHERE p.plan.id = :planId")
+    List<String> findImageUrlsByPlanId(@Param("planId") Long planId);
+
     Page<Post> findAll(Pageable pageable);
+
+    List<Post> findByPlanId(Long planId);
+
+    Long countByPlanId(Long planId);
 
     // 잘못된 save 메서드 제거
 }

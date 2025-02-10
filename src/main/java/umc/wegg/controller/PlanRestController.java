@@ -44,11 +44,12 @@ public class PlanRestController {
 
 
     @PatchMapping("/{plan_id}")
-    public ApiResponse<PlanResponseDTO.PlanAddResultDTO> updatePlan(
+    public ApiResponse<PlanResponseDTO.PlanUpdateResultDTO> updatePlan(
             @PathVariable("plan_id") Long planId,
             @RequestBody @Valid PlanRequestDTO.PlanUpdateDTO request) {
         Plan updatedPlan = planCommandService.updatePlan(planId, request);
-        return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(updatedPlan));
+
+        return ApiResponse.onSuccess(PlanConverter.toPlanUpdateResultDTO(updatedPlan));
     }
 
     @PatchMapping("/{plan_id}/onoff")
