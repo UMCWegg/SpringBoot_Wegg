@@ -24,7 +24,11 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "users")
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"accountId"}), // accountId에 유니크 제약조건 추가
+                @UniqueConstraint(columnNames = {"email"})      // email에 유니크 제약조건 추가
+        })
 public class User extends BaseEntity {
 
     @Id
