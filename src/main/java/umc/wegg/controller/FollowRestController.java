@@ -8,6 +8,11 @@ import umc.wegg.dto.FollowResponseDTO;
 import umc.wegg.service.FollowService.FollowCommandService;
 import umc.wegg.domain.apiPayload.ApiResponse;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/follow")
@@ -53,5 +58,25 @@ public class FollowRestController {
         return ApiResponse.onSuccess(
                 new FollowResponseDTO.RejectFollowResponseDTO("Follow request rejected successfully."));
     }
+
+    @GetMapping("/recommendations")
+    public ApiResponse<Map<String, List<FollowResponseDTO.UserRecommendationDTO>>> getFriendRecommendations(@RequestParam Long myId) {
+        Map<String, List<FollowResponseDTO.UserRecommendationDTO>> recommendations = new HashMap<>();
+
+        // 나에게 온 팔로우 요청들
+        List<FollowResponseDTO.UserRecommendationDTO> followRequests = followCommandService.getFollowRequests(myId);
+        recommendations.put("followRequests", followRequests);
+
+        // 연락처에 있는 사용자 추천
+        List<FollowResponseDTO.UserRecommendationDTO> contactRecommendations = followCommandService.getContactRecommendations(myId);
+        recommendations.put("contactRecommendations", contactRecommendations);
+
+        // 회원님을 위한 사용자 추천 (추후 구현 예정)
+        recommendations.put("generalRecommendations", Collections.emptyList());
+
+        return ApiResponse.onSuccess(recommendations);
+    }
+
+
 }
 

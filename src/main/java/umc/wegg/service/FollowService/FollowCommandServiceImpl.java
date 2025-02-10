@@ -6,8 +6,13 @@ import umc.wegg.domain.User;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.mapping.Follow;
 import umc.wegg.dto.FollowRequestDTO;
+import umc.wegg.dto.FollowResponseDTO;
+import umc.wegg.repository.ContactFriendsRepository;
 import umc.wegg.repository.FollowRepository;
 import umc.wegg.repository.UserRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +20,7 @@ public class FollowCommandServiceImpl implements FollowCommandService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final ContactFriendsRepository contactFriendsRepository; // 연락처 친구 조회를 위해 필요
 
     /**
      * 팔로우 요청 생성
@@ -55,5 +61,36 @@ public class FollowCommandServiceImpl implements FollowCommandService {
         follow.setFollowStatus(followStatus);
         followRepository.save(follow);
     }
+
+    // 나에게 온 팔로우 요청들
+    @Override
+    public List<FollowResponseDTO.UserRecommendationDTO> getFollowRequests(Long myId) {
+        return followRepository.findByFolloweeIdAndFollowStatusOrderByCreatedAtDesc(myId, FollowStatus.WAITING)
+                .stream()
+                .map(follow -> FollowResponseDTO.UserRecommendationDTO.builder()
+                        .userId(follow.getFollower().getId())
+                        .profileImage(follow.getFollower().getProfileImage())
+                        .accountId(follow.getFollower().getAccountId())
+                        .userName(follow.getFollower().getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // 연락처에 있는 사용자 추천
+    @Override
+    public List<FollowResponseDTO.UserRecommendationDTO> getContactRecommendations(Long myId) {
+        return contactFriendsRepository.findByUserIdAndIsFollowingOrderByCreatedAtDesc(myId, FollowStatus.WAITING)
+                .stream()
+                .map(contact -> FollowResponseDTO.UserRecommendationDTO.builder()
+                        .userId(contact.getFriend().getId())
+                        .profileImage(contact.getFriend().getProfileImage())
+                        .accountId(contact.getFriend().getAccountId())
+                        .userName(contact.getFriend().getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // 회원님을 위한 사용자 추천 (추후 구현 가능)
+
 
 }

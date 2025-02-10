@@ -34,5 +34,16 @@ public class FollowResponseDTO {
         private String message; // 응답 메시지 (예: "Follow request rejected successfully.")
     }
 
+    // 4. 친구추천화면에서 쓰이는 DTO
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserRecommendationDTO {
+        private Long userId;
+        private String profileImage;
+        private String accountId;
+        private String userName;
+    }
 }
 
