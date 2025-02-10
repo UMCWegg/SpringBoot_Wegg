@@ -2,6 +2,7 @@ package umc.wegg.service.HomeService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.HomeConverter;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.Post;
@@ -33,8 +34,9 @@ public class HomeCommandServiceImpl implements HomeCommandService {
     private final FollowRepository followRepository;
 
     @Override
-    public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData() {
-        Long userId = 1L; // 테스트용 userId
+    public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData(AuthenticatedUser authenticatedUser) {
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
+
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
         LocalDate weekStart = today.with(java.time.DayOfWeek.MONDAY);
@@ -150,8 +152,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
 
     @Override
-    public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData() {
-        Long userId = 1L; // 테스트를 위해 userId를 1로 설정
+    public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData(AuthenticatedUser authenticatedUser) {
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
@@ -248,8 +250,9 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
 
     @Override
-    public HomeResponseDTO.FollowResponseDTO getHomeFollowData() {
-        Long userId = 1L; // 테스트를 위해 userId를 1로 설정
+    public HomeResponseDTO.FollowResponseDTO getHomeFollowData(AuthenticatedUser authenticatedUser) {
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -268,8 +271,9 @@ public class HomeCommandServiceImpl implements HomeCommandService {
     }
 
     @Override
-    public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthDataFor(int year, int month) {
-        Long userId = 1L; // 테스트용 userId
+    public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthDataFor(AuthenticatedUser authenticatedUser, int year, int month) {
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
+
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
         LocalDate monthStart = LocalDate.of(year, month, 1); // 해당 달 첫째 날
