@@ -12,6 +12,7 @@ import umc.wegg.domain.*;
 import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.mapping.Emoji;
+import umc.wegg.domain.mapping.MyTemplate;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.*;
@@ -29,6 +30,7 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final CommentRepository commentRepository;
     private final EmojiRepository emojiRepository;
     private final PlanRepository planRepository;
+    private final MyTemplateRepository myTemplateRepository;
     private final TemplateRepository templateRepository;
     private final UserRepository userRepository;
     private final AmazonS3Manager s3Manager;
@@ -420,5 +422,18 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .build();
     }
 
+    @Override
+    public List<PostResponseDTO.TemplateDTO> getUserTemplates() {
+        // 마이템플릿 데이터베이스에서 userId를 기반으로 사용자 템플릿 목록을 조회
+        Long userId = 1L;
+        List<MyTemplate> myTemplates = myTemplateRepository.findByUserId(userId);
+
+        return myTemplates.stream()
+                .map(myTemplate -> PostResponseDTO.TemplateDTO.builder()
+                        .templateId(myTemplate.getTemplate().getId())
+                        .type(myTemplate.getTemplate().getTemplateType().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
 

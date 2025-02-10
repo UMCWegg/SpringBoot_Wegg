@@ -34,5 +34,8 @@ public interface PostCommandService {
 
     // 이모지 조회
     PostResponseDTO.EmojiResponseDTO getEmojis(Long postId);
+
+    //유저 보유 템플릿 조회
+    public List<PostResponseDTO.TemplateDTO> getUserTemplates();
 }
 
