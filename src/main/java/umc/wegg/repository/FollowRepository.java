@@ -7,6 +7,7 @@ import umc.wegg.domain.User;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.mapping.Follow;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface FollowRepository extends JpaRepository<Follow, Long> {
@@ -19,4 +20,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     @Query("SELECT COUNT(f) FROM Follow f WHERE f.follower.id = :userId")
     int countFollowing(@Param("userId") Long userId);
+
+    @Query("SELECT f.follower FROM Follow f WHERE f.followee = :postOwner")
+    List<User> findFollowersByFollowee(@Param("postOwner") User postOwner);
 }
