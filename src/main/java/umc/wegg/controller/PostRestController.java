@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
+import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.service.PostService.PostCommandService;
 
 import java.io.IOException;
@@ -105,10 +106,14 @@ public class PostRestController {
         return ApiResponse.onSuccess(responseDTO);
     }
 
+
     @Operation(summary = "사용자 템플릿 목록 조회", description = "사용자가 보유한 템플릿의 목록을 반환하는 API")
     @GetMapping("/templates")
     public ApiResponse<List<PostResponseDTO.TemplateDTO>> getUserTemplates() {
         List<PostResponseDTO.TemplateDTO> templates = postCommandService.getUserTemplates();
         return ApiResponse.onSuccess(templates);
     }
+
+
+
 }

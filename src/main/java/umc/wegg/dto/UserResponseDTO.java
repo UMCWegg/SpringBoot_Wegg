@@ -122,4 +122,12 @@ public class UserResponseDTO {
         private boolean isDuplicate;
         private String message;  // 결과 메시지
     }
+
+    @Data
+    @AllArgsConstructor
+    public static class UserSearchDTO {
+        private Long userId;
+        private String accountId;
+        private String profileImage;
+    }
 }

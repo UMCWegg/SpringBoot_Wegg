@@ -15,6 +15,7 @@ import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.domain.mapping.MyTemplate;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
+import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
@@ -435,5 +436,6 @@ public class PostCommandServiceImpl implements PostCommandService {
                         .build())
                 .collect(Collectors.toList());
     }
+
 }
 

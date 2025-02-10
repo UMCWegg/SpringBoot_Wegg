@@ -22,6 +22,7 @@ import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Validated
@@ -123,5 +124,12 @@ public class UserRestController {
             @RequestParam("accountId") String accountId) {
         UserResponseDTO.CheckAccountIdResultDTO response = userCommandService.checkAccountIdDuplication(accountId);
         return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "사용자 검색", description = "검색어를 포함하는 모든 사용자의 accountId를 리스트로 반환")
+    @GetMapping("/search")
+    public ApiResponse<List<UserResponseDTO.UserSearchDTO>> searchUsers(@RequestParam String keyword) {
+        List<UserResponseDTO.UserSearchDTO> users = userCommandService.searchUsersByAccountId(keyword);
+        return ApiResponse.onSuccess(users);
     }
 }
