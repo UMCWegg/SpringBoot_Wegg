@@ -11,14 +11,13 @@ public class MypageConverter {
     public static Map<String, Object> toUpdatedFields(Setting setting, MypageRequestDTO.SettingDTO request) {
         Map<String, Object> updatedFields = new HashMap<>();
 
-        if (request.getPostAlarm() != null) {
-            setting.setPostAlarm(request.getPostAlarm());
-            updatedFields.put("postAlarm", request.getPostAlarm());
-        }
-        if (request.getCommentAlarm() != null) {
-            setting.setCommentAlarm(request.getCommentAlarm());
-            updatedFields.put("commentAlarm", request.getCommentAlarm());
-        }
+
+        setting.setPostAlarm(request.isPostAlarm());
+        updatedFields.put("postAlarm", request.isPostAlarm());
+
+        setting.setCommentAlarm(request.isCommentAlarm());
+        updatedFields.put("commentAlarm", request.isCommentAlarm());
+
         if (request.getPlaceAlarm() != null) {
             setting.setPlaceAlarm(request.getPlaceAlarm());
             updatedFields.put("placeAlarm", request.getPlaceAlarm());
