@@ -19,4 +19,15 @@ public class TodoResponseDTO {
         TodoListStatus status;
         LocalDateTime createdAt;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeleteResultDTO{
+        Long todoId;
+        String content;
+        TodoListStatus status;
+        String message;
+    }
 }

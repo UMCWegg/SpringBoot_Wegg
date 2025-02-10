@@ -159,4 +159,15 @@ public class UserConverter {
                 .build();
 
     }
+
+    public static List<ContactFriend> toContactFriendEntities(User user, List<UserResponseDTO.ContactFriendDTO> contactFriends) {
+        return contactFriends.stream()
+                .map(contactFriend -> ContactFriend.builder()
+                        .user(user)
+                        .friend(contactFriend.getFriend())
+                        .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
+                        .isFollowing(false)
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

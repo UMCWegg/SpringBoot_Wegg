@@ -2,6 +2,7 @@ package umc.wegg.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.config.security.AuthenticatedUser;
@@ -43,11 +44,12 @@ public class PlanRestController {
 
 
     @PatchMapping("/{plan_id}")
-    public ApiResponse<PlanResponseDTO.PlanAddResultDTO> updatePlan(
+    public ApiResponse<PlanResponseDTO.PlanUpdateResultDTO> updatePlan(
             @PathVariable("plan_id") Long planId,
             @RequestBody @Valid PlanRequestDTO.PlanUpdateDTO request) {
         Plan updatedPlan = planCommandService.updatePlan(planId, request);
-        return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(updatedPlan));
+
+        return ApiResponse.onSuccess(PlanConverter.toPlanUpdateResultDTO(updatedPlan));
     }
 
     @PatchMapping("/{plan_id}/onoff")
@@ -77,15 +79,16 @@ public class PlanRestController {
     }
 
 
-    // 사용자가 계획에 설정된 가게 내에 있는지 확인
     @GetMapping("/{plan_id}/check")
-    public boolean checkUserLocation(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @PathVariable("plan_id") Long planId) {
+    public PlanResponseDTO.LocationVerificationResponseDTO checkUserLocation(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @PathVariable("plan_id") Long planId) {
         Long userId = authenticatedUser.getUserId();
+        // 장소 인증 결과를 담은 메시지를 반환
         return planQueryService.isUserInPlan(planId, userId);
     }
 
     @DeleteMapping("/{plan_id}")
-    public void deletePlan(@PathVariable Long plan_id) {
-        planCommandService.deletePlan(plan_id);
+    public ApiResponse<PlanResponseDTO.PlanDeleteResponseDTO> deletePlan(@PathVariable Long plan_id) {
+        PlanResponseDTO.PlanDeleteResponseDTO response = planCommandService.deletePlan(plan_id);
+        return ApiResponse.onSuccess(response); // 삭제된 계획 정보를 반환
     }
 }

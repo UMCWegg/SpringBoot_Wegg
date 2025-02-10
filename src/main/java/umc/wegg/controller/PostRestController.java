@@ -100,13 +100,13 @@ public class PostRestController {
 //        List<PostResponseDTO.PostPreviewResponseDTO> responseDTOs = postCommandService.browsePosts();
 //        return ApiResponse.onSuccess(responseDTOs);
 //    }
-    @Operation(summary = "게시물 둘러보기", description = "페이징된 게시물을 정렬된 리스트로 반환하는 API")
+    @Operation(summary = "게시물 둘러보기", description = "팔로우한 사용자와 팔로우하지 않은 사용자의 게시물을 각각 리스트로 반환하는 API")
     @GetMapping("/view")
-    public ApiResponse<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(
+    public ApiResponse<List<List<PostResponseDTO.PostPreviewResponseDTO>>> browsePosts(
             @RequestParam(defaultValue = "0") int page, // 기본값 페이지 0
             @RequestParam(defaultValue = "20") int size // 기본값 크기 20
     ) {
-        List<PostResponseDTO.PostPreviewResponseDTO> responseDTOs = postCommandService.browsePosts(page, size);
+        List<List<PostResponseDTO.PostPreviewResponseDTO>> responseDTOs = postCommandService.browsePosts(page, size);
         return ApiResponse.onSuccess(responseDTOs);
     }
 
