@@ -130,4 +130,12 @@ public class UserResponseDTO {
         private String accountId;
         private String profileImage;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ContactUpdateResultDTO {
+        private boolean success;
+    }
 }

@@ -18,6 +18,8 @@ public interface UserCommandService {
     UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException;
     UserResponseDTO.CheckAccountIdResultDTO checkAccountIdDuplication(String accountId);
     UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request);
+
+    UserResponseDTO.ContactUpdateResultDTO updateContactList(AuthenticatedUser authenticatedUser, List<UserRequestDTO.ContactDto> newContacts);
     List<UserResponseDTO.UserSearchDTO> searchUsersByAccountId(String keyword);
 
 }

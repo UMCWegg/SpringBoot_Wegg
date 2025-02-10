@@ -37,6 +37,7 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
     private final NotificationService notificationService;
+    private final FollowRepository followRepository;
 
 
     @Override
@@ -72,7 +73,19 @@ public class PostCommandServiceImpl implements PostCommandService {
         // 5. Post 엔티티 저장
         Post savedPost = postRepository.save(post);
 
-        // 6. DTO 변환 및 반환
+        // 5. 게시글 작성자 조회
+        User postOwner = getPostOwner(post.getId()); // 현재 게시글 작성자 (이 메서드가 필요함)
+
+        // 6. 팔로워 조회
+        List<User> followers = followRepository.findFollowersByFollowee(postOwner);
+
+        // 7. 팔로워들에게 알림 전송
+        String message = postOwner.getAccountId() + "님이 새로운 포스트를 올렸습니다!";
+        for (User follower : followers) {
+            notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST");
+        }
+
+        // 8. DTO 변환 및 반환
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(savedPost.getId())
                 .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)

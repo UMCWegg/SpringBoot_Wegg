@@ -126,6 +126,17 @@ public class UserRestController {
         return ApiResponse.onSuccess(response);
     }
 
+    @PostMapping("/update-contacts")
+    @Operation(summary = "연락처 갱신", description = "새롭게 가입한 친구를 추가하는 API")
+    public ApiResponse<UserResponseDTO.ContactUpdateResultDTO> updateContacts(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @RequestBody @Valid UserRequestDTO.UpdateContactListDTO request) {
+
+        UserResponseDTO.ContactUpdateResultDTO response = userCommandService.updateContactList(authenticatedUser, request.getContacts());
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "사용자 검색", description = "검색어를 포함하는 모든 사용자의 accountId를 리스트로 반환")
     @GetMapping("/search")
     public ApiResponse<List<UserResponseDTO.UserSearchDTO>> searchUsers(@RequestParam String keyword) {

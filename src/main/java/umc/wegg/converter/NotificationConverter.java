@@ -1,6 +1,5 @@
 package umc.wegg.converter;
 
-
 import umc.wegg.domain.Notification;
 import umc.wegg.dto.NotificationResponseDTO;
 

@@ -25,10 +25,10 @@ public class Address extends BaseEntity {
     private String placeName; // 주소 이름 (예: 스타벅스 신용산점)
 
     @Column(nullable = false)
-    private float latitude; // 위도
+    private Float latitude; // 위도
 
     @Column(nullable = false)
-    private float longitude; // 경도
+    private Float longitude; // 경도
 
     private String phone;
 

@@ -8,6 +8,7 @@ import umc.wegg.domain.enums.AlarmType;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -26,11 +27,9 @@ public class Setting extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 해당 설정을 한 사용자
 
-    @Enumerated(EnumType.STRING)
-    private AlarmType postAlarm; // 친구들 포스트 알림
+    private boolean postAlarm; // 친구들 포스트 알림
 
-    @Enumerated(EnumType.STRING)
-    private AlarmType commentAlarm; // 댓글 알림
+    private boolean commentAlarm; // 댓글 알림
 
     @Enumerated(EnumType.STRING)
     private AlarmType placeAlarm; // 장소 인증 알림
