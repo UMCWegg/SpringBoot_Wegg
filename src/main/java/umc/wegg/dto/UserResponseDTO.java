@@ -122,4 +122,12 @@ public class UserResponseDTO {
         private boolean isDuplicate;
         private String message;  // 결과 메시지
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ContactUpdateResultDTO {
+        private boolean success;
+    }
 }

@@ -2,7 +2,9 @@ package umc.wegg.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.HomeResponseDTO;
@@ -23,23 +25,23 @@ public class HomeRestController {
     // 주간 화면 렌더링
     @GetMapping("/week")
     @Operation(summary = "주간 화면 렌더링", description = "홈(주간) 화면 렌더링 API")
-    public ApiResponse<HomeResponseDTO.HomeWeekResponseDTO> renderWeekView() {
-        HomeResponseDTO.HomeWeekResponseDTO response = homeService.getHomeWeekData();
+    public ApiResponse<HomeResponseDTO.HomeWeekResponseDTO> renderWeekView( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        HomeResponseDTO.HomeWeekResponseDTO response = homeService.getHomeWeekData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
 
     // 월간 화면 렌더링
     @GetMapping("/month")
     @Operation(summary = "월간 화면 렌더링", description = "홈(월간) 화면 렌더링 API, 날짜에 따른 게시물 사진과 시간 모두 담김")
-    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView() {
-        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthData();
+    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
 
     @GetMapping("/follow")
     @Operation(summary = "팔로우 팔로잉(+프로필 사진) 화면 렌더링", description = "홈(월간) 화면 렌더링 시 팔로우,팔로잉 API")
-    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFollowView() {
-        HomeResponseDTO.FollowResponseDTO response = homeService.getHomeFollowData();
+    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFollowView( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        HomeResponseDTO.FollowResponseDTO response = homeService.getHomeFollowData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
 
@@ -47,10 +49,11 @@ public class HomeRestController {
     @GetMapping("/calendar/{year}/{month}")
     @Operation(summary = "이전달/다음달 버튼", description = "홈(월간) 화면에서 이전/다음 달로 이동하는 API")
     public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> getCalendarData(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @PathVariable("year") int year,
             @PathVariable("month") int month
     ) {
-        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthDataFor(year, month);
+        HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthDataFor(authenticatedUser, year, month);
         return ApiResponse.onSuccess(response);
     }
 
@@ -83,8 +86,8 @@ public class HomeRestController {
 
     @PostMapping("/receive-points")
     @Operation(summary = "포인트 받기", description = "3의 배수 성공 횟수마다 포인트 지급")
-    public ApiResponse<Integer> receivePoints() {
-        Long userId = 1L; // 테스트용 userId
+    public ApiResponse<Integer> receivePoints( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
