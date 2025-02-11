@@ -65,8 +65,8 @@ public class UserConverter {
         Setting setting = Setting.builder()
                 .user(user) // 양방향 관계 설정
                 .marketingAgree(request.getMarketingAgree())
-                .postAlarm(alarmType)
-                .commentAlarm(alarmType)
+                .postAlarm(true)
+                .commentAlarm(true)
                 .placeAlarm(alarmType)
                 .randomAlarm(alarmType)
                 .eggAlarm(alarmType)
@@ -121,8 +121,8 @@ public class UserConverter {
         Setting setting = Setting.builder()
                 .user(user) // 양방향 관계 설정
                 .marketingAgree(request.getMarketingAgree())
-                .postAlarm(alarmType)
-                .commentAlarm(alarmType)
+                .postAlarm(true)
+                .commentAlarm(true)
                 .placeAlarm(alarmType)
                 .randomAlarm(alarmType)
                 .eggAlarm(alarmType)
@@ -158,5 +158,16 @@ public class UserConverter {
                 .userId(userId)
                 .build();
 
+    }
+
+    public static List<ContactFriend> toContactFriendEntities(User user, List<UserResponseDTO.ContactFriendDTO> contactFriends) {
+        return contactFriends.stream()
+                .map(contactFriend -> ContactFriend.builder()
+                        .user(user)
+                        .friend(contactFriend.getFriend())
+                        .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
+                        .isFollowing(false)
+                        .build())
+                .collect(Collectors.toList());
     }
 }

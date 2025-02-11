@@ -1,12 +1,16 @@
 package umc.wegg.service.PlanService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import umc.wegg.converter.AddressConverter;
 import umc.wegg.converter.PlanConverter;
 import umc.wegg.domain.Egg;
+import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.enums.EggStatus;
 import umc.wegg.domain.enums.NotificationType;
+import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.repository.AddressRepository;
@@ -14,12 +18,12 @@ import umc.wegg.repository.EggRepository;
 import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
+import umc.wegg.util.RedisUtil;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +33,33 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     private final AddressRepository addressRepository;
     private final NotificationService notificationService;
     private final EggRepository eggRepository;
+    private final RedisUtil redisUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
     public List<Plan> addPlan(PlanRequestDTO.PlanAddDTO request) {
+
+        MapResponseDTO.SearchDTO.PlaceDetailDTO addressDetail = null;
+        try {
+            // Redis에서 JSON 데이터 가져오기
+            String addressStr = redisUtil.getData(request.getPlaceName());
+            if (addressStr != null) {
+                addressDetail = objectMapper.readValue(addressStr, MapResponseDTO.SearchDTO.PlaceDetailDTO.class);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // 변환 실패 시 처리
+        }
+
+        Address address = addressRepository.findByPlaceName(request.getPlaceName()).orElse(null);
+        if (address == null){
+            assert addressDetail != null;
+            address = AddressConverter.toAddress(addressDetail);
+            addressRepository.save(address);
+        }
+
         // planDates에 대해 각각 Plan을 생성하여 반환
-        List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, addressRepository);
+        List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, address);
 
         // 반환된 계획을 저장
         newPlans.forEach(plan -> {

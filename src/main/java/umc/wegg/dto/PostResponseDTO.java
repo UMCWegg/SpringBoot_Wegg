@@ -85,6 +85,7 @@ public class PostResponseDTO {
         private String profileImageUrl;  // 작성자 프로필 사진 URL
         private String nickname;         // 작성자 닉네임
         private String postImageUrl;     // 게시물 이미지 URL
+        private LocalDateTime createdAt; // 게시물 생성시간
     }
 
     // 6. 작성글 상세보기
@@ -95,8 +96,9 @@ public class PostResponseDTO {
     public static class PostDetailResponseDTO {
         private Long postId;                                   // 게시물 ID
         private String postImageUrl;                           // 게시물 이미지 URL
+        private Long userId;                                   // user 아이디
         private String profileImage;                           // 작성자 프로필 사진 URL
-        private String name;                                   // 작성자 이름
+        private String accountId;                              // 작성자 계정아이디
         private LocalDateTime createdAt;                       // 게시 시간
         private List<CommentDTO> comments;                     // 댓글 리스트 (페이징 적용)
         private List<EmojiResponseDTO.EmojiCountDTO> emojiCounts; // 모든 이모지 타입과 개수 리스트
@@ -119,8 +121,18 @@ public class PostResponseDTO {
         }
     }
 
+    //10. 사용자에게 반환할 템플릿 데이터를 담는 DTO
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TemplateDTO {
+        private Long templateId;       // 템플릿 ID
+        private String type;           // 템플릿 타입
 
-
+        // 이 타입은 TemplateType ENUM의 이름을 문자열로 사용하므로,
+        // 사용자에게 전달될 때는 이 ENUM을 기반으로 이름이 설정됩니다.
+    }
 
     //7.댓글삭제api에 대한 response는 성공여부만 알려줄 것
     //8.이모지등록api에 대한 response는 성공여부만 알려줄 것

@@ -13,6 +13,8 @@ import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.domain.enums.ReadStatus;
+import umc.wegg.dto.NotificationRequestDTO;
+import umc.wegg.dto.TodoRequestDTO;
 import umc.wegg.repository.EmitterRepository;
 import umc.wegg.repository.NotificationRepository;
 import umc.wegg.repository.PlanRepository;
@@ -37,9 +39,9 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // 1 hour
 
     @Override
-    public SseEmitter subscribe(Long memberId, String lastEventId) {
+    public SseEmitter subscribe(Long userId, String lastEventId) {
         // 고유 ID 생성
-        String emitterId = memberId + "_" + System.currentTimeMillis();
+        String emitterId = userId + "_" + System.currentTimeMillis();
         SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
 
         // SSE 연결이 완료되거나 타임아웃되면 해당 emitter 삭제
@@ -47,11 +49,11 @@ public class NotificationServiceImpl implements NotificationService {
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         // 클라이언트에게 더미 이벤트 전송
-        sendToClient(emitter, emitterId, "EventStream Created. [memberId=" + memberId + "]");
+        sendToClient(emitter, emitterId, "EventStream Created. [userId=" + userId + "]");
 
         // 이전에 읽지 않은 이벤트가 있다면 전송
         if (!lastEventId.isEmpty()) {
-            Map<String, Object> events = emitterRepository.findAllEventCacheStartWithByMemberId(String.valueOf(memberId));
+            Map<String, Object> events = emitterRepository.findAllEventCacheStartWithByMemberId(String.valueOf(userId));
             events.entrySet().stream()
                     .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
                     .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getValue()));
@@ -111,7 +113,10 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
         send(planUser, type, content, "/eggs/calender/plans");
     }
-
+    public void sendNotificationToFollower(User follower, Long postId, String content, String notificationType) {
+        NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
+        send(follower, type, content, "/posts/" + postId + "/view");
+    }
 
     public void scheduleNotification(User user, NotificationType type, LocalDateTime notificationTime, String content, String url) {
         long delay = notificationTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
@@ -125,5 +130,15 @@ public class NotificationServiceImpl implements NotificationService {
     public List<Notification> getUserNotifications(Long userId) {
         return notificationRepository.findByUserId(userId);
     }
+    public Notification readNotification(Long notificationId, NotificationRequestDTO.ReadDTO request) {
+        Notification existingNoti = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Todo not found"));
 
+        if (request.getReadStatus() != null) {
+            existingNoti.setReadStatus(request.getReadStatus());
+        }
+
+        return notificationRepository.save(existingNoti);
+
+    }
 }

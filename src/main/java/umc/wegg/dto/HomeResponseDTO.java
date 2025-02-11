@@ -56,7 +56,8 @@ public class HomeResponseDTO {
         private int followerCount;  // 팔로워 수
         private int followingCount; // 팔로잉 수
         private String profileImage; // 프로필 사진
-    }
+        private String accountId;   // 사용자 계정 ID
+}
 
     // plan 데이터와 post 데이터를 합침
     @Getter

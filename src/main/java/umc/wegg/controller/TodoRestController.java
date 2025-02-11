@@ -46,6 +46,13 @@ public class TodoRestController {
         TodoList updatedTodo = todoCommandService.updateTodo(todoId, request);
         return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(updatedTodo));
     }
+    @PatchMapping("/{todo_id}/check")
+    public ApiResponse<TodoResponseDTO.AddResultDTO> checkTodo(
+            @PathVariable("todo_id") Long todoId,
+            @RequestBody @Valid TodoRequestDTO.CheckDTO request) {
+        TodoList checkTodo = todoCommandService.checkTodo(todoId, request);
+        return ApiResponse.onSuccess(TodoConverter.toAddResultDTO(checkTodo));
+    }
 
     @GetMapping("/achievement")
     public ApiResponse<Double> getAchievementRate(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
@@ -71,9 +78,14 @@ public class TodoRestController {
 
 
     @DeleteMapping("/{todo_id}")
-    public void deleteTodo(@PathVariable Long todo_id) {
-        todoCommandService.deleteTodo(todo_id);
+    public ApiResponse<TodoResponseDTO.DeleteResultDTO> deleteTodo(@PathVariable Long todo_id) {
+        TodoResponseDTO.DeleteResultDTO response = todoCommandService.deleteTodo(todo_id);
+        return ApiResponse.onSuccess(response);
     }
-
+//    @DeleteMapping("/{plan_id}")
+//    public ApiResponse<PlanResponseDTO.PlanDeleteResponseDTO> deletePlan(@PathVariable Long plan_id) {
+//        PlanResponseDTO.PlanDeleteResponseDTO response = planCommandService.deletePlan(plan_id);
+//        return ApiResponse.onSuccess(response); // 삭제된 계획 정보를 반환
+//    }
 
 }

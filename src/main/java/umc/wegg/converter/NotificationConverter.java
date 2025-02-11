@@ -1,6 +1,5 @@
 package umc.wegg.converter;
 
-
 import umc.wegg.domain.Notification;
 import umc.wegg.dto.NotificationResponseDTO;
 
@@ -14,6 +13,12 @@ public class NotificationConverter {
                 .content(notification.getContent()) // 알림 내용
                 .url(notification.getUrl()) // 알림 URL (예: 알림을 클릭했을 때 이동할 URL)
                 .readStatus(notification.getReadStatus()) // 알림 읽음 여부
+                .build();
+    }
+    public static NotificationResponseDTO.NotificationReadDTO toNotificationReadDTO(Notification notification) {
+        return NotificationResponseDTO.NotificationReadDTO.builder()
+                .notificationId(notification.getId())
+                .readStatus(notification.getReadStatus())
                 .build();
     }
 }
