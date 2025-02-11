@@ -88,11 +88,17 @@ public class PlanRestController {
 
 
     @GetMapping("/{plan_id}/check")
-    public PlanResponseDTO.LocationVerificationResponseDTO checkUserLocation(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @PathVariable("plan_id") Long planId) {
+    public PlanResponseDTO.LocationVerificationResponseDTO checkUserLocation(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @PathVariable("plan_id") Long planId,
+            @RequestParam("lat") double userLat,
+            @RequestParam("lon") double userLon) {
+
         Long userId = authenticatedUser.getUserId();
         // 장소 인증 결과를 담은 메시지를 반환
-        return planQueryService.isUserInPlan(planId, userId);
+        return planQueryService.isUserInPlan(planId, userId, userLat, userLon);
     }
+
 
     @DeleteMapping("/{plan_id}")
     public ApiResponse<PlanResponseDTO.PlanDeleteResponseDTO> deletePlan(@PathVariable Long plan_id) {

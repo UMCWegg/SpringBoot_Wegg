@@ -34,17 +34,14 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         return planRepository.findAll();
     }
 
+
     @Override
-    public PlanResponseDTO.LocationVerificationResponseDTO isUserInPlan(Long planId, Long userId) {
+    public PlanResponseDTO.LocationVerificationResponseDTO isUserInPlan(Long planId, Long userId, double userLat, double userLon) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         double planLat = plan.getAddress().getLatitude();
         double planLon = plan.getAddress().getLongitude();
-        double userLat = user.getCurrentLat();
-        double userLon = user.getCurrentLon();
 
         boolean isWithinBoundary = GeoUtil.isWithinPlanBoundary(planLat, planLon, userLat, userLon, 0.5);
 
