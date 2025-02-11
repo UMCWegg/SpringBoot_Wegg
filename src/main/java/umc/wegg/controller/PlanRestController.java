@@ -60,6 +60,14 @@ public class PlanRestController {
         return ApiResponse.onSuccess(PlanConverter.toPlanAddResultDTO(onoffPlan));
     }
 
+    @PatchMapping("/{plan_id}/status")
+    public ApiResponse<PlanResponseDTO.PlanStatusDTO> statusPlan(
+            @PathVariable("plan_id") Long planId,
+            @RequestBody @Valid PlanRequestDTO.PlanStatusDTO request) {
+        Plan statusPlan = planCommandService.statusPlan(planId, request);
+        return ApiResponse.onSuccess(PlanConverter.toPlanStatusDTO(statusPlan));
+    }
+
 
 
     @GetMapping

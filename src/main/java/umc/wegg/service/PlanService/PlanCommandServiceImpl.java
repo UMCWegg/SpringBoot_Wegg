@@ -5,13 +5,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import umc.wegg.converter.AddressConverter;
 import umc.wegg.converter.PlanConverter;
+import umc.wegg.domain.Egg;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
+import umc.wegg.domain.enums.EggStatus;
 import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.repository.AddressRepository;
+import umc.wegg.repository.EggRepository;
 import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
@@ -29,6 +32,7 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final NotificationService notificationService;
+    private final EggRepository eggRepository;
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper;
 
@@ -58,7 +62,24 @@ public class PlanCommandServiceImpl implements PlanCommandService{
         List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, address);
 
         // 반환된 계획을 저장
-        newPlans.forEach(planRepository::save);
+        newPlans.forEach(plan -> {
+            planRepository.save(plan);  // Plan 저장
+
+            // Plan이 저장된 후 Egg 생성
+            Egg egg = Egg.builder()
+                    .status(EggStatus.INTACT)  // 기본 상태는 INTACT
+                    .plan(plan)  // 생성된 Plan과 연결
+                    .build();
+
+            // Egg 저장
+            eggRepository.save(egg);
+
+            // Plan에 Egg 연결 (양방향 관계)
+            plan.setEgg(egg);  // Plan과 Egg를 연결
+
+            // Egg 저장 (변경된 Plan을 다시 저장)
+            planRepository.save(plan);
+        });
 
         // 각 계획에 대해 알림 예약
         newPlans.forEach(plan -> scheduleNotifications(plan));
@@ -85,6 +106,18 @@ public class PlanCommandServiceImpl implements PlanCommandService{
 
         if (request.getPlanOn() != null) {
             existingPlan.setPlanOn(request.getPlanOn());
+        }
+
+        return planRepository.save(existingPlan);
+    }
+
+    @Override
+    public Plan statusPlan(Long planId, PlanRequestDTO.PlanStatusDTO request) {
+        Plan existingPlan = planRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+
+        if (request.getPlanStatus() != null) {
+            existingPlan.setStatus(request.getPlanStatus());
         }
 
         return planRepository.save(existingPlan);
