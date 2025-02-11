@@ -106,6 +106,13 @@ public class PlanCommandServiceImpl implements PlanCommandService{
 
         if (request.getPlanOn() != null) {
             existingPlan.setPlanOn(request.getPlanOn());
+
+            // Plan과 연결된 Egg 객체 가져오기
+            Egg egg = existingPlan.getEgg();
+            if (egg != null) {
+                // planOn이 true면 INTACT, false면 INACTIVE로 변경
+                egg.setStatus(request.getPlanOn() ? EggStatus.INTACT : EggStatus.INACTIVE);
+            }
         }
 
         return planRepository.save(existingPlan);
@@ -136,6 +143,10 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     }
 
     private void scheduleNotifications(Plan plan) {
+        // planOn이 false면 알림을 생성하지 않음
+        if (!Boolean.TRUE.equals(plan.getPlanOn())) {
+            return;
+        }
         // 계획의 startTime을 가져옴
         LocalDateTime startTime = plan.getStartTime();
         LocalDateTime finishTime = plan.getFinishTime();

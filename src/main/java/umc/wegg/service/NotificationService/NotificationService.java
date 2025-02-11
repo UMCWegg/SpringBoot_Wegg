@@ -18,4 +18,5 @@ public interface NotificationService {
     List<Notification> getUserNotifications(Long userId);
     Notification readNotification(Long notificationId, NotificationRequestDTO.ReadDTO request);
     void sendNotificationToFollower(User follower, Long postId, String message, String notificationType);
+    void scheduleTask(Runnable task, LocalDateTime executionTime);
 }

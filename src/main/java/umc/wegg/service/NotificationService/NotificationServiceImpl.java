@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -37,6 +38,15 @@ public class NotificationServiceImpl implements NotificationService {
     private final PlanRepository planRepository;
 
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // 1 hour
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
+
+    public void scheduleTask(Runnable task, LocalDateTime executionTime) {
+        long delay = executionTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
+        if (delay > 0) {
+            scheduler.schedule(task, delay, TimeUnit.MILLISECONDS);
+        }
+    }
 
     @Override
     public SseEmitter subscribe(Long userId, String lastEventId) {
