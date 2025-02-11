@@ -35,6 +35,7 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     private final EggRepository eggRepository;
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper;
+    private final PlanQueryService planQueryService;
 
     @Override
     public List<Plan> addPlan(PlanRequestDTO.PlanAddDTO request) {
@@ -166,5 +167,7 @@ public class PlanCommandServiceImpl implements PlanCommandService{
 
         // 랜덤 알림 예약
         notificationService.scheduleNotification(plan.getUser(), NotificationType.RANDOM_VERIFY, randomTime, "2분 안에 사진을 찍어 나의 공부를 인증하세요.", "/posts");
+        // **장소 인증 후 계획이 실패하는 경우 알림 예약**
+        planQueryService.schedulePlanVerification(plan);
     }
 }
