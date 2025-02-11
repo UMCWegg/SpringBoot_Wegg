@@ -78,4 +78,8 @@ public class PlanRequestDTO {
     public static class PlanOnoffDTO {
         Boolean planOn;
     }
+    @Getter
+    public static class PlanStatusDTO {
+        PlanStatus planStatus;
+    }
 }
