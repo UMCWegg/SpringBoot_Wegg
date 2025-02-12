@@ -3,7 +3,9 @@ package umc.wegg.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
@@ -45,6 +47,18 @@ public class MapRestController {
     ) {
 
         MapResponseDTO.HotPlaceListDTO response = mapService.viewHotPlaceList(minX, maxX, minY, maxY, sortBy);
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @PostMapping("/{address_id}/bookmark")
+    @Operation(summary = "장소 저장", description = "장소를 저장하는 API")
+    public ApiResponse<MapResponseDTO.BookmarkDTO> bookmarkAddress(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @PathVariable("address_id") Long addressId
+    ) {
+
+        MapResponseDTO.BookmarkDTO response = mapService.bookmarkAddress(authenticatedUser, addressId);
 
         return ApiResponse.onSuccess(response);
     }
