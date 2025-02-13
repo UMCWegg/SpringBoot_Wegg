@@ -22,7 +22,7 @@ public class MapUtil {
     private static final double EARTH_RADIUS = 6371; // 지구 반지름 (킬로미터)
 
     //키워드로 장소 검색하기 API(kakao)
-    public MapResponseDTO.SearchDTO searchPlacesByKeyword(String keyword, String latitude, String longitude, Integer radius) {
+    public MapResponseDTO.SearchDTO searchPlacesByKeyword(String keyword, String latitude, String longitude, Integer radius, Integer page, Integer size) {
         StringBuilder url = new StringBuilder("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + keyword);
 
         // latitude, longitude, radius가 null이 아닐 때만 추가
@@ -32,6 +32,8 @@ public class MapUtil {
         if (radius != null) {
             url.append("&radius=").append(radius);
         }
+        url.append("&page=").append(page);
+        url.append("&size=").append(size);
 
         // HTTP 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
