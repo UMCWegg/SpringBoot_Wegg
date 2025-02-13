@@ -13,6 +13,7 @@ public class NotificationConverter {
                 .content(notification.getContent()) // 알림 내용
                 .url(notification.getUrl()) // 알림 URL (예: 알림을 클릭했을 때 이동할 URL)
                 .readStatus(notification.getReadStatus()) // 알림 읽음 여부
+                .imageUrl(notification.getUser() != null ? notification.getUser().getProfileImage() : null) // 🔹 User 도메인에서 가져오기
                 .build();
     }
     public static NotificationResponseDTO.NotificationReadDTO toNotificationReadDTO(Notification notification) {

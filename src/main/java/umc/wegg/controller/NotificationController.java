@@ -15,9 +15,13 @@ import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.Notification;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.TodoList;
+import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.dto.*;
+import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
+import umc.wegg.service.UserService.UserCommandService;
 
 import java.util.List;
 
@@ -27,6 +31,7 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     //Last-Event-ID는 SSE 연결이 끊어졌을 경우, 클라이언트가 수신한 마지막 데이터의 id 값을 의미합니다. 항상 존재하는 것이 아니기 때문에 false
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -36,16 +41,26 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ApiResponse<List<NotificationResponseDTO.ResultDTO>> getUserNotifications(
+    public ApiResponse<NotificationResponseDTO.NotificationListDTO> getUserNotifications(
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Long userId = authenticatedUser.getUserId();
-        List<Notification> notifications = notificationService.getUserNotifications(userId);
 
+        // 🔹 UserRepository 또는 UserService를 통해 Setting 가져오기
+        String accountVisibility = userRepository.findAccountVisibilityByUserId(userId);
+
+        // 🔹 로그인한 유저의 알림 리스트 가져오기
+        List<Notification> notifications = notificationService.getUserNotifications(userId);
         List<NotificationResponseDTO.ResultDTO> result = notifications.stream()
                 .map(NotificationConverter::toResultDTO)
                 .toList();
 
-        return ApiResponse.onSuccess(result);
+        // 🔹 accountVisibility와 알림 리스트를 포함한 DTO 반환
+        NotificationResponseDTO.NotificationListDTO response = NotificationResponseDTO.NotificationListDTO.builder()
+                .accountVisibility(AccountVisibility.valueOf(accountVisibility))
+                .notifications(result)
+                .build();
+
+        return ApiResponse.onSuccess(response);
     }
 
     @PatchMapping("/{notification_id}")
