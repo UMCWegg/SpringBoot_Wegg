@@ -178,4 +178,12 @@ public class MapResponseDTO {
             }
         }
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookmarkDTO {
+        Long myAddressId;
+    }
 }

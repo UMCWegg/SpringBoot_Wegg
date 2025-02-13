@@ -3,14 +3,15 @@ package umc.wegg.service.MapService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import umc.wegg.config.security.AuthenticatedUser;
+import umc.wegg.converter.MyAddressConverter;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
+import umc.wegg.domain.User;
+import umc.wegg.domain.mapping.MyAddress;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
-import umc.wegg.repository.AddressRepository;
-import umc.wegg.repository.MyAddressRepository;
-import umc.wegg.repository.PlanRepository;
-import umc.wegg.repository.PostRepository;
+import umc.wegg.repository.*;
 import umc.wegg.util.MapUtil;
 import umc.wegg.util.RedisUtil;
 
@@ -30,6 +31,7 @@ public class MapServiceImpl implements MapService {
     private final MapUtil mapUtil;
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper; // JSON 직렬화/역직렬화에 사용
+    private final UserRepository userRepository;
 
     @Override
     public MapResponseDTO.SearchPlanPlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchPlanDTO request) {
@@ -144,4 +146,26 @@ public class MapServiceImpl implements MapService {
         return hotPlaceList;
     }
 
+    @Override
+    public MapResponseDTO.BookmarkDTO bookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId){
+
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        Long userId = authenticatedUser.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+
+
+        MyAddress myAddress = MyAddressConverter.toMyAddress(user, address);
+        myAddressRepository.save(myAddress);
+
+        return MapResponseDTO.BookmarkDTO.builder()
+                .myAddressId(myAddress.getId())
+                .build();
+    }
 }
