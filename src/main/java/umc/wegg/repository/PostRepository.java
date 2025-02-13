@@ -1,6 +1,7 @@
 package umc.wegg.repository;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +20,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p.imageUrl FROM Post p WHERE p.plan.id = :planId")
     List<String> findImageUrlsByPlanId(@Param("planId") Long planId);
+
+    @Query("SELECT p FROM Post p JOIN p.plan pl WHERE pl.address.id = :addressId ORDER BY p.createdAt DESC")
+    List<Post> findLatestPostsByAddressId(@Param("addressId") Long addressId, PageRequest pageRequest);
 
     Page<Post> findAll(Pageable pageable);
 
