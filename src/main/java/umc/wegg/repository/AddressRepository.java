@@ -31,10 +31,11 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
                         WHERE pl.address_id = a.id) AS authCount
                 FROM Address a
                 WHERE a.longitude BETWEEN :minX AND :maxX 
-                  AND a.latitude BETWEEN :minY AND :maxY
-                            ORDER BY 
-                                CASE WHEN :sortBy = 'distance' THEN distance END ASC,
-                                CASE WHEN :sortBy = 'authCount' THEN authCount END DESC
+                        AND a.latitude BETWEEN :minY AND :maxY
+                ORDER BY 
+                    CASE WHEN :sortBy = 'distance' THEN distance ELSE NULL END ASC,
+                    CASE WHEN :sortBy = 'authCount' THEN authCount ELSE NULL END DESC
+                LIMIT :size OFFSET :page
                 """,
             countQuery = """
                             SELECT COUNT(*) FROM Address a 
@@ -42,7 +43,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
                               AND a.latitude BETWEEN :minY AND :maxY
                         """,
             nativeQuery = true)
-    Page<Object[]> findAddressesWithSorting(
+    List<Object[]> findAddressesWithSorting(
             @Param("minX") double minX,
             @Param("maxX") double maxX,
             @Param("minY") double minY,
@@ -50,22 +51,18 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
             @Param("centerLat") double centerLat,
             @Param("centerLon") double centerLon,
             @Param("sortBy") String sortBy,
-            PageRequest pageRequest
+            @Param("page") int page,
+            @Param("size") int size
     );
 
     //사용자 위치를 중심으로 특정 거리 내의 주소를 조회하는 쿼리
-    @Query(value = """
-            SELECT a.*, 
-                   (6371 * acos(cos(radians(:userLat)) * cos(radians(a.latitude)) * 
-                         cos(radians(a.longitude) - radians(:userLon)) + 
-                         sin(radians(:userLat)) * sin(radians(a.latitude)))) AS distance
-            FROM Address a
-            WHERE (6371 * acos(cos(radians(:userLat)) * cos(radians(a.latitude)) * 
-                         cos(radians(a.longitude) - radians(:userLon)) + 
-                         sin(radians(:userLat)) * sin(radians(a.latitude)))) <= :maxDistance
-              AND a.place_name LIKE %:keyword%
-            ORDER BY distance
-        """, nativeQuery = true)
+    @Query("SELECT a FROM Address a WHERE (6371 * acos(" +
+            "cos(radians(:userLat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:userLon)) + " +
+            "sin(radians(:userLat)) * sin(radians(a.latitude)))) <= :maxDistance " +
+            "AND LOWER(a.placeName) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            "ORDER BY (6371 * acos(" +
+            "cos(radians(:userLat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:userLon)) + " +
+            "sin(radians(:userLat)) * sin(radians(a.latitude)))) ASC")
     Page<Address> findNearbyAddressesWithKeyword(@Param("userLat") double userLat,
                                                  @Param("userLon") double userLon,
                                                  @Param("maxDistance") double maxDistance,

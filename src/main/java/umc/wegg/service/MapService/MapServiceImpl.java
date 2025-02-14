@@ -99,18 +99,19 @@ public class MapServiceImpl implements MapService {
     public MapResponseDTO.HotPlaceListDTO viewHotPlaceList(MapRequestDTO.ViewHotPlaceDTO request, Integer page, Integer size){
 
         // DB에서 sortBy에 따라 addressId, distance, authCount 계산해서 가져오기(Paging 적용)
-        Page<Object[]> resultPage = addressRepository.findAddressesWithSorting(
+        List<Object[]> resultPage = addressRepository.findAddressesWithSorting(
                 request.getMinX(), request.getMaxX(),
                 request.getMinY(), request.getMaxY(),
                 (request.getMinX() + request.getMaxX()) / 2,  // 중심 좌표
                 (request.getMinY() + request.getMaxY()) / 2,
                 request.getSortBy(),
-                PageRequest.of(page, size)
+                page,
+                size
         );
 
         // DB에서 가져온 값으로 DTO 생성
         MapResponseDTO.HotPlaceListDTO hotPlaceList = new MapResponseDTO.HotPlaceListDTO(
-                resultPage.getContent().stream()
+                resultPage.stream()
                         .map(row -> {
                             // DB에서 addressId, distance, authCount 가져오기
                             Long addressId = (Long) row[0]; // addressId
