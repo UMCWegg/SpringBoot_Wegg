@@ -20,39 +20,23 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
                                        @Param("minY") double minY,
                                        @Param("maxY") double maxY);
 
-    @Query(value = """
-                SELECT a.id, 
-                       CAST((6371 * acos(cos(radians(:centerLat)) * cos(radians(a.latitude)) *
-                                         cos(radians(a.longitude) - radians(:centerLon)) +
-                                         sin(radians(:centerLat)) * sin(radians(a.latitude)))) AS DOUBLE) AS distance,
-                       (SELECT COUNT(p.id) 
-                        FROM Posts p 
-                        JOIN Plans pl ON p.plan_id = pl.id 
-                        WHERE pl.address_id = a.id) AS authCount
-                FROM Address a
-                WHERE a.longitude BETWEEN :minX AND :maxX 
-                        AND a.latitude BETWEEN :minY AND :maxY
-                ORDER BY 
-                    CASE WHEN :sortBy = 'distance' THEN distance ELSE NULL END ASC,
-                    CASE WHEN :sortBy = 'authCount' THEN authCount ELSE NULL END DESC
-                LIMIT :size OFFSET :page
-                """,
-            countQuery = """
-                            SELECT COUNT(*) FROM Address a 
-                            WHERE a.longitude BETWEEN :minX AND :maxX 
-                              AND a.latitude BETWEEN :minY AND :maxY
-                        """,
-            nativeQuery = true)
-    List<Object[]> findAddressesWithSorting(
+    @Query("SELECT a, " +
+            "(SELECT COUNT(p.id) FROM Post p JOIN Plan pl ON p.plan.id = pl.id WHERE pl.address.id = a.id) AS authCount, " +
+            "(6371 * acos(\n" +
+                    "cos(radians(:centerLat)) * cos(radians(a.latitude)) *" +
+                    "cos(radians(a.longitude) - radians(:centerLon)) + " +
+                    "sin(radians(:centerLat)) * sin(radians(a.latitude)))) AS distance " +
+    "FROM Address a " +
+    "WHERE a.longitude BETWEEN :minX AND :maxX " +
+    "AND a.latitude BETWEEN :minY AND :maxY")
+    Page<Object[]> findAddressesWithSorting(
             @Param("minX") double minX,
             @Param("maxX") double maxX,
             @Param("minY") double minY,
             @Param("maxY") double maxY,
             @Param("centerLat") double centerLat,
             @Param("centerLon") double centerLon,
-            @Param("sortBy") String sortBy,
-            @Param("page") int page,
-            @Param("size") int size
+            PageRequest pageRequest
     );
 
     //사용자 위치를 중심으로 특정 거리 내의 주소를 조회하는 쿼리
