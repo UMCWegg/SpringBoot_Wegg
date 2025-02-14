@@ -2,15 +2,14 @@ package umc.wegg.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.web.bind.annotation.RequestParam;
 
 public class MapRequestDTO {
 
     @Builder
     @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SearchPlanDTO{
@@ -24,6 +23,7 @@ public class MapRequestDTO {
 
     @Builder
     @Getter
+    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SearchHotPlaceDTO{
@@ -33,5 +33,23 @@ public class MapRequestDTO {
         private Double latitude; //위도
         @NotNull
         private Double longitude; //경도
+    }
+
+    @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ViewHotPlaceDTO{
+        @NotNull
+        double minX;   //최소 경도
+        @NotNull
+        double maxX;   //최대 경도
+        @NotNull
+        double minY;   //최소 위도
+        @NotNull
+        double maxY;   //최대 위도
+
+        String sortBy = "distance"; //정렬 기준
     }
 }

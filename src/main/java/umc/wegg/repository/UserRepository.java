@@ -20,7 +20,9 @@ public interface UserRepository extends JpaRepository<User, Long>{
 //    @Query("SELECT u.successCount FROM User u WHERE u.id = :userId")
 //    int findSuccessCount();
 
-
+    //유저의 계정공개범위 가져오기
+    @Query("SELECT s.accountVisibility FROM User u JOIN u.setting s WHERE u.id = :userId")
+    String findAccountVisibilityByUserId(@Param("userId") Long userId);
 
     @Query("SELECT u.successCount FROM User u WHERE u.id = :userId")
     int findSuccessCountByUserId(@Param("userId") Long userId);

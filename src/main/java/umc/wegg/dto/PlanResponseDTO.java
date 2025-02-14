@@ -46,6 +46,14 @@ public class PlanResponseDTO {
         String content;
         Long userId;
     }
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlanStatusDTO{
+        Long planId;
+        PlanStatus planStatus;
+    }
 
     // 삭제된 계획의 응답 DTO
     @Builder

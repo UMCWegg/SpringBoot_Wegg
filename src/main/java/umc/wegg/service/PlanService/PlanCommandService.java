@@ -13,4 +13,5 @@ public interface PlanCommandService {
     Plan updatePlan(Long planId, PlanRequestDTO.PlanUpdateDTO request); // updateTodo 추가
     Plan onoffPlan(Long planId, PlanRequestDTO.PlanOnoffDTO request);
     PlanResponseDTO.PlanDeleteResponseDTO deletePlan(Long planId); // 특정 계획 삭제
+    Plan statusPlan(Long planId, PlanRequestDTO.PlanStatusDTO request);
 }

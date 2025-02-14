@@ -38,7 +38,7 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final UuidRepository uuidRepository;
     private final NotificationService notificationService;
     private final FollowRepository followRepository;
-
+    private final SettingRepository settingRepository;
 
     @Override
     public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
@@ -82,7 +82,11 @@ public class PostCommandServiceImpl implements PostCommandService {
         // 7. 팔로워들에게 알림 전송
         String message = postOwner.getAccountId() + "님이 새로운 포스트를 올렸습니다!";
         for (User follower : followers) {
-            notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST");
+            Setting followerSetting = settingRepository.findByUserId(follower.getId()).orElse(null); // 설정 조회
+
+            if (followerSetting != null && followerSetting.isPostAlarm()) { // postAlarm이 true일 때만 알림 전송
+                notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST", postOwner.getProfileImage());
+            }
         }
 
         // 8. DTO 변환 및 반환
@@ -134,9 +138,11 @@ public class PostCommandServiceImpl implements PostCommandService {
         if (!postOwner.getId().equals(userId)) {
             // 알림 메시지 작성
             String message = commenterName + "님이 댓글을 달았습니다!";
+            Setting ownerSetting = settingRepository.findByUserId(postOwner.getId()).orElse(null); // 설정 조회
 
-            // 알림 전송
-            notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT");
+            if (ownerSetting != null && ownerSetting.isCommentAlarm()) { // commentAlarm이 true일 때만 알림 전송
+                notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT", user.getProfileImage());
+            }
         }
 
 
@@ -201,9 +207,11 @@ public class PostCommandServiceImpl implements PostCommandService {
         if (!postOwner.getId().equals(userId)) {
             // 알림 메시지 작성
             String message = emojiName + "님이 " + emojiType +"을 달았습니다!";
+            Setting ownerSetting = settingRepository.findByUserId(postOwner.getId()).orElse(null); // 설정 조회
 
-            // 알림 전송
-            notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI");
+            if (ownerSetting != null && ownerSetting.isCommentAlarm()) { // commentAlarm이 true일 때만 알림 전송
+                notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI", user.getProfileImage());
+            }
         }
 
     }
