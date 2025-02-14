@@ -98,28 +98,32 @@ public class MapServiceImpl implements MapService {
     @Override
     public MapResponseDTO.HotPlaceListDTO viewHotPlaceList(MapRequestDTO.ViewHotPlaceDTO request, Integer page, Integer size){
 
+        Sort sort = Sort.by(Sort.Direction.ASC, "distance");
+
+        if ("authCount".equals(request.getSortBy())) {
+            sort = Sort.by(Sort.Direction.DESC, "authCount");
+        }
+
         // DB에서 sortBy에 따라 addressId, distance, authCount 계산해서 가져오기(Paging 적용)
-        List<Object[]> resultPage = addressRepository.findAddressesWithSorting(
+        Page<Object[]> resultPage = addressRepository.findAddressesWithSorting(
                 request.getMinX(), request.getMaxX(),
                 request.getMinY(), request.getMaxY(),
                 (request.getMinX() + request.getMaxX()) / 2,  // 중심 좌표
                 (request.getMinY() + request.getMaxY()) / 2,
-                request.getSortBy(),
-                page,
-                size
+                PageRequest.of(page, size, sort)
         );
 
         // DB에서 가져온 값으로 DTO 생성
         MapResponseDTO.HotPlaceListDTO hotPlaceList = new MapResponseDTO.HotPlaceListDTO(
                 resultPage.stream()
                         .map(row -> {
-                            // DB에서 addressId, distance, authCount 가져오기
-                            Long addressId = (Long) row[0]; // addressId
-                            Double distance = (Double) row[1];  // 거리
-                            Long authCount = (Long) row[2];     // 인증된 개수
+                            // DB에서 address, distance, authCount 가져오기
+                            Address address = (Address) row[0]; // address
+                            Long authCount = (Long) row[1];     // authCount
+                            Double distance = (Double) row[2];  //distance
 
                             // Plan을 거쳐서 Post 목록 가져오기(15개)
-                            List<Post> latestPosts = postRepository.findLatestPostsByAddressId(addressId, PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt")));
+                            List<Post> latestPosts = postRepository.findLatestPostsByAddressId(address.getId(), PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt")));
 
                             List<MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO> postList = latestPosts.stream()
                                     .map(post -> new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO(
@@ -128,10 +132,7 @@ public class MapServiceImpl implements MapService {
                                     .collect(Collectors.toList());
 
                             // 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
-                            Long saveCount = myAddressRepository.countByAddressId(addressId);
-
-                            Address address = addressRepository.findById(addressId)
-                                    .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+                            Long saveCount = myAddressRepository.countByAddressId(address.getId());
 
                             return new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO(
                                     address.getId(),
