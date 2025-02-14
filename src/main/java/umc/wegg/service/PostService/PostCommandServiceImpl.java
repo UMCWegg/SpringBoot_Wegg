@@ -117,7 +117,7 @@ public class PostCommandServiceImpl implements PostCommandService {
             Setting followerSetting = settingRepository.findByUserId(follower.getId()).orElse(null); // 설정 조회
 
             if (followerSetting != null && followerSetting.isPostAlarm()) { // postAlarm이 true일 때만 알림 전송
-                notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST");
+                notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST", postOwner.getProfileImage());
             }
         }
 
@@ -174,7 +174,7 @@ public class PostCommandServiceImpl implements PostCommandService {
             Setting ownerSetting = settingRepository.findByUserId(postOwner.getId()).orElse(null); // 설정 조회
 
             if (ownerSetting != null && ownerSetting.isCommentAlarm()) { // commentAlarm이 true일 때만 알림 전송
-                notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT");
+                notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT", user.getProfileImage());
             }
         }
 
@@ -243,7 +243,7 @@ public class PostCommandServiceImpl implements PostCommandService {
             Setting ownerSetting = settingRepository.findByUserId(postOwner.getId()).orElse(null); // 설정 조회
 
             if (ownerSetting != null && ownerSetting.isCommentAlarm()) { // commentAlarm이 true일 때만 알림 전송
-                notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI");
+                notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI", user.getProfileImage());
             }
         }
 

@@ -109,6 +109,6 @@ public class EggServiceImpl implements EggService {
         String message = breakUser.getAccountId() + "님이 알을 깨고 달아났습니다!";
 
         // 알림 전송
-        notificationService.sendNotificationToEggOwner(plan.getUser(), message, "EGG");
+        notificationService.sendNotificationToEggOwner(plan.getUser(), message, "EGG", breakUser.getProfileImage());
     }
 }

@@ -108,10 +108,10 @@ public class PlanCommandServiceImpl implements PlanCommandService{
         LocalDateTime finishTime = plan.getFinishTime();
         // 10분 전 알림 예약
         LocalDateTime fiveMinutesBefore = startTime.minusMinutes(5);
-        notificationService.scheduleNotification(plan.getUser(), NotificationType.PLACE_VERIFY, fiveMinutesBefore, "장소를 인증하고 공부를 시작하는데 5분 남았어요.", "/plans/" + plan.getId() + "/check");
+        notificationService.scheduleNotification(plan.getUser(), NotificationType.PLACE_VERIFY, fiveMinutesBefore, "장소를 인증하고 공부를 시작하는데 5분 남았어요.", "/plans/" + plan.getId() + "/check", null);
 
         // 계획의 startTime에 알림 예약
-        notificationService.scheduleNotification(plan.getUser(), NotificationType.PLACE_VERIFY, startTime, "시간이 다 되었습니다! 인증을 진행해주세요.", "/plans/" + plan.getId() + "/check");
+        notificationService.scheduleNotification(plan.getUser(), NotificationType.PLACE_VERIFY, startTime, "시간이 다 되었습니다! 인증을 진행해주세요.", "/plans/" + plan.getId() + "/check", null);
         // startTime과 finishTime 사이의 랜덤 알림 예약
         long min = startTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         long max = finishTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -121,6 +121,6 @@ public class PlanCommandServiceImpl implements PlanCommandService{
         LocalDateTime randomTime = Instant.ofEpochMilli(randomTimeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
         // 랜덤 알림 예약
-        notificationService.scheduleNotification(plan.getUser(), NotificationType.RANDOM_VERIFY, randomTime, "2분 안에 사진을 찍어 나의 공부를 인증하세요.", "/posts");
+        notificationService.scheduleNotification(plan.getUser(), NotificationType.RANDOM_VERIFY, randomTime, "2분 안에 사진을 찍어 나의 공부를 인증하세요.", "/posts", null);
     }
 }

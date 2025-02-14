@@ -35,5 +35,7 @@ public class Notification extends BaseEntity {
     @Builder.Default
     private ReadStatus readStatus = ReadStatus.UNREAD;
 
+    private String profileImage;
+
 
 }
