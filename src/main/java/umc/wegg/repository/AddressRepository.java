@@ -1,5 +1,7 @@
 package umc.wegg.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,14 +20,53 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
                                        @Param("minY") double minY,
                                        @Param("maxY") double maxY);
 
+    @Query(value = """
+                SELECT a.id, 
+                       CAST((6371 * acos(cos(radians(:centerLat)) * cos(radians(a.latitude)) *
+                                         cos(radians(a.longitude) - radians(:centerLon)) +
+                                         sin(radians(:centerLat)) * sin(radians(a.latitude)))) AS DOUBLE) AS distance,
+                       (SELECT COUNT(p.id) 
+                        FROM Posts p 
+                        JOIN Plans pl ON p.plan_id = pl.id 
+                        WHERE pl.address_id = a.id) AS authCount
+                FROM Address a
+                WHERE a.longitude BETWEEN :minX AND :maxX 
+                        AND a.latitude BETWEEN :minY AND :maxY
+                ORDER BY 
+                    CASE WHEN :sortBy = 'distance' THEN distance ELSE NULL END ASC,
+                    CASE WHEN :sortBy = 'authCount' THEN authCount ELSE NULL END DESC
+                LIMIT :size OFFSET :page
+                """,
+            countQuery = """
+                            SELECT COUNT(*) FROM Address a 
+                            WHERE a.longitude BETWEEN :minX AND :maxX 
+                              AND a.latitude BETWEEN :minY AND :maxY
+                        """,
+            nativeQuery = true)
+    List<Object[]> findAddressesWithSorting(
+            @Param("minX") double minX,
+            @Param("maxX") double maxX,
+            @Param("minY") double minY,
+            @Param("maxY") double maxY,
+            @Param("centerLat") double centerLat,
+            @Param("centerLon") double centerLon,
+            @Param("sortBy") String sortBy,
+            @Param("page") int page,
+            @Param("size") int size
+    );
+
     //사용자 위치를 중심으로 특정 거리 내의 주소를 조회하는 쿼리
     @Query("SELECT a FROM Address a WHERE (6371 * acos(" +
             "cos(radians(:userLat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:userLon)) + " +
             "sin(radians(:userLat)) * sin(radians(a.latitude)))) <= :maxDistance " +
-            "AND a.placeName LIKE %:keyword%")
-    List<Address> findNearbyAddressesWithKeyword(@Param("userLat") double userLat,
+            "AND LOWER(a.placeName) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            "ORDER BY (6371 * acos(" +
+            "cos(radians(:userLat)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(:userLon)) + " +
+            "sin(radians(:userLat)) * sin(radians(a.latitude)))) ASC")
+    Page<Address> findNearbyAddressesWithKeyword(@Param("userLat") double userLat,
                                                  @Param("userLon") double userLon,
                                                  @Param("maxDistance") double maxDistance,
-                                                 @Param("keyword") String keyword);
+                                                 @Param("keyword") String keyword,
+                                                 PageRequest pageRequest);
 
 }

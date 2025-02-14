@@ -298,6 +298,14 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
         }
     }
 
+    // 계정검색 - 검색어 포함하는 계정 목록 전부 반환
+    @Override
+    public List<UserResponseDTO.UserSearchDTO> searchUsersByAccountId(String keyword) {
+        return userRepository.findByAccountIdContaining(keyword).stream()
+                .map(user -> new UserResponseDTO.UserSearchDTO(user.getId(), user.getAccountId(), user.getProfileImage()))
+                .collect(Collectors.toList());
+    }
+
     @Override
     public UserResponseDTO.ContactUpdateResultDTO updateContactList(AuthenticatedUser authenticatedUser, List<UserRequestDTO.ContactDto> newContacts) {
         if (authenticatedUser == null) {

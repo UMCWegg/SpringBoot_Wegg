@@ -2,19 +2,23 @@ package umc.wegg.service.MapService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import umc.wegg.config.security.AuthenticatedUser;
+import umc.wegg.converter.MyAddressConverter;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
+import umc.wegg.domain.Post;
+import umc.wegg.domain.User;
+import umc.wegg.domain.mapping.MyAddress;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
-import umc.wegg.repository.AddressRepository;
-import umc.wegg.repository.MyAddressRepository;
-import umc.wegg.repository.PlanRepository;
-import umc.wegg.repository.PostRepository;
+import umc.wegg.repository.*;
 import umc.wegg.util.MapUtil;
 import umc.wegg.util.RedisUtil;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,10 +34,11 @@ public class MapServiceImpl implements MapService {
     private final MapUtil mapUtil;
     private final RedisUtil redisUtil;
     private final ObjectMapper objectMapper; // JSON 직렬화/역직렬화에 사용
+    private final UserRepository userRepository;
 
     @Override
-    public MapResponseDTO.SearchPlanPlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchPlanDTO request) {
-        MapResponseDTO.SearchDTO searchPlaces = mapUtil.searchPlacesByKeyword(request.getKeyword(), request.getLatitude(), request.getLongitude(), 2000);
+    public MapResponseDTO.SearchPlanPlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchPlanDTO request, Integer page, Integer size) {
+        MapResponseDTO.SearchDTO searchPlaces = mapUtil.searchPlacesByKeyword(request.getKeyword(), request.getLatitude(), request.getLongitude(), 2000, page + 1, size);
 
         // PlaceListDTO 생성 및 검색된 장소 이름 추가
         List<MapResponseDTO.SearchPlanPlaceListDTO.PlaceNameDTO> placeList = searchPlaces.getSearchByKeywordList().stream()
@@ -58,15 +63,16 @@ public class MapServiceImpl implements MapService {
 
     }
 
-    public MapResponseDTO.SearchHotPlaceListDTO searchHotPlaceListByKeyword(MapRequestDTO.SearchHotPlaceDTO request) {
-        List<Address> addresses = addressRepository.findNearbyAddressesWithKeyword(request.getLatitude(), request.getLongitude(), 2, request.getKeyword());
+    @Override
+    public MapResponseDTO.SearchHotPlaceListDTO searchHotPlaceListByKeyword(MapRequestDTO.SearchHotPlaceDTO request, Integer page, Integer size) {
+        Page<Address> addresses = addressRepository.findNearbyAddressesWithKeyword(request.getLatitude(), request.getLongitude(), 2, request.getKeyword(), PageRequest.of(page, size));
 
         List<MapResponseDTO.SearchHotPlaceListDTO.SearchHotPlaceDTO> placeList = addresses.stream()
                 .map(address -> {
                     // 거리 계산
                     double distance = mapUtil.calculateDistance(request.getLatitude(), request.getLongitude(), address.getLatitude(), address.getLongitude());
 
-                    // 게시물 인증 수 계산 (예시로 postRepository.countByPlanId 사용)
+                    // 게시물 인증 수 계산
                     List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
                     Long authCount = plans.stream()
                             .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
@@ -90,35 +96,42 @@ public class MapServiceImpl implements MapService {
     }
 
     @Override
-    public MapResponseDTO.HotPlaceListDTO viewHotPlaceList(double minX, double maxX, double minY, double maxY, String sortBy){
-        List<Address> addressList = addressRepository.findAddressesInRange(minX, maxX, minY, maxY);
+    public MapResponseDTO.HotPlaceListDTO viewHotPlaceList(MapRequestDTO.ViewHotPlaceDTO request, Integer page, Integer size){
 
-        // 1. 범위 안에 있는 주소 필터링
+        // DB에서 sortBy에 따라 addressId, distance, authCount 계산해서 가져오기(Paging 적용)
+        List<Object[]> resultPage = addressRepository.findAddressesWithSorting(
+                request.getMinX(), request.getMaxX(),
+                request.getMinY(), request.getMaxY(),
+                (request.getMinX() + request.getMaxX()) / 2,  // 중심 좌표
+                (request.getMinY() + request.getMaxY()) / 2,
+                request.getSortBy(),
+                page,
+                size
+        );
+
+        // DB에서 가져온 값으로 DTO 생성
         MapResponseDTO.HotPlaceListDTO hotPlaceList = new MapResponseDTO.HotPlaceListDTO(
-                addressList.stream()
-                        .map(address -> {
-                            // Plan을 거쳐서 Post 개수 계산 (Address -> Plan -> Post)
-                            List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
-                            Long authCount = plans.stream()
-                                    .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
-                                    .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
+                resultPage.stream()
+                        .map(row -> {
+                            // DB에서 addressId, distance, authCount 가져오기
+                            Long addressId = (Long) row[0]; // addressId
+                            Double distance = (Double) row[1];  // 거리
+                            Long authCount = (Long) row[2];     // 인증된 개수
 
-                            // Plan을 거쳐서 Post 목록 가져오기 (Post 가져오기)
-                            List<MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO> postList = plans.stream()
-                                    .flatMap(plan -> postRepository.findByPlanId(plan.getId()).stream()) // Plan을 거쳐서 Post 가져오기
+                            // Plan을 거쳐서 Post 목록 가져오기(15개)
+                            List<Post> latestPosts = postRepository.findLatestPostsByAddressId(addressId, PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt")));
+
+                            List<MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO> postList = latestPosts.stream()
                                     .map(post -> new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO(
-                                            post.getId(),    // Post의 ID
-                                            post.getImageUrl() // Post의 이미지 URL
+                                            post.getId(), post.getImageUrl()
                                     ))
                                     .collect(Collectors.toList());
 
-                            // 2.3 saveCount 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
-                            Long saveCount = myAddressRepository.countByAddressId(address.getId());
+                            // 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
+                            Long saveCount = myAddressRepository.countByAddressId(addressId);
 
-                            double centerLon = (minX + maxX) / 2;  // 경도 중심값
-                            double centerLat = (minY + maxY) / 2;  // 위도 중심값
-
-                            Double distance = mapUtil.calculateDistance(centerLat, centerLon, address.getLatitude(), address.getLongitude()); // 거리 계산
+                            Address address = addressRepository.findById(addressId)
+                                    .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
 
                             return new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO(
                                     address.getId(),
@@ -135,14 +148,29 @@ public class MapServiceImpl implements MapService {
                         .collect(Collectors.toList()) // List<HotPlaceDTO> 생성
         );
 
-        // 정렬
-        if ("distance".equals(sortBy)) {
-            hotPlaceList.getHotPlaceList().sort(Comparator.comparingDouble(MapResponseDTO.HotPlaceListDTO.HotPlaceDTO::getDistance));
-        } else if ("authCount".equals(sortBy)) {
-            hotPlaceList.getHotPlaceList().sort(Comparator.comparingLong(MapResponseDTO.HotPlaceListDTO.HotPlaceDTO::getAuthCount).reversed());
-        }
-
         return hotPlaceList;
     }
 
+    @Override
+    public MapResponseDTO.BookmarkDTO bookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId){
+
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        Long userId = authenticatedUser.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+
+
+        MyAddress myAddress = MyAddressConverter.toMyAddress(user, address);
+        myAddressRepository.save(myAddress);
+
+        return MapResponseDTO.BookmarkDTO.builder()
+                .myAddressId(myAddress.getId())
+                .build();
+    }
 }
