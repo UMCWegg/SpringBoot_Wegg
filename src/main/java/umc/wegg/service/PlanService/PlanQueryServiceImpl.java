@@ -86,7 +86,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
                         NotificationType.PLACE_VERIFY,
                         LocalDateTime.now(), // 지금 즉시 알림 전송
                         "장소 인증을 하지 않아 계획이 실패 처리되었습니다.",
-                        "/plans/" + latestPlan.getId());
+                        "/plans/" + latestPlan.getId(), null);
             }
         }, checkTime);
     }
