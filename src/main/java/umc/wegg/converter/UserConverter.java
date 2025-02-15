@@ -10,7 +10,6 @@ import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -96,7 +95,7 @@ public class UserConverter {
         return user;
     }
 
-    public static User toOAuthUser(UserRequestDTO.OAuth2UserJoinDto request, List<UserResponseDTO.ContactFriendDTO> contactFriends){
+    public static User toOAuthUser(UserRequestDTO.OAuth2UserJoinDto request, String password, List<UserResponseDTO.ContactFriendDTO> contactFriends){
 
         User user = User.builder()
                 .accountId(request.getAccountId())
@@ -104,9 +103,8 @@ public class UserConverter {
                 .job(request.getJob())
                 .reason(request.getReason())
                 .phone(request.getPhone())
-                .oauthId(request.getOauthId())
-                .email(request.getOauthId() + "@wegg.com")
-                .password(request.getPassword())
+                .email(request.getEmail())
+                .password(password)
                 .build();
 
         AlarmType alarmType = null;

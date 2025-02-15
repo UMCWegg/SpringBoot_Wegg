@@ -71,16 +71,6 @@ public class UserResponseDTO {
     }
 
     @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OAuth2LoginResultDTO {
-        private boolean success; // 성공 여부
-        private String provider;
-        private String oauthId; // 사용자 ID
-    }
-
-    @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
