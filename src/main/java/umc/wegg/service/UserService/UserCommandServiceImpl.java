@@ -1,19 +1,25 @@
 package umc.wegg.service.UserService;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.config.security.AuthenticatedUser;
+import umc.wegg.config.security.UserAuthenticationToken;
 import umc.wegg.converter.UserConverter;
 import umc.wegg.domain.ContactFriend;
 import umc.wegg.domain.User;
@@ -25,12 +31,18 @@ import umc.wegg.repository.UuidRepository;
 import umc.wegg.util.RedisUtil;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserCommandServiceImpl implements UserCommandService{
+
+    @Value("${spring.google.api.client-id}")
+    private String clientId;
 
     private final UserRepository userRepository;
 
@@ -42,9 +54,17 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     private final UuidRepository uuidRepository;
 
+    private final SecurityContextRepository securityContextRepository;
+
     @Override
     @Transactional
     public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
+
+        boolean isExistingUser = userRepository.existsByEmail(request.getEmail());
+        if (isExistingUser) {
+            //exception throw
+            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
+        }
 
         List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
                 .orElse(Collections.emptyList())
@@ -83,16 +103,26 @@ public class UserCommandServiceImpl implements UserCommandService{
     @Transactional
     public UserResponseDTO.OAuth2UserJoinResultDTO oAuth2JoinUser(UserRequestDTO.OAuth2UserJoinDto request) {
 
-        // 1. OAuth2 인증 정보를 기반으로 사용자 식별자 가져오기
-        String oauthId = request.getOauthId();
-
-        // 2. 사용자 존재 여부 확인
-        boolean isExistingUser = userRepository.existsByOauthId(oauthId);
-        if (isExistingUser) {
-            //exception throw
+        if ("google".equals(request.getType())) {
+            if (!verifyGoogleToken(request.getToken())) {
+                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+            }
+        }else{
+            if (!verifyKakaoToken(request.getToken())){
+                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+            }
         }
 
-        request.setPassword(passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()));
+        // 1. OAuth2 인증 정보를 기반으로 사용자 식별자 가져오기
+        String email = request.getEmail();
+        String password = passwordEncoder.encode("OAUTH_USER_" + UUID.randomUUID()); //가비지 값 생성
+
+        // 2. 사용자 존재 여부 확인
+        boolean isExistingUser = userRepository.existsByEmail(email);
+        if (isExistingUser) {
+            //exception throw
+            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
+        }
 
         List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
                 .orElse(Collections.emptyList())
@@ -109,7 +139,7 @@ public class UserCommandServiceImpl implements UserCommandService{
                 .filter(Objects::nonNull) // null 값 제거
                 .collect(Collectors.toList());
 
-        User user = UserConverter.toOAuthUser(request, contactFriendList);
+        User user = UserConverter.toOAuthUser(request, password, contactFriendList);
         userRepository.save(user);
 
         // 응답용 ContactFriendDto 변환
@@ -127,13 +157,24 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDTO.OAuth2LoginResultDTO oAuth2LoginUser(HttpServletRequest request, OAuth2User oauth2User) {
+    public UserResponseDTO.LoginResultDTO oAuth2LoginUser(UserRequestDTO.OAuth2LoginRequestDTO request,
+                                                          HttpServletRequest httpServletRequest,
+                                                          HttpServletResponse httpServletResponse) {
 
-        // oauthId로 DB에서 사용자 확인
-        String oauthId = (String) oauth2User.getAttributes().get("oauthId");
-        String provider = (String) oauth2User.getAttributes().get("provider");
+        if ("google".equals(request.getType())) {
+            if (!verifyGoogleToken(request.getToken())) {
+                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+            }
+        }else{
+            if (!verifyKakaoToken(request.getToken())){
+                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+            }
+        }
 
-        Optional<User> existingUser = userRepository.findByOauthId(oauthId);
+        // email로 DB에서 사용자 확인
+        String email = request.getEmail();
+
+        Optional<User> existingUser = userRepository.findByEmail(email);
 
         if (existingUser.isPresent()) {
             User user = existingUser.get();
@@ -141,23 +182,50 @@ public class UserCommandServiceImpl implements UserCommandService{
             // OAuth2User를 AuthenticatedUser로 변환
             AuthenticatedUser authenticatedUser = new AuthenticatedUser(user.getId(), user.getEmail());  // existingUser를 AuthenticatedUser로 변환
 
-            // Spring Security에서 인증된 사용자로 설정
-            Authentication authentication = new UsernamePasswordAuthenticationToken(authenticatedUser, null, null);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            // 1. 비어있는 SecurityContext를 생성
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            // 2. 인증처리 완료된 Authentication 객체를 SecurityContext에 등록
+            Authentication authentication = UserAuthenticationToken.authenticated(authenticatedUser);
+            context.setAuthentication(authentication);
+            // 3. Session 등록 및 성공 핸들러 호출
+            securityContextRepository.saveContext(context, httpServletRequest, httpServletResponse);
 
-            return new UserResponseDTO.OAuth2LoginResultDTO(true, provider,oauthId);
+            return new UserResponseDTO.LoginResultDTO(true, user.getId());
         } else {
-            // 세션 만료
-            HttpSession session = request.getSession(false); // 기존 세션 가져오기
-            if (session != null) {
-                session.invalidate(); // 세션 무효화
-            }
-
-            // SecurityContext에서 인증 정보 삭제
-            SecurityContextHolder.clearContext();
-
             //exception throw
-            throw new UsernameNotFoundException("Username not found");
+            throw new UsernameNotFoundException("해당 유저를 찾을 수 없습니다.");
+        }
+    }
+
+    private boolean verifyGoogleToken(String idTokenString) {
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                    .setAudience(Collections.singletonList(clientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            System.out.print("확인" + idToken.toString());
+            if (idToken != null) {
+                return true;
+            }
+        } catch (GeneralSecurityException | IOException e) {
+            throw new IllegalArgumentException("잘못된 토큰입니다.");
+        }
+        return false; // 검증 실패
+    }
+
+    private boolean verifyKakaoToken(String accessToken) {
+        try {
+            URL url = new URL("https://kapi.kakao.com/v1/user/access_token_info");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Authorization", "Bearer " + accessToken.trim());
+
+            int responseCode = connection.getResponseCode();
+            return responseCode == HttpURLConnection.HTTP_OK; // 200 OK면 true, 아니면 false 반환
+        } catch (IOException e) {
+            return false; // 예외 발생 시 false 반환
         }
     }
 
@@ -170,53 +238,12 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         Long userId = authenticatedUser.getUserId();
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
         userRepository.delete(user);
 
         return new UserResponseDTO.UserDeleteResultDTO(true, userId);
     }
-
-//    @Override
-//    public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
-//
-//        if (authenticatedUser == null) {
-//            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-//        }
-//
-//        Long userId = authenticatedUser.getUserId();
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
-//
-//        // 수정된 필드를 저장할 Map
-//        Map<String, Object> updatedFields = new HashMap<>();
-//
-//        if (request.getName() != null && !request.getName().isEmpty()) {
-//            user.setName(request.getName());
-//            updatedFields.put("name", request.getName());
-//        }
-//
-//        if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
-//            user.setAccountId(request.getAccountId());
-//            updatedFields.put("accountId", request.getAccountId());
-//        }
-//
-//        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
-//
-//            String uuid = UUID.randomUUID().toString();
-//            Uuid savedUuid = uuidRepository.save(Uuid.builder()
-//                    .uuid(uuid).build());
-//
-//            String pictureUrl = s3Manager.upLoadFile(s3Manager.generateProfileKeyName(savedUuid), profilePicture);
-//
-//            user.setProfileImage(pictureUrl);
-//            updatedFields.put("profileImage", pictureUrl);
-//        }
-//
-//        userRepository.save(user);
-//
-//        return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
-//    }
 
 @Override
 public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
@@ -273,6 +300,18 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
                 : "사용 가능한 아이디입니다.";
 
         return new UserResponseDTO.CheckAccountIdResultDTO(isDuplicate, message);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponseDTO.CheckEmailResultDTO checkEmailDuplication(String email) {
+        boolean isDuplicate = userRepository.existsByEmail(email);
+
+        String message = isDuplicate
+                ? "이미 사용 중인 이메일입니다."
+                : "사용 가능한 이메일입니다.";
+
+        return new UserResponseDTO.CheckEmailResultDTO(isDuplicate, message);
     }
 
     public UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request) {

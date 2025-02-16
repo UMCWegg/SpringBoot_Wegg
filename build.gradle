@@ -76,6 +76,11 @@ dependencies {
 	// OAuth2 클라이언트
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation 'com.google.api-client:google-api-client:1.32.1'
+	implementation 'com.google.oauth-client:google-oauth-client:1.32.1'
+	implementation 'com.google.http-client:google-http-client-jackson2:1.40.1'
+
 
 	//CoolSms
 	implementation 'net.nurigo:sdk:4.3.0'

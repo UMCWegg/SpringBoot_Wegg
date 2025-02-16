@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import umc.wegg.domain.User;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,9 +26,8 @@ public interface UserRepository extends JpaRepository<User, Long>{
     @Query("SELECT u.successCount FROM User u WHERE u.id = :userId")
     int findSuccessCountByUserId(@Param("userId") Long userId);
 
-    Optional<User> findByOauthId(String oauthId);
     boolean existsByAccountId(String accountId);
-    boolean existsByOauthId(String oauthId);
+    boolean existsByEmail(String email);
     // 📌 가장 최근에 포인트를 받은 successCount 조회
     @Query("SELECT u.lastReceivedSuccessCount FROM User u WHERE u.id = :userId")
     Optional<Integer> findLastReceivedSuccessCount(@Param("userId") Long userId);
