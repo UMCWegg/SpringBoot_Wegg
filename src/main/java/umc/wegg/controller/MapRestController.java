@@ -65,4 +65,13 @@ public class MapRestController {
         return ApiResponse.onSuccess(response);
     }
 
+    @GetMapping("/details")
+    @Operation(summary = "장소 상세 조회", description = "placeName을 기준으로 장소 상세 정보를 조회하는 API")
+    public ApiResponse<MapResponseDTO.DetailListDTO> getPlaceDetails(
+            @Valid @ModelAttribute MapRequestDTO.SearchDetailDTO request) {
+
+        MapResponseDTO.DetailListDTO response = mapService.getPlaceDetails(request);
+        return ApiResponse.onSuccess(response);
+    }
+
 }
