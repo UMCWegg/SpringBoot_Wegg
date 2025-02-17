@@ -2,16 +2,17 @@ package umc.wegg.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import umc.wegg.domain.User;
+import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.dto.FollowRequestDTO;
 import umc.wegg.dto.FollowResponseDTO;
+import umc.wegg.repository.FollowRepository;
+import umc.wegg.repository.UserRepository;
 import umc.wegg.service.FollowService.FollowCommandService;
 import umc.wegg.domain.apiPayload.ApiResponse;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +20,8 @@ import java.util.Map;
 public class FollowRestController {
 
     private final FollowCommandService followCommandService;
+    private final UserRepository userRepository;
+
 
     /**
      * 팔로우 요청 생성
@@ -68,22 +71,37 @@ public class FollowRestController {
     }
 
     @GetMapping("/recommendations")
-    public ApiResponse<Map<String, List<FollowResponseDTO.UserRecommendationDTO>>> getFriendRecommendations(@RequestParam Long myId) {
-        Map<String, List<FollowResponseDTO.UserRecommendationDTO>> recommendations = new HashMap<>();
+    public ApiResponse<Map<String, Object>> getFriendRecommendations(@RequestParam Long myId) {
+        Map<String, Object> recommendations = new LinkedHashMap<>(); // 순서 유지하려고 LinkedHashMap 씀
 
-        // 나에게 온 팔로우 요청들
+        // 사용자 조회
+        User user = userRepository.findById(myId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + myId));
+
+        // 내 계정 공개 여부 확인
+        AccountVisibility accountVisibility = (user.getSetting() != null)
+                ? user.getSetting().getAccountVisibility()
+                : AccountVisibility.PUBLIC; // 기본값: 공개 계정
+
+        // AccountVisibility 추가
+        recommendations.put("accountVisibility", accountVisibility); // 첫 번째로 추가
+
+        // 나에게 온 팔로우 요청 리스트 조회
         List<FollowResponseDTO.UserRecommendationDTO> followRequests = followCommandService.getFollowRequests(myId);
-        recommendations.put("followRequests", followRequests);
+        recommendations.put("followRequests", followRequests); // 두 번째로 추가
 
-        // 연락처에 있는 사용자 추천
+        // 연락처 기반 추천
         List<FollowResponseDTO.UserRecommendationDTO> contactRecommendations = followCommandService.getContactRecommendations(myId);
-        recommendations.put("contactRecommendations", contactRecommendations);
+        recommendations.put("contactRecommendations", contactRecommendations); // 세 번째로 추가
 
-        // 회원님을 위한 사용자 추천 (추후 구현 예정)
-        recommendations.put("generalRecommendations", Collections.emptyList());
+        // 회원님을 위한 추천 (추후 구현 예정)
+        recommendations.put("generalRecommendations", Collections.emptyList()); // 네 번째로 추가
 
         return ApiResponse.onSuccess(recommendations);
     }
+
+
+
 
 
 }

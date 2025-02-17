@@ -12,6 +12,7 @@ import umc.wegg.repository.ContactFriendsRepository;
 import umc.wegg.repository.FollowRepository;
 import umc.wegg.repository.UserRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,6 +80,17 @@ public class FollowCommandServiceImpl implements FollowCommandService {
     // 나에게 온 팔로우 요청들
     @Override
     public List<FollowResponseDTO.UserRecommendationDTO> getFollowRequests(Long myId) {
+        // 1️⃣ 사용자 조회
+        User user = userRepository.findById(myId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + myId));
+
+        // 2️⃣ 계정 공개 여부 확인
+        if (user.getSetting() == null || user.getSetting().getAccountVisibility() == AccountVisibility.PUBLIC) {
+            // 공개 계정이면 빈 리스트 반환
+            return Collections.emptyList();
+        }
+
+        // 3️⃣ 비공개 계정이면 팔로우 요청 리스트 반환
         return followRepository.findByFolloweeIdAndFollowStatusOrderByCreatedAtDesc(myId, FollowStatus.WAITING)
                 .stream()
                 .map(follow -> FollowResponseDTO.UserRecommendationDTO.builder()
@@ -90,10 +102,11 @@ public class FollowCommandServiceImpl implements FollowCommandService {
                 .collect(Collectors.toList());
     }
 
+
     // 연락처에 있는 사용자 추천
     @Override
     public List<FollowResponseDTO.UserRecommendationDTO> getContactRecommendations(Long myId) {
-        return contactFriendsRepository.findByUserIdAndIsFollowing(myId, FollowStatus.WAITING)
+        return contactFriendsRepository.findByUserIdAndIsFollowingYet(myId)
                 .stream()
                 .map(contact -> FollowResponseDTO.UserRecommendationDTO.builder()
                         .userId(contact.getFriend().getId())
@@ -103,6 +116,7 @@ public class FollowCommandServiceImpl implements FollowCommandService {
                         .build())
                 .collect(Collectors.toList());
     }
+
 
     // 회원님을 위한 사용자 추천 (추후 구현 가능)
 

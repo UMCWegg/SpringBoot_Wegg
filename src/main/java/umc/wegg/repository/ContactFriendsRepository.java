@@ -13,4 +13,8 @@ public interface ContactFriendsRepository extends JpaRepository<ContactFriend, L
 
     @Query("SELECT cf FROM ContactFriend cf WHERE cf.user.id = :userId AND cf.isFollowing = :isFollowing ORDER BY cf.id DESC")
     List<ContactFriend> findByUserIdAndIsFollowingOrderByIdDesc(@Param("userId") Long userId, @Param("isFollowing") FollowStatus isFollowing);
+
+    @Query("SELECT c FROM ContactFriend c WHERE c.user.id = :userId AND c.isFollowing = 'YET'")
+    List<ContactFriend> findByUserIdAndIsFollowingYet(@Param("userId") Long userId);
+
 }
