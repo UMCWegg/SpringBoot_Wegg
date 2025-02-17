@@ -44,8 +44,8 @@ public class HomeResponseDTO {
     @AllArgsConstructor
     public static class HomeMonthResponseDTO {
 
-        private List<DailyData> monthlyData;                          // 날짜별 통합 리스트
-        private List<HomeResponseDTO.DateSummaryInfo> dateSummaries;  // 날짜별 학습 정보
+        private List<DailyData> monthlyData;          // 날짜별 통합 리스트
+        private List<DateSummaryInfo> dateSummaries;  // 날짜별 학습 정보
     }
 
     @Getter
@@ -80,6 +80,7 @@ public class HomeResponseDTO {
         private LocalDateTime startTime;     // 시작 시간
         private LocalDateTime endTime;       // 종료 시간
         private PlanStatus status;           // 계획 상태(YET, SUCCEEDED, FAILED)
+        private EggStatus eggStatus;         // 해당 계획과 연결된 Egg 상태
     }
 
     // Post 정보 구조
@@ -90,15 +91,6 @@ public class HomeResponseDTO {
         private Long id;                     // Post ID
         private String imageUrl;             // 게시물 이미지 URL
         private LocalDateTime createdAt;     // 작성 시간
-    }
-
-    // Egg 정보 구조
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    public static class EggInfo {
-        private Long id;                     // Egg ID
-        private EggStatus status;            // 알 상태
     }
 
     // 투두리스트 상세 정보 DTO
@@ -119,7 +111,6 @@ public class HomeResponseDTO {
     }
 
 
-
     // 날짜별 시간 및 투두리스트 달성률 정보 구조
     @AllArgsConstructor
     @NoArgsConstructor
@@ -127,9 +118,10 @@ public class HomeResponseDTO {
     public static class DateSummaryInfo {
         private LocalDate date;           // 날짜
         private int studyTime;            // 공부 시간 (분 단위)
-        private int totalTodos;           // 총 투두리스트 항목 수
-        private int completedTodos;       // 완료된 항목 수
+//        private int totalTodos;           // 총 투두리스트 항목 수
+//        private int completedTodos;       // 완료된 항목 수
         private double completionRate;    // 투두리스트 달성률
+        private boolean hasFailedPlan;    // 실패한 계획이 있는지 여부
     }
 
 }

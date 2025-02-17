@@ -1,9 +1,11 @@
 package umc.wegg.converter;
 
 import org.springframework.stereotype.Component;
+import umc.wegg.domain.Egg;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.Post;
 import umc.wegg.domain.TodoList;
+import umc.wegg.domain.enums.EggStatus;
 import umc.wegg.domain.enums.TodoListStatus;
 import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.repository.TimeRepository;
@@ -17,14 +19,23 @@ import java.util.stream.Collectors;
 public class HomeConverter {
 
     // Plan -> PlanInfo 변환
-    public List<HomeResponseDTO.PlanInfo> convertPlansToPlanInfos(List<Plan> plans) {
+    public List<HomeResponseDTO.PlanInfo> convertPlansToPlanInfos(List<Plan> plans, List<Egg> eggs) {
         return plans.stream()
-                .map(plan -> new HomeResponseDTO.PlanInfo(
-                        plan.getId(),
-                        plan.getStartTime(),
-                        plan.getFinishTime(),
-                        plan.getStatus()
-                ))
+                .map(plan -> {
+                    EggStatus eggStatus = eggs.stream()
+                            .filter(egg -> egg.getPlan().getId().equals(plan.getId()))
+                            .map(Egg::getStatus)
+                            .findFirst()
+                            .orElse(EggStatus.INTACT); // 기본적으로 INTACT 처리
+
+                    return new HomeResponseDTO.PlanInfo(
+                            plan.getId(),
+                            plan.getStartTime(),
+                            plan.getFinishTime(),
+                            plan.getStatus(),
+                            eggStatus
+                    );
+                })
                 .collect(Collectors.toList());
     }
 
@@ -52,33 +63,7 @@ public class HomeConverter {
     }
 
 
-    // 날짜별 공부 시간 및 투두리스트 달성률 계산
-    public List<HomeResponseDTO.DateSummaryInfo> calculateDateSummaries(
-            Long userId,
-            LocalDate start,
-            LocalDate end,
-            TimeRepository timeRepository,
-            TodoRepository todoRepository
-    ) {
-        return start.datesUntil(end.plusDays(1)) // 시작일부터 종료일까지 반복
-                .map(date -> {
-                    // 공부 시간 계산
-                    int studyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, date)
-                            .stream()
-                            .mapToInt(time -> time.getDuration())
-                            .sum();
 
-                    // 투두리스트 정보 계산
-                    List<TodoList> todos = todoRepository.findTodosByUserIdAndDate(userId, date);
-                    int totalTodos = todos.size();
-                    int completedTodos = (int) todos.stream().filter(todo -> todo.getStatus() == TodoListStatus.DONE).count();
-                    double completionRate = totalTodos > 0 ? ((double) completedTodos / totalTodos) * 100 : 0.0;
-
-                    // 통합 정보 생성
-                    return new HomeResponseDTO.DateSummaryInfo(date, studyTime, totalTodos, completedTodos, completionRate);
-                })
-                .collect(Collectors.toList());
-    }
 
 }
 
