@@ -35,7 +35,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
     @Override
     public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData(AuthenticatedUser authenticatedUser) {
-        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
+        Long userId = 1L;//authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
@@ -57,12 +57,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             // 일정 및 게시물 조회
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
@@ -176,12 +176,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             // 일정 및 게시물 조회
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
@@ -296,12 +296,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             // 일정 및 게시물 조회
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
@@ -392,12 +392,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
@@ -435,12 +435,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .findFirst()
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
