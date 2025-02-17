@@ -65,6 +65,18 @@ public class MapRestController {
         return ApiResponse.onSuccess(response);
     }
 
+    @DeleteMapping("/{address_id}/bookmark")
+    @Operation(summary = "장소 저장 삭제", description = "저장한 장소를 삭제하는 API")
+    public ApiResponse<MapResponseDTO.UnbookmarkDTO> unbookmarkAddress(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @PathVariable("address_id") Long addressId
+    ) {
+
+        MapResponseDTO.UnbookmarkDTO response = mapService.unbookmarkAddress(authenticatedUser, addressId);
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @GetMapping("/details")
     @Operation(summary = "장소 상세 조회", description = "placeName을 기준으로 장소 상세 정보를 조회하는 API")
     public ApiResponse<MapResponseDTO.DetailListDTO> getPlaceDetails(

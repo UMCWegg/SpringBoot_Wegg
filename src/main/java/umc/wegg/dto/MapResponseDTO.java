@@ -184,7 +184,16 @@ public class MapResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BookmarkDTO {
-        Long myAddressId;
+        private Long myAddressId;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnbookmarkDTO {
+        private boolean success; // 성공 여부
+        private Long myAddressId;
     }
 
     @Builder

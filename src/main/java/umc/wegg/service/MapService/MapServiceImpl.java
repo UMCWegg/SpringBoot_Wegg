@@ -182,6 +182,25 @@ public class MapServiceImpl implements MapService {
     }
 
     @Override
+    public MapResponseDTO.UnbookmarkDTO unbookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId){
+
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        Long userId = authenticatedUser.getUserId();
+        MyAddress myAddress = myAddressRepository.findByUserIdAndAddressId(userId, addressId)
+                        .orElseThrow(() -> new IllegalArgumentException("장소 저장 데이터를 찾을 수 없습니다."));
+
+        myAddressRepository.delete(myAddress);
+
+        return MapResponseDTO.UnbookmarkDTO.builder()
+                .success(true)
+                .myAddressId(myAddress.getId())
+                .build();
+    }
+
+    @Override
     public MapResponseDTO.DetailListDTO getPlaceDetails(MapRequestDTO.SearchDetailDTO request) {
         // placeName을 기준으로 Address 조회
         Address address = addressRepository.findByPlaceName(request.getPlaceName())
