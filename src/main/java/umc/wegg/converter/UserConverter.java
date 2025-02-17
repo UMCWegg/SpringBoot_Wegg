@@ -167,7 +167,7 @@ public class UserConverter {
                         .user(user)
                         .friend(contactFriend.getFriend())
                         .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
-                        .isFollowing(false)
+                        .isFollowing(YET)
                         .build())
                 .collect(Collectors.toList());
     }

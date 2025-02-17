@@ -79,7 +79,7 @@ public class FollowCommandServiceImpl implements FollowCommandService {
     // 연락처에 있는 사용자 추천
     @Override
     public List<FollowResponseDTO.UserRecommendationDTO> getContactRecommendations(Long myId) {
-        return contactFriendsRepository.findByUserIdAndIsFollowingOrderByCreatedAtDesc(myId, FollowStatus.WAITING)
+        return contactFriendsRepository.findByUserIdAndIsFollowing(myId, FollowStatus.WAITING)
                 .stream()
                 .map(contact -> FollowResponseDTO.UserRecommendationDTO.builder()
                         .userId(contact.getFriend().getId())
