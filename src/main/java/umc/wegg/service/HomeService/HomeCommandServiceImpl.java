@@ -9,6 +9,8 @@ import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.enums.TodoListStatus;
 import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.repository.*;
+import umc.wegg.service.EggService.EggService;
+import umc.wegg.service.EggService.EggServiceImpl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +33,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
     private final HomeConverter homeConverter;
     private final FollowRepository followRepository;
     private final EggRepository eggRepository;
+    private final EggServiceImpl eggService;
 
     @Override
     public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData(AuthenticatedUser authenticatedUser) {
@@ -157,7 +160,11 @@ public class HomeCommandServiceImpl implements HomeCommandService {
     public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData(AuthenticatedUser authenticatedUser) {
         Long userId = 1L;//authenticatedUser.getUserId(); // 로그인된 사용자 ID
         LocalDate today = LocalDate.now();
-        return getMonthData(userId, today.getYear(), today.getMonthValue());
+        // ✅ 본인의 월간 데이터를 조회할 때만 Egg 상태 초기화 실행
+        HomeResponseDTO.HomeMonthResponseDTO response = getMonthData(userId, today.getYear(), today.getMonthValue());
+        eggService.scheduleResetEggStatus(userId);
+
+        return response;
     }
 
 
