@@ -94,8 +94,9 @@ public class FollowRestController {
         List<FollowResponseDTO.UserRecommendationDTO> contactRecommendations = followCommandService.getContactRecommendations(myId);
         recommendations.put("contactRecommendations", contactRecommendations); // 세 번째로 추가
 
-        // 회원님을 위한 추천 (추후 구현 예정)
-        recommendations.put("generalRecommendations", Collections.emptyList()); // 네 번째로 추가
+        // 회원님을 위한 추천
+        List<FollowResponseDTO.UserRecommendationDTO> generalRecommendations = followCommandService.getGeneralRecommendations(myId);
+        recommendations.put("generalRecommendations", generalRecommendations); // 네 번째로 추가
 
         return ApiResponse.onSuccess(recommendations);
     }

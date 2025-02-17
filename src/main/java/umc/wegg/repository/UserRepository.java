@@ -1,6 +1,7 @@
 package umc.wegg.repository;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -40,4 +41,10 @@ public interface UserRepository extends JpaRepository<User, Long>{
 
     @Query("SELECT u FROM User u WHERE u.accountId LIKE %?1%")
     List<User> findByAccountIdContaining(String keyword);
+
+    @Query("SELECT u FROM User u ORDER BY FUNCTION('RAND')")
+    List<User> findRandomUsers(Pageable pageable);
+
+    @Query("SELECT COUNT(u) FROM User u")
+    Long countTotalUsers();
 }

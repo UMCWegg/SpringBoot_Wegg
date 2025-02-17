@@ -15,5 +15,7 @@ public interface FollowCommandService {
     // 연락처에 있는 사용자 추천
     List<FollowResponseDTO.UserRecommendationDTO> getContactRecommendations(Long myId);
 
+    // 회원님을 위한 사용자 추천 (팔로워 기반 추천)
+    List<FollowResponseDTO.UserRecommendationDTO> getGeneralRecommendations(Long myId);
 }
 
