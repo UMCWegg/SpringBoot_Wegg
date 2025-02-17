@@ -35,7 +35,7 @@ public class PurchaseRestController {
     @PostMapping("/purchase-points")
     public ApiResponse<Integer> purchasePoints(@AuthenticationPrincipal AuthenticatedUser authenticatedUser,
                                                @RequestBody PurchaseRequestDTO request) {
-        Long userId = 1L;//authenticatedUser.getUserId();
+        Long userId = authenticatedUser.getUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
