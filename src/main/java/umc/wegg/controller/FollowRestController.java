@@ -28,10 +28,18 @@ public class FollowRestController {
     @PostMapping
     public ApiResponse<FollowResponseDTO.CreateFollowResponseDTO> createFollowRequest(
             @RequestBody FollowRequestDTO.CreateFollowRequestDTO requestDTO) {
-        followCommandService.createFollowRequest(requestDTO);
+
+        FollowStatus followStatus = followCommandService.createFollowRequest(requestDTO);
+
+        String message = (followStatus == FollowStatus.SUCCEEDED)
+                ? "공개 계정을 팔로우 했습니다."
+                : "비공개 계정 팔로우 요청이 완료되었습니다.";
+
         return ApiResponse.onSuccess(
-                new FollowResponseDTO.CreateFollowResponseDTO("Follow request sent successfully."));
+                new FollowResponseDTO.CreateFollowResponseDTO(message, followStatus));
     }
+
+
 
     /**
      * 팔로우 요청 수락

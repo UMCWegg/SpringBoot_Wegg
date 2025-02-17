@@ -3,6 +3,7 @@ package umc.wegg.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import umc.wegg.domain.User;
+import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.mapping.Follow;
 import umc.wegg.dto.FollowRequestDTO;
@@ -27,7 +28,7 @@ public class FollowCommandServiceImpl implements FollowCommandService {
      * @param requestDTO 팔로우 요청 데이터
      */
     @Override
-    public void createFollowRequest(FollowRequestDTO.CreateFollowRequestDTO requestDTO) {
+    public FollowStatus createFollowRequest(FollowRequestDTO.CreateFollowRequestDTO requestDTO) {
         // 팔로우 요청한 사용자 조회
         User follower = userRepository.findById(requestDTO.getFollowerId())
                 .orElseThrow(() -> new IllegalArgumentException("Follower not found with id: " + requestDTO.getFollowerId()));
@@ -36,15 +37,28 @@ public class FollowCommandServiceImpl implements FollowCommandService {
         User followee = userRepository.findById(requestDTO.getFolloweeId())
                 .orElseThrow(() -> new IllegalArgumentException("Followee not found with id: " + requestDTO.getFolloweeId()));
 
+        // 이미 팔로우 중인지 확인
+        if (followRepository.existsByFollowerAndFollowee(follower, followee)) {
+            throw new IllegalStateException("이미 팔로우 중입니다.");
+        }
+
+        // 계정 공개 상태 확인
+        AccountVisibility visibility = followee.getSetting().getAccountVisibility();
+        FollowStatus followStatus = (visibility == AccountVisibility.PUBLIC) ? FollowStatus.SUCCEEDED : FollowStatus.WAITING;
+
         // 팔로우 요청 저장
         Follow follow = Follow.builder()
                 .follower(follower)
                 .followee(followee)
-                .followStatus(FollowStatus.WAITING) // 대기 상태로 저장
+                .followStatus(followStatus)
                 .build();
 
         followRepository.save(follow);
+
+        return followStatus; // 컨트롤러에서 응답 메시지를 다르게 설정할 수 있도록 반환
     }
+
+
 
     /**
      * 팔로우 요청 상태 결정 (수락 또는 거절)

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import umc.wegg.domain.enums.FollowStatus;
 
 public class FollowResponseDTO {
 
@@ -13,7 +14,8 @@ public class FollowResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CreateFollowResponseDTO {
-        private String message; // 응답 메시지 (예: "Follow request sent successfully.")
+        private String message; // 응답 메시지
+        private FollowStatus followStatus; // 팔로우 상태 (SUCCEEDED 또는 WAITING)
     }
 
     // 2. 팔로우 요청 수락에 대한 응답 DTO
