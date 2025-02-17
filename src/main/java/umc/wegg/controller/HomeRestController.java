@@ -66,8 +66,10 @@ public class HomeRestController {
 
     @GetMapping("/follow/{userId}")
     @Operation(summary = "친구의 팔로우/팔로잉 정보 조회", description = "특정 사용자의 팔로우 및 팔로잉 정보를 조회하는 API")
-    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFriendFollowView(@PathVariable("userId") Long userId) {
-        HomeResponseDTO.FollowResponseDTO response = homeService.getFriendHomeFollowData(userId);
+    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFriendFollowView(
+            @PathVariable("userId") Long userId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        HomeResponseDTO.FollowResponseDTO response = homeService.getFriendHomeFollowData(userId, authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
 

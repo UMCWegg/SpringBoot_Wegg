@@ -2,6 +2,7 @@ package umc.wegg.dto;
 
 import lombok.*;
 import umc.wegg.domain.enums.EggStatus;
+import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.enums.TodoListStatus;
 
@@ -57,6 +58,16 @@ public class HomeResponseDTO {
         private int followingCount; // 팔로잉 수
         private String profileImage; // 프로필 사진
         private String accountId;   // 사용자 계정 ID
+        private FollowStatus followStatus; // ✅ 친구 홈에서만 추가될 필드
+
+        // 본인 홈에서 사용하는 생성자 (팔로우 상태 없음)
+        public FollowResponseDTO(int followerCount, int followingCount, String profileImage, String accountId) {
+            this.followerCount = followerCount;
+            this.followingCount = followingCount;
+            this.profileImage = profileImage;
+            this.accountId = accountId;
+            this.followStatus = null; // 본인 홈에서는 팔로우 상태 없음
+        }
 }
 
     // plan 데이터와 post 데이터를 합침
@@ -99,9 +110,9 @@ public class HomeResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TodoInfo {
-        private Long id;                // 투두 ID
-        private String content;         // 할 일 내용
-        private TodoListStatus status;         // 완료 여부
+        private Long id;                 // 투두 ID
+        private String content;          // 할 일 내용
+        private TodoListStatus status;   // 완료 여부
         private LocalDateTime createdAt; // 작성
 
         //  Enum 값을 기반으로 isCompleted() 메서드 추가

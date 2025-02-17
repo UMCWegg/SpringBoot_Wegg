@@ -5,11 +5,12 @@ import org.springframework.stereotype.Service;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.HomeConverter;
 import umc.wegg.domain.*;
+import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.enums.TodoListStatus;
+import umc.wegg.domain.mapping.Follow;
 import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.repository.*;
-import umc.wegg.service.EggService.EggService;
 import umc.wegg.service.EggService.EggServiceImpl;
 
 import java.time.LocalDate;
@@ -37,7 +38,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
     @Override
     public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData(AuthenticatedUser authenticatedUser) {
-        Long userId = 1L;//authenticatedUser.getUserId(); // 로그인된 사용자 ID
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
@@ -158,7 +159,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
     @Override
     public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData(AuthenticatedUser authenticatedUser) {
-        Long userId = 1L;//authenticatedUser.getUserId(); // 로그인된 사용자 ID
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
         LocalDate today = LocalDate.now();
         // ✅ 본인의 월간 데이터를 조회할 때만 Egg 상태 초기화 실행
         HomeResponseDTO.HomeMonthResponseDTO response = getMonthData(userId, today.getYear(), today.getMonthValue());
@@ -170,13 +171,13 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
     @Override
     public HomeResponseDTO.FollowResponseDTO getHomeFollowData(AuthenticatedUser authenticatedUser) {
-        Long userId = 1L;//authenticatedUser.getUserId();
+        Long userId = authenticatedUser.getUserId();
         return getFollowData(userId);
     }
 
     @Override
     public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthDataFor(AuthenticatedUser authenticatedUser, int year, int month) {
-        Long userId = 1L;//authenticatedUser.getUserId();
+        Long userId = authenticatedUser.getUserId();
         return getMonthData(userId, year, month);
     }
 
@@ -194,8 +195,38 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
 
     @Override
-    public HomeResponseDTO.FollowResponseDTO getFriendHomeFollowData(Long userId) {
-        return getFollowData(userId);
+    public HomeResponseDTO.FollowResponseDTO getFriendHomeFollowData(Long userId, AuthenticatedUser authenticatedUser) {
+        // 현재 로그인한 사용자 ID
+        Long currentUserId = authenticatedUser.getUserId();
+
+        // ✅ 현재 사용자(User)와 친구(User) 객체 가져오기
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
+        User friendUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("친구 사용자를 찾을 수 없습니다."));
+
+        // ✅ 현재 사용자와 친구의 팔로우 상태 조회
+        Follow follow = followRepository.findByFollowerAndFollowee(currentUser, friendUser)
+                .orElse(null);  // 해당 팔로우 관계가 없으면 null 반환
+
+        FollowStatus followStatus;
+        if (follow != null) {
+            followStatus = follow.getFollowStatus(); // 기존 팔로우 관계가 있다면 가져오기
+        } else {
+            followStatus = null; // 팔로우 관계가 없을 경우
+        }
+
+        // 기존 getFollowData 로직을 활용하여 기본 데이터 가져오기
+        HomeResponseDTO.FollowResponseDTO baseResponse = getFollowData(userId);
+
+        // 새로운 DTO로 생성 (팔로우 상태 추가)
+        return new HomeResponseDTO.FollowResponseDTO(
+                baseResponse.getFollowerCount(),
+                baseResponse.getFollowingCount(),
+                baseResponse.getProfileImage(),
+                baseResponse.getAccountId(),
+                followStatus // ✅ 친구 홈에서만 추가되는 필드
+        );
     }
 
     private HomeResponseDTO.HomeMonthResponseDTO getMonthData(Long userId, int year, int month) {
