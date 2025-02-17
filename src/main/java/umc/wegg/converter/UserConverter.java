@@ -10,7 +10,6 @@ import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,8 +67,8 @@ public class UserConverter {
         Setting setting = Setting.builder()
                 .user(user) // 양방향 관계 설정
                 .marketingAgree(request.getMarketingAgree())
-                .postAlarm(alarmType)
-                .commentAlarm(alarmType)
+                .postAlarm(true)
+                .commentAlarm(true)
                 .placeAlarm(alarmType)
                 .randomAlarm(alarmType)
                 .eggAlarm(alarmType)
@@ -99,7 +98,7 @@ public class UserConverter {
         return user;
     }
 
-    public static User toOAuthUser(UserRequestDTO.OAuth2UserJoinDto request, List<UserResponseDTO.ContactFriendDTO> contactFriends){
+    public static User toOAuthUser(UserRequestDTO.OAuth2UserJoinDto request, String password, List<UserResponseDTO.ContactFriendDTO> contactFriends){
 
         User user = User.builder()
                 .accountId(request.getAccountId())
@@ -107,9 +106,8 @@ public class UserConverter {
                 .job(request.getJob())
                 .reason(request.getReason())
                 .phone(request.getPhone())
-                .oauthId(request.getOauthId())
-                .email(request.getOauthId() + "@wegg.com")
-                .password(request.getPassword())
+                .email(request.getEmail())
+                .password(password)
                 .build();
 
         AlarmType alarmType = null;
@@ -124,8 +122,8 @@ public class UserConverter {
         Setting setting = Setting.builder()
                 .user(user) // 양방향 관계 설정
                 .marketingAgree(request.getMarketingAgree())
-                .postAlarm(alarmType)
-                .commentAlarm(alarmType)
+                .postAlarm(true)
+                .commentAlarm(true)
                 .placeAlarm(alarmType)
                 .randomAlarm(alarmType)
                 .eggAlarm(alarmType)
@@ -161,5 +159,16 @@ public class UserConverter {
                 .userId(userId)
                 .build();
 
+    }
+
+    public static List<ContactFriend> toContactFriendEntities(User user, List<UserResponseDTO.ContactFriendDTO> contactFriends) {
+        return contactFriends.stream()
+                .map(contactFriend -> ContactFriend.builder()
+                        .user(user)
+                        .friend(contactFriend.getFriend())
+                        .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
+                        .isFollowing(false)
+                        .build())
+                .collect(Collectors.toList());
     }
 }

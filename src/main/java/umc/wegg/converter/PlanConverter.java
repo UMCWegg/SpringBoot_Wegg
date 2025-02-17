@@ -1,5 +1,6 @@
 package umc.wegg.converter;
 
+import lombok.RequiredArgsConstructor;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.User;
 import umc.wegg.domain.Address;
@@ -17,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class PlanConverter {
 
     // Plan 추가 결과 DTO 변환
@@ -34,14 +36,10 @@ public class PlanConverter {
     }
 
     // PlanRequestDTO에서 Plan으로 변환
-    public static List<Plan> toPlan(PlanRequestDTO.PlanAddDTO request, UserRepository userRepository, AddressRepository addressRepository) {
+    public static List<Plan> toPlan(PlanRequestDTO.PlanAddDTO request, UserRepository userRepository, Address address) {
         PlanStatus status = request.getStatus() != null ? request.getStatus() : PlanStatus.YET;
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Address를 찾아서 처리
-        Address address = addressRepository.findById(request.getAddressId())
-                .orElseThrow(() -> new RuntimeException("Address not found"));
 
         // 시간을 포맷하는 DateTimeFormatter 설정
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -82,6 +80,13 @@ public class PlanConverter {
         }
 
         return existingPlan; // 업데이트된 Plan 반환
+    }
+
+    public static PlanResponseDTO.PlanStatusDTO toPlanStatusDTO(Plan plan) {
+        return PlanResponseDTO.PlanStatusDTO.builder()
+                .planId(plan.getId())
+                .planStatus(plan.getStatus())
+                .build();
     }
 
     // Plan 상세 DTO 변환

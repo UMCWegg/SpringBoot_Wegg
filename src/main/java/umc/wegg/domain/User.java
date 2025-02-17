@@ -24,7 +24,11 @@ import java.util.List;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "users")
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"accountId"}), // accountId에 유니크 제약조건 추가
+                @UniqueConstraint(columnNames = {"email"})      // email에 유니크 제약조건 추가
+        })
 public class User extends BaseEntity {
 
     @Id
@@ -72,8 +76,6 @@ public class User extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String phone; // 사용자 전화번호
 
-    private String oauthId;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
 
@@ -115,9 +117,6 @@ public class User extends BaseEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Setting setting;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContactFriend> contactFriends = new ArrayList<>();
 
     public void setSetting(Setting setting) {
         this.setting = setting;

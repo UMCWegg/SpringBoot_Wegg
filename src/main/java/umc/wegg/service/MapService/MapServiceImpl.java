@@ -1,76 +1,234 @@
 package umc.wegg.service.MapService;
 
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import umc.wegg.config.security.AuthenticatedUser;
+import umc.wegg.converter.AddressConverter;
+import umc.wegg.converter.MyAddressConverter;
+import umc.wegg.domain.Address;
+import umc.wegg.domain.Plan;
+import umc.wegg.domain.Post;
+import umc.wegg.domain.User;
+import umc.wegg.domain.enums.PlanStatus;
+import umc.wegg.domain.mapping.MyAddress;
+import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
+import umc.wegg.repository.*;
+import umc.wegg.util.MapUtil;
+import umc.wegg.util.RedisUtil;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MapServiceImpl implements MapService {
 
-    @Value("${spring.kakao.api.client-id}")
-    private String CLIENT_ID;
+    private final AddressRepository addressRepository;
+    private final MyAddressRepository myAddressRepository;
+    private final PostRepository postRepository;
+    private final PlanRepository planRepository;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final MapUtil mapUtil;
+    private final RedisUtil redisUtil;
+    private final ObjectMapper objectMapper; // JSON 직렬화/역직렬화에 사용
+    private final UserRepository userRepository;
 
-//    // 장소 검색
-//    @Override
-//    public MapResponseDTO.ReverseGeocodingDTO reverseGeocoding(String latitude, String longitude) {
-//        String url = "https://dapi.kakao.com/v2/local/geo/coord2address.json?x="
-//                + longitude + "&y=" + latitude;
-//
-//        // HTTP 요청 헤더 설정
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.set("Authorization", "KakaoAK " + CLIENT_ID);
-//
-//        HttpEntity<String> entity = new HttpEntity<>(headers);
-//
-//        //ResTemplate를 이용해 요청을 보내고 KakaoSearchDto로 받아 response에 담음
-//        ResponseEntity<MapResponseDTO.ReverseGeocodingDTO> response = restTemplate.exchange(
-//                url,
-//                HttpMethod.GET,
-//                entity,
-//                MapResponseDTO.ReverseGeocodingDTO.class
-//        );
-//
-//        // 응답 값 반환
-//        return response.getBody();
-//    }
-
-    // 장소 검색
     @Override
-    public MapResponseDTO.SearchDTO searchPlacesByKeyword(String keyword, String latitude, String longitude, Integer radius) {
-        StringBuilder url = new StringBuilder("https://dapi.kakao.com/v2/local/search/keyword.json?query=" + keyword);
+    public MapResponseDTO.SearchPlanPlaceListDTO searchPlaceListByKeyword(MapRequestDTO.SearchPlanDTO request, Integer page, Integer size) {
+        MapResponseDTO.SearchDTO searchPlaces = mapUtil.searchPlacesByKeyword(request.getKeyword(), request.getLatitude(), request.getLongitude(), 2000, page + 1, size);
 
-        // latitude, longitude, radius가 null이 아닐 때만 추가
-        if (longitude != null && latitude != null) {
-            url.append("&x=").append(longitude).append("&y=").append(latitude);
+        // PlaceListDTO 생성 및 검색된 장소 이름 추가
+        List<MapResponseDTO.SearchPlanPlaceListDTO.PlaceNameDTO> placeList = searchPlaces.getSearchByKeywordList().stream()
+                .map(place -> new MapResponseDTO.SearchPlanPlaceListDTO.PlaceNameDTO(place.getPlaceName())) // 장소 이름 DTO로 변환
+                .collect(Collectors.toList());
+
+        // Redis에 검색 결과 저장
+        for (MapResponseDTO.SearchDTO.PlaceDetailDTO place : searchPlaces.getSearchByKeywordList()) {
+            try {
+                String key = place.getPlaceName();
+                String value = objectMapper.writeValueAsString(place); // place detail
+                redisUtil.setDataExpire(key, value, 10 * 60); // Redis에 저장(key-place name/value-place detail)
+            } catch (Exception e) {
+                e.printStackTrace(); // 직렬화 실패 시 예외 처리
+            }
         }
-        if (radius != null) {
-            url.append("&radius=").append(radius);
+
+        // PlaceListDTO 생성
+        return MapResponseDTO.SearchPlanPlaceListDTO.builder()
+                .placeList(placeList)
+                .build();
+
+    }
+
+    @Override
+    public MapResponseDTO.SearchHotPlaceListDTO searchHotPlaceListByKeyword(MapRequestDTO.SearchHotPlaceDTO request, Integer page, Integer size) {
+        Page<Address> addresses = addressRepository.findNearbyAddressesWithKeyword(request.getLatitude(), request.getLongitude(), 2, request.getKeyword(), PageRequest.of(page, size));
+
+        List<MapResponseDTO.SearchHotPlaceListDTO.SearchHotPlaceDTO> placeList = addresses.stream()
+                .map(address -> {
+                    // 거리 계산
+                    double distance = mapUtil.calculateDistance(request.getLatitude(), request.getLongitude(), address.getLatitude(), address.getLongitude());
+
+                    // 게시물 인증 수 계산
+                    List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
+                    Long authCount = plans.stream()
+                            .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
+                            .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
+
+                    // SearchHotPlaceDTO 객체 생성
+                    return new MapResponseDTO.SearchHotPlaceListDTO.SearchHotPlaceDTO(
+                            address.getId(),
+                            address.getPlaceName(),
+                            address.getRoadAddress(),
+                            distance,
+                            authCount
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // SearchHotPlaceListDTO 객체 반환
+        return MapResponseDTO.SearchHotPlaceListDTO.builder()
+                .placeList(placeList)
+                .build();
+    }
+
+    @Override
+    public MapResponseDTO.HotPlaceListDTO viewHotPlaceList(MapRequestDTO.ViewHotPlaceDTO request, Integer page, Integer size){
+
+        Sort sort = Sort.by(Sort.Direction.ASC, "distance");
+
+        if ("authCount".equals(request.getSortBy())) {
+            sort = Sort.by(Sort.Direction.DESC, "authCount");
         }
 
-        // HTTP 요청 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK " + CLIENT_ID);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        //ResTemplate를 이용해 요청을 보내고 KakaoSearchDto로 받아 response에 담음
-        ResponseEntity<MapResponseDTO.SearchDTO> response = restTemplate.exchange(
-                url.toString(),
-                HttpMethod.GET,
-                entity,
-                MapResponseDTO.SearchDTO.class
+        // DB에서 sortBy에 따라 addressId, distance, authCount 계산해서 가져오기(Paging 적용)
+        Page<Object[]> resultPage = addressRepository.findAddressesWithSorting(
+                request.getMinX(), request.getMaxX(),
+                request.getMinY(), request.getMaxY(),
+                (request.getMinX() + request.getMaxX()) / 2,  // 중심 좌표
+                (request.getMinY() + request.getMaxY()) / 2,
+                PageRequest.of(page, size, sort)
         );
 
-        // 응답 값 반환
-        return response.getBody();
+        // DB에서 가져온 값으로 DTO 생성
+        MapResponseDTO.HotPlaceListDTO hotPlaceList = new MapResponseDTO.HotPlaceListDTO(
+                resultPage.stream()
+                        .map(row -> {
+                            // DB에서 address, distance, authCount 가져오기
+                            Address address = (Address) row[0]; // address
+                            Long authCount = (Long) row[1];     // authCount
+                            Double distance = (Double) row[2];  //distance
+
+                            // Plan을 거쳐서 Post 목록 가져오기(15개)
+                            List<Post> latestPosts = postRepository.findLatestPostsByAddressId(address.getId(), PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt")));
+
+                            List<MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO> postList = latestPosts.stream()
+                                    .map(post -> new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO.PostDTO(
+                                            post.getId(), post.getImageUrl()
+                                    ))
+                                    .collect(Collectors.toList());
+
+                            // 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
+                            Long saveCount = myAddressRepository.countByAddressId(address.getId());
+
+                            return new MapResponseDTO.HotPlaceListDTO.HotPlaceDTO(
+                                    address.getId(),
+                                    address.getLatitude(),
+                                    address.getLongitude(),
+                                    address.getPlaceName(),
+                                    address.getPlaceLabel(),
+                                    authCount,
+                                    saveCount,
+                                    distance,
+                                    postList
+                            );
+                        })
+                        .collect(Collectors.toList()) // List<HotPlaceDTO> 생성
+        );
+
+        return hotPlaceList;
     }
+
+    @Override
+    public MapResponseDTO.BookmarkDTO bookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId){
+
+        if (authenticatedUser == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
+        }
+
+        Long userId = authenticatedUser.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+
+
+        MyAddress myAddress = MyAddressConverter.toMyAddress(user, address);
+        myAddressRepository.save(myAddress);
+
+        return MapResponseDTO.BookmarkDTO.builder()
+                .myAddressId(myAddress.getId())
+                .build();
+    }
+
+    @Override
+    public MapResponseDTO.DetailListDTO getPlaceDetails(MapRequestDTO.SearchDetailDTO request) {
+        // placeName을 기준으로 Address 조회
+        Address address = addressRepository.findByPlaceName(request.getPlaceName())
+                .orElseThrow(() -> new NoSuchElementException("해당 장소를 찾을 수 없습니다."));
+
+// Plan을 거쳐서 Post 목록 가져오기(15개)
+        List<Post> latestPosts = postRepository.findLatestPostsByAddressId(
+                address.getId(), PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
+
+// 게시물 인증 수(authCount) 계산
+        List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
+        Long authCount = plans.stream()
+                .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
+                .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
+
+// 인증한 사람 수(authPeople) 계산 (중복 제거)
+        Set<Long> uniqueUserIds = plans.stream()
+                .filter(plan -> plan.getStatus() == PlanStatus.SUCCEEDED) // SUCCEEDED 상태인 Plan만 필터링
+                .map(plan -> plan.getUser().getId()) // User의 ID 가져오기
+                .collect(Collectors.toSet()); // 중복 제거
+        Long authPeople = (long) uniqueUserIds.size(); // 고유한 userId 개수
+
+        List<MapResponseDTO.DetailListDTO.DetailDTO.PostDTO> postList = latestPosts.stream()
+                .map(post -> new MapResponseDTO.DetailListDTO.DetailDTO.PostDTO(
+                        post.getId(), post.getImageUrl()
+                ))
+                .collect(Collectors.toList());
+
+// 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
+        Long saveCount = myAddressRepository.countByAddressId(address.getId());
+
+// 응답 DTO 생성
+        MapResponseDTO.DetailListDTO.DetailDTO detailDTO = new MapResponseDTO.DetailListDTO.DetailDTO(
+                address.getId(),
+                address.getPlaceName(),
+                authPeople, // 중복 없는 사용자 수
+                authCount,  // 인증 게시물 수
+                saveCount,  // 저장된 횟수
+                address.getPlaceLabel(),
+                address.getRoadAddress(),
+                address.getPhone(),
+                postList
+        );
+
+        return new MapResponseDTO.DetailListDTO(List.of(detailDTO));
+
+    }
+
 }

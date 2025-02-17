@@ -71,16 +71,6 @@ public class UserResponseDTO {
     }
 
     @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OAuth2LoginResultDTO {
-        private boolean success; // 성공 여부
-        private String provider;
-        private String oauthId; // 사용자 ID
-    }
-
-    @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
@@ -121,5 +111,30 @@ public class UserResponseDTO {
     public static class CheckAccountIdResultDTO {
         private boolean isDuplicate;
         private String message;  // 결과 메시지
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CheckEmailResultDTO {
+        private boolean isDuplicate;
+        private String message;  // 결과 메시지
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class UserSearchDTO {
+        private Long userId;
+        private String accountId;
+        private String profileImage;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ContactUpdateResultDTO {
+        private boolean success;
     }
 }

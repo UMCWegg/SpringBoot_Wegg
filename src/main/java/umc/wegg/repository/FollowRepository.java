@@ -23,4 +23,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     List<Follow> findByFolloweeIdAndFollowStatusOrderByCreatedAtDesc(Long followeeId, FollowStatus followStatus);
 
+
+    @Query("SELECT f.follower FROM Follow f WHERE f.followee = :postOwner")
+    List<User> findFollowersByFollowee(@Param("postOwner") User postOwner);
 }

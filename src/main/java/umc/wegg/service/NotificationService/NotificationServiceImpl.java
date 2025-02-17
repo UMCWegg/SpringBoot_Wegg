@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,10 +39,19 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60; // 1 hour
 
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
+
+    public void scheduleTask(Runnable task, LocalDateTime executionTime) {
+        long delay = executionTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
+        if (delay > 0) {
+            scheduler.schedule(task, delay, TimeUnit.MILLISECONDS);
+        }
+    }
+
     @Override
-    public SseEmitter subscribe(Long memberId, String lastEventId) {
+    public SseEmitter subscribe(Long userId, String lastEventId) {
         // 고유 ID 생성
-        String emitterId = memberId + "_" + System.currentTimeMillis();
+        String emitterId = userId + "_" + System.currentTimeMillis();
         SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
 
         // SSE 연결이 완료되거나 타임아웃되면 해당 emitter 삭제
@@ -49,11 +59,11 @@ public class NotificationServiceImpl implements NotificationService {
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         // 클라이언트에게 더미 이벤트 전송
-        sendToClient(emitter, emitterId, "EventStream Created. [memberId=" + memberId + "]");
+        sendToClient(emitter, emitterId, "EventStream Created. [userId=" + userId + "]");
 
         // 이전에 읽지 않은 이벤트가 있다면 전송
         if (!lastEventId.isEmpty()) {
-            Map<String, Object> events = emitterRepository.findAllEventCacheStartWithByMemberId(String.valueOf(memberId));
+            Map<String, Object> events = emitterRepository.findAllEventCacheStartWithByMemberId(String.valueOf(userId));
             events.entrySet().stream()
                     .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
                     .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getValue()));
@@ -63,14 +73,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public void send(User receiver, NotificationType notificationType, String content, String url) {
-        Notification notification = createNotification(receiver, notificationType, content, url);
+    public void send(User receiver, NotificationType notificationType, String content, String url, String profileImage) {
+        Notification notification = createNotification(receiver, notificationType, content, url, profileImage);
         notificationRepository.save(notification);
 
-        String memberId = String.valueOf(receiver.getId());
+        String userId = String.valueOf(receiver.getId());
 
         // SSE 연결된 모든 클라이언트에게 알림 전송
-        Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByMemberId(memberId);
+        Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByMemberId(userId);
         sseEmitters.forEach((key, emitter) -> {
             emitterRepository.saveEventCache(key, notification);
             // ApiResponse<Notification> 사용
@@ -80,13 +90,14 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     // Notification 객체 생성
-    private Notification createNotification(User user, NotificationType notificationType, String content, String url) {
+    private Notification createNotification(User user, NotificationType notificationType, String content, String url, String profileImage) {
         return Notification.builder()
                 .user(user)
                 .notificationType(notificationType)
                 .content(content)
                 .url(url)
                 .readStatus(ReadStatus.UNREAD)
+                .profileImage(profileImage)
                 .build();
     }
 
@@ -104,23 +115,26 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
 
-    public void sendNotificationToPostOwner(User postOwner, Long postId, String content, String notificationType) {
+    public void sendNotificationToPostOwner(User postOwner, Long postId, String content, String notificationType, String profileImage) {
         NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
-        send(postOwner, type, content, "/posts/" + postId + "/view");
+        send(postOwner, type, content, "/posts/" + postId + "/view", profileImage);
     }
 
-    public void sendNotificationToEggOwner(User planUser, String content, String notificationType) {
+    public void sendNotificationToEggOwner(User planUser, String content, String notificationType, String profileImage) {
         NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
-        send(planUser, type, content, "/eggs/calender/plans");
+        send(planUser, type, content, "/eggs/calender/plans", profileImage);
+    }
+    public void sendNotificationToFollower(User follower, Long postId, String content, String notificationType, String profileImage) {
+        NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
+        send(follower, type, content, "/posts/" + postId + "/view", profileImage);
     }
 
-
-    public void scheduleNotification(User user, NotificationType type, LocalDateTime notificationTime, String content, String url) {
+    public void scheduleNotification(User user, NotificationType type, LocalDateTime notificationTime, String content, String url, String profileImage) {
         long delay = notificationTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();
 
         // 일정 시간 후에 알림을 전송하는 작업을 예약합니다.
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-            send(user, type, content, url);
+            send(user, type, content, url, profileImage);
         }, delay, TimeUnit.MILLISECONDS);
     }
 

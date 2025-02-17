@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,17 +31,18 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository(); // 공유할 SecurityContextRepository
+    }
+
+    @Bean
     @Order(0)
-    public SecurityFilterChain filterChain(HttpSecurity http, CustomOAuth2SuccessHandler customOAuth2SuccessHandler, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, SecurityContextRepository securityContextRepository) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(login -> login.disable()) // 폼로그인 비허용
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(customOAuth2SuccessHandler)
-                )
                 .logout(logout -> logout
                         .logoutUrl("/users/logout") // 로그아웃 요청 URL
                         .logoutSuccessHandler((request, response, authentication) -> {
@@ -54,7 +56,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .securityContext(securityContext -> new HttpSessionSecurityContextRepository());
+                .securityContext(context -> context
+                        .securityContextRepository(securityContextRepository) // SecurityContextRepository 공유
+                );
 
         return http.build();
     }
@@ -70,8 +74,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public LoginProcessingFilter loginProcessingFilter(AuthenticationManager authenticationManager) {
-        LoginProcessingFilter loginProcessingFilter = new LoginProcessingFilter();
+    public LoginProcessingFilter loginProcessingFilter(AuthenticationManager authenticationManager, SecurityContextRepository securityContextRepository) {
+        LoginProcessingFilter loginProcessingFilter = new LoginProcessingFilter(securityContextRepository);
         loginProcessingFilter.setAuthenticationManager(authenticationManager);
         loginProcessingFilter.setAuthenticationSuccessHandler(new CustomAuthenticationSuccessHandler());
         loginProcessingFilter.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler());

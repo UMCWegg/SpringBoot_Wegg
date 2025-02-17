@@ -60,8 +60,15 @@ public class UserRequestDTO {
     @AllArgsConstructor
     public static class OAuth2UserJoinDto{
 
-        @NotBlank(message = "oauth ID는 필수 항목입니다.")
-        private String oauthId;
+        @NotNull(message = "로그인 타입은 필수 항목입니다.")
+        private String type; //google, kakao
+
+        @NotNull(message = "토큰은 필수 항목입니다.")
+        private String token;
+
+        @Email(message = "유효한 이메일 주소를 입력해야 합니다.")
+        @NotNull(message = "이메일은 필수 항목입니다.")
+        private String email; // 사용자 이메일
 
         @NotNull
         private Boolean marketingAgree;
@@ -88,8 +95,6 @@ public class UserRequestDTO {
         // 연락처 리스트
         @Size(max = 10, message = "최대 10개의 연락처를 제공할 수 있습니다.")
         private List<ContactDto> contact; // 연락처 정보 리스트
-
-        private String password; // 비밀번호(null로 설정)
     }
 
     @Getter
@@ -113,6 +118,20 @@ public class UserRequestDTO {
         private String email;
         @NotBlank(message = "비밀번호는 필수 항목입니다.")
         private String password;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OAuth2LoginRequestDTO {
+        @NotNull(message = "로그인 타입은 필수 항목입니다.")
+        private String type; //google, kakao
+        @NotNull(message = "토큰은 필수 항목입니다.")
+        private String token;
+        @Email
+        @NotNull(message = "이메일은 필수 항목입니다.")
+        private String email;
     }
 
     @Getter
@@ -161,5 +180,15 @@ public class UserRequestDTO {
 
             return false;
         }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateContactListDTO {
+        @Size(max = 10, message = "최대 10개의 연락처를 제공할 수 있습니다.")
+        @Valid
+        private List<ContactDto> contacts; // 새 연락처 리스트
     }
 }

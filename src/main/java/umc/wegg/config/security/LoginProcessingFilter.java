@@ -13,7 +13,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StreamUtils;
@@ -25,10 +24,11 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 public class LoginProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
-    private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    private final SecurityContextRepository securityContextRepository;
 
-    public LoginProcessingFilter() {
+    public LoginProcessingFilter(SecurityContextRepository securityContextRepository) {
         super(new AntPathRequestMatcher("/users/login")); // "/users/login" 요청에 Filter를 적용
+        this.securityContextRepository = securityContextRepository;
     }
 
     @SneakyThrows

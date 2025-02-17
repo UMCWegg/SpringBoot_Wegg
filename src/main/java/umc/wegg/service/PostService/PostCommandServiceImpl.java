@@ -10,9 +10,12 @@ import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.domain.*;
 import umc.wegg.domain.enums.EmojiType;
+import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.mapping.Emoji;
+import umc.wegg.domain.mapping.MyTemplate;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
+import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
@@ -28,58 +31,24 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final CommentRepository commentRepository;
     private final EmojiRepository emojiRepository;
     private final PlanRepository planRepository;
+    private final MyTemplateRepository myTemplateRepository;
     private final TemplateRepository templateRepository;
     private final UserRepository userRepository;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
     private final NotificationService notificationService;
-
-
-
-//    @Override
-//    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
-//        // 1. Template 엔티티 조회
-//        Template template = templateRepository.findById(requestDTO.getTemplateId())
-//                .orElseThrow(() -> new IllegalArgumentException("Template not found with id: " + requestDTO.getTemplateId()));
-//
-//        // 2. Plan 엔티티 조회
-//        Plan plan = planRepository.findById(requestDTO.getPlanId())
-//                .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
-//
-//        String uuid = UUID.randomUUID().toString();
-//        Uuid savedUuid = uuidRepository.save(Uuid.builder()
-//                .uuid(uuid).build());
-//
-//        String pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
-//
-//        // 3. Post 엔티티 생성
-//        Post post = Post.builder()
-//                .imageUrl(pictureUrl) // 요청에서 받은 이미지 URL 설정
-//                .comment(requestDTO.getComment())  // 요청에서 받은 댓글 설정
-//                .template(template)                // 조회한 Template 엔티티 설정
-//                .plan(plan)                        // 조회한 Plan 엔티티 설정
-//                .build();                          // Post 객체 생성
-//
-//
-//
-//        // 4. Post 엔티티 저장
-//        Post savedPost = postRepository.save(post);
-//
-//        // 5. DTO 변환 및 반환
-//        return PostResponseDTO.PostCreateResponseDTO.builder()
-//                .postId(savedPost.getId())
-//                //.imageUrl(pictureUrl)
-//                .templateId(savedPost.getTemplate() != null ? savedPost.getTemplate().getId() : null)
-//                .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
-//                .createdAt(savedPost.getCreatedAt())
-//                .build();
-//    }
+    private final FollowRepository followRepository;
+    private final SettingRepository settingRepository;
 
     @Override
     public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
         // 1. Plan 엔티티 조회
         Plan plan = planRepository.findById(requestDTO.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
+
+        // 상태 업데이트 (YET -> SUCCEEDED)
+        plan.setStatus(PlanStatus.SUCCEEDED);
+        planRepository.save(plan); // 변경된 상태 저장
 
         // 2. UUID 생성 및 저장 (필요한 경우)
         String uuid = UUID.randomUUID().toString();
@@ -104,7 +73,23 @@ public class PostCommandServiceImpl implements PostCommandService {
         // 5. Post 엔티티 저장
         Post savedPost = postRepository.save(post);
 
-        // 6. DTO 변환 및 반환
+        // 5. 게시글 작성자 조회
+        User postOwner = getPostOwner(post.getId()); // 현재 게시글 작성자 (이 메서드가 필요함)
+
+        // 6. 팔로워 조회
+        List<User> followers = followRepository.findFollowersByFollowee(postOwner);
+
+        // 7. 팔로워들에게 알림 전송
+        String message = postOwner.getAccountId() + "님이 새로운 포스트를 올렸습니다!";
+        for (User follower : followers) {
+            Setting followerSetting = settingRepository.findByUserId(follower.getId()).orElse(null); // 설정 조회
+
+            if (followerSetting != null && followerSetting.isPostAlarm()) { // postAlarm이 true일 때만 알림 전송
+                notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST", postOwner.getProfileImage());
+            }
+        }
+
+        // 8. DTO 변환 및 반환
         return PostResponseDTO.PostCreateResponseDTO.builder()
                 .postId(savedPost.getId())
                 .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
@@ -120,7 +105,6 @@ public class PostCommandServiceImpl implements PostCommandService {
                 .getPlan()          // Post 엔티티에서 Plan을 가져옴
                 .getUser();         // Plan 엔티티에서 User를 가져옴
     }
-
 
 
     @Override
@@ -154,9 +138,11 @@ public class PostCommandServiceImpl implements PostCommandService {
         if (!postOwner.getId().equals(userId)) {
             // 알림 메시지 작성
             String message = commenterName + "님이 댓글을 달았습니다!";
+            Setting ownerSetting = settingRepository.findByUserId(postOwner.getId()).orElse(null); // 설정 조회
 
-            // 알림 전송
-            notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT");
+            if (ownerSetting != null && ownerSetting.isCommentAlarm()) { // commentAlarm이 true일 때만 알림 전송
+                notificationService.sendNotificationToPostOwner(postOwner, requestDTO.getPostingId(), message, "COMMENT", user.getProfileImage());
+            }
         }
 
 
@@ -221,9 +207,11 @@ public class PostCommandServiceImpl implements PostCommandService {
         if (!postOwner.getId().equals(userId)) {
             // 알림 메시지 작성
             String message = emojiName + "님이 " + emojiType +"을 달았습니다!";
+            Setting ownerSetting = settingRepository.findByUserId(postOwner.getId()).orElse(null); // 설정 조회
 
-            // 알림 전송
-            notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI");
+            if (ownerSetting != null && ownerSetting.isCommentAlarm()) { // commentAlarm이 true일 때만 알림 전송
+                notificationService.sendNotificationToPostOwner(postOwner, postId, message, "EMOJI", user.getProfileImage());
+            }
         }
 
     }
@@ -454,9 +442,21 @@ public class PostCommandServiceImpl implements PostCommandService {
                         .collect(Collectors.toList())) // Map -> List<EmojiCountDTO> 변환
                 .userSelectedEmojis(userSelectedEmojis) // 사용자 선택 이모지 리스트
                 .build();
-
     }
 
+    @Override
+    public List<PostResponseDTO.TemplateDTO> getUserTemplates() {
+        // 마이템플릿 데이터베이스에서 userId를 기반으로 사용자 템플릿 목록을 조회
+        Long userId = 1L;
+        List<MyTemplate> myTemplates = myTemplateRepository.findByUserId(userId);
+
+        return myTemplates.stream()
+                .map(myTemplate -> PostResponseDTO.TemplateDTO.builder()
+                        .templateId(myTemplate.getTemplate().getId())
+                        .type(myTemplate.getTemplate().getTemplateType().name())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
 }
 

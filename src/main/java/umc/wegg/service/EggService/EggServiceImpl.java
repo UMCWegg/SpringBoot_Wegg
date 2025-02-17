@@ -3,6 +3,7 @@ package umc.wegg.service.EggService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.EggConverter;
 import umc.wegg.domain.Egg;
 import umc.wegg.domain.Plan;
@@ -11,7 +12,6 @@ import umc.wegg.domain.User;
 import umc.wegg.domain.enums.EggStatus;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.enums.PlanStatus;
-import umc.wegg.dto.EggRequestDTO;
 import umc.wegg.dto.TimeRequestDTO;
 import umc.wegg.repository.*;
 import umc.wegg.service.NotificationService.NotificationService;
@@ -34,9 +34,11 @@ public class EggServiceImpl implements EggService {
 
     @Override
     @Transactional
-    public void recordTime(TimeRequestDTO request) {
+    public void recordTime(AuthenticatedUser authenticatedUser, TimeRequestDTO request) {
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
+
         // 사용자 확인
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         // Time 객체 생성
@@ -51,7 +53,9 @@ public class EggServiceImpl implements EggService {
 
     @Override
     @Transactional
-    public void breakEgg(Long planId, EggRequestDTO request) {
+    public void breakEgg(AuthenticatedUser authenticatedUser, Long planId) {
+        Long breakerId = authenticatedUser.getUserId(); //  로그인된 사용자 ID
+
         // 계획 및 알 확인
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 플랜이 존재하지 않습니다."));
@@ -72,11 +76,16 @@ public class EggServiceImpl implements EggService {
         }
 
         // 알을 깨려는 사용자 확인
-        User breaker = userRepository.findById(request.getBreakerId())
+        User breaker = userRepository.findById(breakerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         // 계획을 만든 사용자 (알을 가진 사용자)
         User eggOwner = plan.getUser();
+
+        //  본인의 알을 깰 수 없도록 추가된 로직
+        if (breaker.equals(eggOwner)) {
+            throw new IllegalStateException("본인의 알을 깰 수 없습니다.");
+        }
 
         // 알을 깨려는 사람이 계획을 만든 사람과 팔로우 관계인지 확인
         boolean isFollower = followRepository.existsByFollowerAndFolloweeAndFollowStatus(
@@ -90,7 +99,7 @@ public class EggServiceImpl implements EggService {
         // 알 상태 변경 및 사용자 정보 추가
         egg.setStatus(EggStatus.BREAK);
         egg.setBrokenTime(LocalDateTime.now());
-        egg.setUser(userRepository.findById(request.getBreakerId())
+        egg.setUser(userRepository.findById(breakerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다.")));
 
         eggRepository.save(egg);
@@ -100,6 +109,6 @@ public class EggServiceImpl implements EggService {
         String message = breakUser.getAccountId() + "님이 알을 깨고 달아났습니다!";
 
         // 알림 전송
-        notificationService.sendNotificationToEggOwner(plan.getUser(), message, "EGG");
+        notificationService.sendNotificationToEggOwner(plan.getUser(), message, "EGG", breakUser.getProfileImage());
     }
 }
