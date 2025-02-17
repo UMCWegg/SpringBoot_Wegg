@@ -1,5 +1,7 @@
 package umc.wegg.service.MapService;
 
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -7,11 +9,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import umc.wegg.config.security.AuthenticatedUser;
+import umc.wegg.converter.AddressConverter;
 import umc.wegg.converter.MyAddressConverter;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.Post;
 import umc.wegg.domain.User;
+import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.mapping.MyAddress;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
@@ -20,6 +24,8 @@ import umc.wegg.util.MapUtil;
 import umc.wegg.util.RedisUtil;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -174,4 +180,55 @@ public class MapServiceImpl implements MapService {
                 .myAddressId(myAddress.getId())
                 .build();
     }
+
+    @Override
+    public MapResponseDTO.DetailListDTO getPlaceDetails(MapRequestDTO.SearchDetailDTO request) {
+        // placeName을 기준으로 Address 조회
+        Address address = addressRepository.findByPlaceName(request.getPlaceName())
+                .orElseThrow(() -> new NoSuchElementException("해당 장소를 찾을 수 없습니다."));
+
+// Plan을 거쳐서 Post 목록 가져오기(15개)
+        List<Post> latestPosts = postRepository.findLatestPostsByAddressId(
+                address.getId(), PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
+
+// 게시물 인증 수(authCount) 계산
+        List<Plan> plans = planRepository.findByAddressId(address.getId()); // Address ID로 Plan 조회
+        Long authCount = plans.stream()
+                .mapToLong(plan -> postRepository.countByPlanId(plan.getId())) // 각 Plan에 대한 Post 개수 세기
+                .sum(); // 해당 address_id에 대한 모든 Plan에 연결된 Post 개수 합산
+
+// 인증한 사람 수(authPeople) 계산 (중복 제거)
+        Set<Long> uniqueUserIds = plans.stream()
+                .filter(plan -> plan.getStatus() == PlanStatus.SUCCEEDED) // SUCCEEDED 상태인 Plan만 필터링
+                .map(plan -> plan.getUser().getId()) // User의 ID 가져오기
+                .collect(Collectors.toSet()); // 중복 제거
+        Long authPeople = (long) uniqueUserIds.size(); // 고유한 userId 개수
+
+        List<MapResponseDTO.DetailListDTO.DetailDTO.PostDTO> postList = latestPosts.stream()
+                .map(post -> new MapResponseDTO.DetailListDTO.DetailDTO.PostDTO(
+                        post.getId(), post.getImageUrl()
+                ))
+                .collect(Collectors.toList());
+
+// 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
+        Long saveCount = myAddressRepository.countByAddressId(address.getId());
+
+// 응답 DTO 생성
+        MapResponseDTO.DetailListDTO.DetailDTO detailDTO = new MapResponseDTO.DetailListDTO.DetailDTO(
+                address.getId(),
+                address.getPlaceName(),
+                authPeople, // 중복 없는 사용자 수
+                authCount,  // 인증 게시물 수
+                saveCount,  // 저장된 횟수
+                address.getPlaceLabel(),
+                address.getRoadAddress(),
+                address.getPhone(),
+                postList
+        );
+
+        return new MapResponseDTO.DetailListDTO(List.of(detailDTO));
+
+    }
+
 }

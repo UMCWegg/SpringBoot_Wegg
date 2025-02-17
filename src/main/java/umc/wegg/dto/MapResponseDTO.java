@@ -186,4 +186,33 @@ public class MapResponseDTO {
     public static class BookmarkDTO {
         Long myAddressId;
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DetailListDTO {
+        private List<DetailDTO> detailList;
+
+        @Getter
+        @AllArgsConstructor
+        public static class DetailDTO {
+            private Long addressId;
+            private String placeName;
+            private Long authPeople;
+            private Long authCount;
+            private Long saveCount;
+            private String placeLabel;
+            private String roadAddress;
+            private String phone;
+            private List<PostDTO> postList = new ArrayList<>();
+
+            @Getter
+            @AllArgsConstructor
+            public static class PostDTO {
+                private Long postId;
+                private String imageUrl;
+            }
+        }
+    }
 }

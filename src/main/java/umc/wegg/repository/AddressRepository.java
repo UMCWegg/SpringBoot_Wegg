@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import umc.wegg.domain.Address;
 
 import java.util.List;
@@ -52,5 +53,15 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
                                                  @Param("maxDistance") double maxDistance,
                                                  @Param("keyword") String keyword,
                                                  PageRequest pageRequest);
-
+    @Query("SELECT a, " +
+            "(SELECT COUNT(p.id) FROM Post p JOIN Plan pl ON p.plan.id = pl.id WHERE pl.address.id = a.id) AS authCount, " +
+            "(6371 * acos(" +
+            "cos(radians(:centerLat)) * cos(radians(a.latitude)) * " +
+            "cos(radians(a.longitude) - radians(:centerLon)) + " +
+            "sin(radians(:centerLat)) * sin(radians(a.latitude))" +
+            ")) AS distance " +
+            "FROM Address a WHERE a.placeName = :placeName")
+    Optional<Object[]> findAddressWithDetails(@Param("placeName") String placeName,
+                                              @Param("centerLat") double centerLat,
+                                              @Param("centerLon") double centerLon);
 }

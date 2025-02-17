@@ -52,4 +52,16 @@ public class MapRequestDTO {
 
         String sortBy = "distance"; //정렬 기준
     }
+
+    @Builder
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SearchDetailDTO{
+        @NotBlank(message = "검색어는 필수 항목입니다.")
+        private String placeName;
+//        private Double latitude; //위도
+//        private Double longitude; //경도
+    }
 }
