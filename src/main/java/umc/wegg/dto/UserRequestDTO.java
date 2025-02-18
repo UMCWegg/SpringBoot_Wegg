@@ -187,7 +187,7 @@ public class UserRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UpdateContactListDTO {
-        @Size(max = 10, message = "최대 10개의 연락처를 제공할 수 있습니다.")
+        @Size(max = 50, message = "최대 50개의 연락처를 제공할 수 있습니다.")
         @Valid
         private List<ContactDto> contacts; // 새 연락처 리스트
     }
