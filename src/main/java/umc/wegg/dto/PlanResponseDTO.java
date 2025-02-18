@@ -17,9 +17,10 @@ public class PlanResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class PlanAddResultDTO{
+    public static class PlanAddResultDTO {
         Long planId;
         LocalDateTime createdAt;
+        String warningMessage;
     }
     @Builder
     @Getter
