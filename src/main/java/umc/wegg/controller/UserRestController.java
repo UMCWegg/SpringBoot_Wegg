@@ -67,9 +67,9 @@ public class UserRestController {
             HttpServletRequest httpServletRequest,
             HttpServletResponse httpServletResponse) {
 
-        UserResponseDTO.LoginResultDTO response = userCommandService.oAuth2LoginUser(request, httpServletRequest, httpServletResponse);
+        ApiResponse<UserResponseDTO.LoginResultDTO> response = userCommandService.oAuth2LoginUser(request, httpServletRequest, httpServletResponse);
 
-        return ApiResponse.onSuccess(response);
+        return response;
     }
 
     @DeleteMapping("/resign")

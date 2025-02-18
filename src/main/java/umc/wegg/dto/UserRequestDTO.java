@@ -93,7 +93,7 @@ public class UserRequestDTO {
         private Boolean alarm;
 
         // 연락처 리스트
-        @Size(max = 10, message = "최대 10개의 연락처를 제공할 수 있습니다.")
+        @Size(max = 50, message = "최대 50개의 연락처를 제공할 수 있습니다.")
         private List<ContactDto> contact; // 연락처 정보 리스트
     }
 
