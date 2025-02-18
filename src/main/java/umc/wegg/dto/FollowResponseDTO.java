@@ -47,5 +47,17 @@ public class FollowResponseDTO {
         private String accountId;
         private String userName;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    public static class DeleteFollowResponseDTO {
+        private String message;
+
+        public DeleteFollowResponseDTO(String message) {
+            this.message = message;
+        }
+    }
+
 }
 
