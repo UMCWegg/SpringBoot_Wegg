@@ -68,21 +68,42 @@ public class FollowCommandServiceImpl implements FollowCommandService {
 
 
 
-    /**
-     * 팔로우 요청 상태 결정 (수락 또는 거절)
-     * @param requestDTO 팔로우 요청 처리 데이터
-     * @param followStatus 수락 또는 거절 상태
-     */
     @Override
     public void decideFollowRequest(FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus) {
-        // 팔로우 요청 조회
-        Follow follow = followRepository.findById(requestDTO.getFollowId())
-                .orElseThrow(() -> new IllegalArgumentException("Follow request not found with id: " + requestDTO.getFollowId()));
+        Follow follow = followRepository.findByFollowerAndFollowee(
+                userRepository.findById(requestDTO.getFollowerId())
+                        .orElseThrow(() -> new IllegalArgumentException("Follower not found")),
+                userRepository.findById(requestDTO.getFolloweeId())
+                        .orElseThrow(() -> new IllegalArgumentException("Followee not found"))
+        ).orElseThrow(() -> new IllegalArgumentException("Follow request not found"));
 
-        // 팔로우 상태 업데이트
+        // 요청된 followStatus 값을 그대로 적용
         follow.setFollowStatus(followStatus);
         followRepository.save(follow);
     }
+
+    @Override
+    public boolean deleteFollowRequest(FollowRequestDTO.DeleteFollowRequestDTO requestDTO) {
+        Follow follow = followRepository.findByFollowerAndFollowee(
+                userRepository.findById(requestDTO.getFollowerId())
+                        .orElseThrow(() -> new IllegalArgumentException("Follower not found")),
+                userRepository.findById(requestDTO.getFolloweeId())
+                        .orElseThrow(() -> new IllegalArgumentException("Followee not found"))
+        ).orElseThrow(() -> new IllegalArgumentException("Follow request not found"));
+
+        // 공개 계정이면 즉시 삭제, 비공개 계정이면 삭제 X
+        if (follow.getFollowStatus() == FollowStatus.SUCCEEDED) {
+            followRepository.delete(follow);
+            return true; // 삭제됨
+        }
+
+        return false; // 삭제되지 않음 (비공개 계정 팔로우 요청만 취소 가능)
+    }
+
+
+
+
+
 
     // 나에게 온 팔로우 요청들
     @Override
