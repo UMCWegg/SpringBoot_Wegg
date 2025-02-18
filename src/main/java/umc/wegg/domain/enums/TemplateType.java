@@ -9,6 +9,5 @@ public enum TemplateType {
     SIX,
     SEVEN,
     EIGHT,
-    NINE,
-    TEN
+    NINE
 }
