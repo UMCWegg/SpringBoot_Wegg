@@ -61,7 +61,7 @@ public class FollowRestController {
     }
 
     /**
-     * 팔로우 요청 거절
+     * 팔로우 요청 거절하기
      * @param requestDTO 팔로우 요청 처리 데이터
      * @return 응답 메시지
      */
