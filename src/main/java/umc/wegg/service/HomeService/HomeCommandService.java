@@ -23,5 +23,5 @@ public interface HomeCommandService {
     HomeResponseDTO.HomeMonthResponseDTO getFriendHomeMonthDataFor(Long userId, int year, int month);
 
     //  친구 팔로우 데이터 조회 (새로운 메서드)
-    HomeResponseDTO.FollowResponseDTO getFriendHomeFollowData(Long userId);
+    HomeResponseDTO.FollowResponseDTO getFriendHomeFollowData(Long userId, AuthenticatedUser authenticatedUser);
 }

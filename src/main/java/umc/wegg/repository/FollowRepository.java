@@ -41,4 +41,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     @Query("SELECT f.followee FROM Follow f GROUP BY f.followee ORDER BY COUNT(f.follower) DESC")
     List<User> findTopFollowedUsers(Pageable pageable);
 
+
+    Optional<Follow> findByFollowerAndFollowee(User follower, User followee);
 }
