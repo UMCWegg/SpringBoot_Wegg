@@ -39,8 +39,8 @@ public class PostRestController {
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestPart PostRequestDTO.CreatePostDTO requestDTO,  // @RequestBody 제거
             @RequestPart(value = "postImage", required = false) MultipartFile postImage) throws IOException {
-        PostResponseDTO.PostCreateResponseDTO responseDTO = postCommandService.createPost(authenticatedUser.getUserId(), requestDTO, postImage);
-        return ApiResponse.onSuccess(responseDTO);
+        ApiResponse<PostResponseDTO.PostCreateResponseDTO> responseDTO = postCommandService.createPost(authenticatedUser.getUserId(), requestDTO, postImage);
+        return responseDTO;
     }
 
     @Operation(summary = "댓글 등록", description = "게시물에 댓글을 등록하는 API")
