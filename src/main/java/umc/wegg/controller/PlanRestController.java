@@ -25,19 +25,16 @@ public class PlanRestController {
     private final PlanQueryService planQueryService;
 
     @PostMapping("/add")
-    public ApiResponse<List<PlanResponseDTO.PlanAddResultDTO>> join(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody @Valid PlanRequestDTO.PlanAddDTO request) {
+    public ApiResponse<List<PlanResponseDTO.PlanAddResultDTO>> join(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @RequestBody @Valid PlanRequestDTO.PlanAddDTO request) {
+
         // 인증된 사용자 ID 가져오기
         Long userId = authenticatedUser.getUserId();
-        // AddDTO에 userId 설정
         request.setUserId(userId);
 
-        // 여러 날짜에 대해 계획을 추가
-        List<Plan> plans = planCommandService.addPlan(request);
-
-        // 여러 개의 계획을 PlanAddResultDTO 리스트로 변환하여 반환
-        List<PlanResponseDTO.PlanAddResultDTO> result = plans.stream()
-                .map(PlanConverter::toPlanAddResultDTO)
-                .collect(Collectors.toList());
+        // 계획 추가 및 결과 DTO 리스트 반환
+        List<PlanResponseDTO.PlanAddResultDTO> result = planCommandService.addPlan(request);
 
         return ApiResponse.onSuccess(result);
     }
