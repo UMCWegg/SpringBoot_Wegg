@@ -147,6 +147,17 @@ public class PostResponseDTO {
 //        private List<List<PostResponseDTO.PostPreviewResponseDTO>> posts; // 기존 게시물 리스트
 //    }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostBrowseResponseDTO {
+        private boolean canBrowse; // 게시물 둘러보기 가능 여부
+        private List<PostPreviewResponseDTO> followingPosts; // 팔로우한 사용자의 게시물
+        private List<PostPreviewResponseDTO> nonFollowingPosts; // 팔로우하지 않은 사용자의 게시물
+    }
+
+
 
     //7.댓글삭제api에 대한 response는 성공여부만 알려줄 것
     //8.이모지등록api에 대한 response는 성공여부만 알려줄 것
