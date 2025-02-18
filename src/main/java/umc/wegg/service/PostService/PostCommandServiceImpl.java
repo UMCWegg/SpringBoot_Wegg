@@ -351,9 +351,14 @@ public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, 
     for (Post post : allPosts) {
         if (post.getPlan() == null) continue; // Plan이 없는 게시물 제외
         User postUser = post.getPlan().getUser();
+
         if (followingUserIds.contains(postUser.getId())) {
             followingPosts.add(post);
         } else {
+            // ✅ 비공개 계정이면서 팔로우하지 않은 사용자의 게시물 제외
+            if (postUser.getSetting().getAccountVisibility() == AccountVisibility.FOLLOWER_ONLY) {
+                continue;
+            }
             nonFollowingPosts.add(post);
         }
     }
@@ -388,6 +393,7 @@ public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, 
     // 10. 결과 반환 (팔로우한 사용자 & 팔로우하지 않은 사용자의 게시물 리스트)
     return Arrays.asList(followingPostDTOs, nonFollowingPostDTOs);
 }
+
 
     private PostResponseDTO.PostPreviewResponseDTO convertToDTO(Post post) {
         User postUser = post.getPlan().getUser();
