@@ -8,6 +8,8 @@ import umc.wegg.converter.PlanConverter;
 import umc.wegg.domain.Egg;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
+import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.domain.apiPayload.code.status.SuccessStatus;
 import umc.wegg.domain.enums.EggStatus;
 import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.dto.MapResponseDTO;
@@ -23,6 +25,7 @@ import umc.wegg.util.RedisUtil;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +53,7 @@ public class PlanCommandServiceImpl implements PlanCommandService{
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return null; // 변환 실패 시 처리
+            return Collections.emptyList(); // 변환 실패 시 빈 리스트 반환
         }
 
         Address address = addressRepository.findByPlaceName(request.getPlaceName()).orElse(null);
@@ -60,8 +63,14 @@ public class PlanCommandServiceImpl implements PlanCommandService{
             addressRepository.save(address);
         }
 
-        // ✅ 컨버터가 이제 List<Plan>을 반환함
-        List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, address, planRepository);
+        // ✅ 컨버터가 이제 ApiResponse<List<Plan>>을 반환함
+        ApiResponse<List<Plan>> response = PlanConverter.toPlan(request, userRepository, address, planRepository);
+
+        if (!response.getCode().equals(SuccessStatus._OK.getCode())) {
+            return List.of(new PlanResponseDTO.PlanAddResultDTO(null, null, response.getMessage()));
+        }
+
+        List<Plan> newPlans = response.getResult();
 
         // ✅ 응답용 DTO 생성
         List<PlanResponseDTO.PlanAddResultDTO> resultDTOList = newPlans.stream()

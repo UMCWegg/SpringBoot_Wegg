@@ -9,5 +9,7 @@ public interface MapService {
     MapResponseDTO.SearchHotPlaceListDTO searchHotPlaceListByKeyword(MapRequestDTO.SearchHotPlaceDTO request, Integer page, Integer size);
     MapResponseDTO.HotPlaceListDTO viewHotPlaceList(MapRequestDTO.ViewHotPlaceDTO request, Integer page, Integer size);
     MapResponseDTO.BookmarkDTO bookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId);
+    MapResponseDTO.UnbookmarkDTO unbookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId);
+    MapResponseDTO.BookmarkPlaceListDTO getUserBookmarks(AuthenticatedUser authenticatedUser, Integer page, Integer size);
     MapResponseDTO.DetailListDTO getPlaceDetails(MapRequestDTO.SearchDetailDTO request);
 }
