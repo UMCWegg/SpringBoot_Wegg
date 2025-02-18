@@ -30,6 +30,7 @@ public class ContactFriend {
     @Column(name = "phone_num", nullable = false, length = 255)
     private String phoneNum;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "is_following", nullable = false, length = 255)
     private FollowStatus isFollowing;
 }

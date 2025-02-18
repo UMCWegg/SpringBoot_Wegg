@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import umc.wegg.domain.enums.FollowStatus;
 
 public class FollowRequestDTO {
 
@@ -23,8 +24,12 @@ public class FollowRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DecideFollowRequestDTO {
-        private Long followId; // 팔로우 요청 ID (필수)
-        private String followSucceed; // 팔로우 요청 처리 상태 ("SUCCEEDED", "REJECTED", "WAITING")
+        private Long followerId; // 팔로우 하는 사람 ID (필수)
+        private Long followeeId; // 팔로우 당한 사람 ID (필수)
+        //private String followSucceed; // 팔로우 요청 처리 상태 ("SUCCEEDED", "REJECTED", "WAITING")
     }
+
+
+
 }
 

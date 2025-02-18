@@ -44,20 +44,21 @@ public class FollowRestController {
                 new FollowResponseDTO.CreateFollowResponseDTO(message, followStatus));
     }
 
-
-
-    /**
+     /**
      * 팔로우 요청 수락
      * @param requestDTO 팔로우 요청 처리 데이터
      * @return 응답 메시지
      */
-    @PatchMapping
+    @PatchMapping("/accept")
     public ApiResponse<FollowResponseDTO.AcceptFollowResponseDTO> acceptFollowRequest(
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.DecideFollowRequestDTO requestDTO) {
+
+        // FollowStatus.SUCCEEDED를 추가하여 호출
         followCommandService.decideFollowRequest(requestDTO, FollowStatus.SUCCEEDED);
+
         return ApiResponse.onSuccess(
-                new FollowResponseDTO.AcceptFollowResponseDTO("Follow request accepted successfully."));
+                new FollowResponseDTO.AcceptFollowResponseDTO("Follow request updated successfully."));
     }
 
     /**
