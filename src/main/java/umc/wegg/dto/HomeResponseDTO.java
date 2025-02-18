@@ -110,7 +110,7 @@ public class HomeResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TodoInfo {
-        private Long id;                 // 투두 ID
+        private Long todoId;                 // 투두 ID
         private String content;          // 할 일 내용
         private TodoListStatus status;   // 완료 여부
         private LocalDateTime createdAt; // 작성
