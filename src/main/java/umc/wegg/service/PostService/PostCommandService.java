@@ -10,35 +10,35 @@ import java.util.List;
 
 public interface PostCommandService {
     // 게시물 생성
-    PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException;
+    PostResponseDTO.PostCreateResponseDTO createPost(Long userId, PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException;
 
     // 댓글 등록
-    void addComment(PostRequestDTO.AddCommentDTO requestDTO);
+    void addComment(Long userId,PostRequestDTO.AddCommentDTO requestDTO);
 
     // 댓글 삭제
-    void deleteComment(Long postId, Long commentId);
+    void deleteComment(Long userId,Long postId, Long commentId);
 
     // 이모지 등록
-    void addEmoji(Long postId, String emojiType);
+    void addEmoji(Long userId,Long postId, String emojiType);
 
     // 이모지 삭제
-    void deleteEmoji(Long postId, String emojiType);
+    void deleteEmoji(Long userId,Long postId, String emojiType);
 
     // 게시물 둘러보기
     //List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size);
-    List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size);
+    List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(Long userId,int page, int size);
 
     // 작성물 상세보기
-    PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size);
+    PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long userId,Long postId, int page, int size);
 
     // 댓글 조회
-    List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId, int page, int size);
+    List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long userId,Long postId, int page, int size);
 
     // 이모지 조회
-    PostResponseDTO.EmojiResponseDTO getEmojis(Long postId);
+    PostResponseDTO.EmojiResponseDTO getEmojis(Long userId,Long postId);
 
     //유저 보유 템플릿 조회
-    public List<PostResponseDTO.TemplateDTO> getUserTemplates();
+    public List<PostResponseDTO.TemplateDTO> getUserTemplates(Long userId);
 
 }
 

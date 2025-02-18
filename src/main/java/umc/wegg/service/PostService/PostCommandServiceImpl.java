@@ -43,7 +43,7 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final SettingRepository settingRepository;
 
     @Override
-    public PostResponseDTO.PostCreateResponseDTO createPost(PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
+    public PostResponseDTO.PostCreateResponseDTO createPost(Long userId,PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
         // 1. Plan 엔티티 조회
         Plan plan = planRepository.findById(requestDTO.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
@@ -110,9 +110,9 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public void addComment(PostRequestDTO.AddCommentDTO requestDTO) {
+    public void addComment(Long userId,PostRequestDTO.AddCommentDTO requestDTO) {
         // 1. 유저 조회
-        Long userId = 1L;// 포스트맨 쓰기전까지 1로 두기!! 이후 바꿔야 함!!
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
@@ -153,7 +153,7 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public void deleteComment(Long postId, Long commentId) {
+    public void deleteComment(Long userId,Long postId, Long commentId) {
         // 1. 댓글 조회
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found with id: " + commentId));
@@ -169,13 +169,12 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public void addEmoji(Long postId, String emojiType) {
+    public void addEmoji(Long userId,Long postId, String emojiType) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
         // 2. 사용자 조회
-        Long userId = 1L;// 포스트맨 쓰기전까지 1로 두기!! 이후 바꿔야 함!!
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
@@ -221,13 +220,12 @@ public class PostCommandServiceImpl implements PostCommandService {
 
 
     @Override
-    public void deleteEmoji(Long postId, String emojiType) {
+    public void deleteEmoji(Long userId,Long postId, String emojiType) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
 
         // 2. 사용자 조회
-        Long userId = 1L;// 포스트맨 쓰기전까지 1로 두기!! 이후 바꿔야 함!!
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
@@ -319,9 +317,8 @@ public class PostCommandServiceImpl implements PostCommandService {
 //                .build();
 //    }
 @Override
-public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size) {
+public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(Long userId,int page, int size) {
     // 1. 현재 사용자 조회
-    Long userId = 1L; // 로그인 구현 시 변경
     User currentUser = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
@@ -408,7 +405,7 @@ public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, 
 
 
     @Override
-    public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size) {
+    public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long userId,Long postId, int page, int size) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
@@ -470,7 +467,7 @@ public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, 
 
 
     @Override
-    public List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long postId, int page, int size) {
+    public List<PostResponseDTO.PostDetailResponseDTO.CommentDTO> getComments(Long userId,Long postId, int page, int size) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
@@ -498,7 +495,7 @@ public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, 
 
 
     @Override
-    public PostResponseDTO.EmojiResponseDTO getEmojis(Long postId) {
+    public PostResponseDTO.EmojiResponseDTO getEmojis(Long userId,Long postId) {
         // 1. 게시물 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with id: " + postId));
@@ -537,9 +534,8 @@ public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, 
     }
 
     @Override
-    public List<PostResponseDTO.TemplateDTO> getUserTemplates() {
+    public List<PostResponseDTO.TemplateDTO> getUserTemplates(Long userId) {
         // 마이템플릿 데이터베이스에서 userId를 기반으로 사용자 템플릿 목록을 조회
-        Long userId = 1L;
         List<MyTemplate> myTemplates = myTemplateRepository.findByUserId(userId);
 
         return myTemplates.stream()
