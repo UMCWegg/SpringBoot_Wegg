@@ -2,6 +2,7 @@ package umc.wegg.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import umc.wegg.domain.enums.FollowStatus;
 
 @Entity
 @Getter
@@ -30,6 +31,6 @@ public class ContactFriend {
     private String phoneNum;
 
     @Column(name = "is_following", nullable = false, length = 255)
-    private Boolean isFollowing;
+    private FollowStatus isFollowing;
 }
 

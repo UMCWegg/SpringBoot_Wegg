@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static umc.wegg.domain.enums.FollowStatus.WAITING;
+import static umc.wegg.domain.enums.FollowStatus.YET;
+
 @RequiredArgsConstructor
 public class UserConverter {
 
@@ -85,7 +88,7 @@ public class UserConverter {
                             .user(user)
                             .friend(contactFriend.getFriend())
                             .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
-                            .isFollowing(false)
+                            .isFollowing(YET)
                             .build())
                     .collect(Collectors.toList());
 
@@ -140,7 +143,7 @@ public class UserConverter {
                             .user(user)
                             .friend(contactFriend.getFriend())
                             .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
-                            .isFollowing(false)
+                            .isFollowing(YET)
                             .build())
                     .collect(Collectors.toList());
 
@@ -164,7 +167,7 @@ public class UserConverter {
                         .user(user)
                         .friend(contactFriend.getFriend())
                         .phoneNum(contactFriend.getPhone()) // 기존 사용자의 전화번호 추가
-                        .isFollowing(false)
+                        .isFollowing(YET)
                         .build())
                 .collect(Collectors.toList());
     }

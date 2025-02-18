@@ -21,6 +21,7 @@ public class PostRequestDTO {
         //private Long userId;       // 댓글 단 사용자 ID
         private Long postingId;    // 게시물 ID
         private String comment;    // 댓글 내용
+        private Long parentId;     // 부모댓글 ID
     }
 
     @Getter

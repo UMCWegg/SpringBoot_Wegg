@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import umc.wegg.domain.enums.AccountVisibility;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -47,6 +49,7 @@ public class PostResponseDTO {
     @AllArgsConstructor
     public static class CommentResponseDTO {
         private Long commentId;         // 댓글 ID
+        private Long parentId;          // 부모댓글 ID
         private Long userId;            // 댓글 작성자 ID
         private String username;        // 댓글 작성자 닉네임
         private String content;         // 댓글 내용
@@ -83,7 +86,7 @@ public class PostResponseDTO {
     public static class PostPreviewResponseDTO {
         private Long postId;             // 게시물 ID
         private String profileImageUrl;  // 작성자 프로필 사진 URL
-        private String nickname;         // 작성자 닉네임
+        private String accountId;         // 작성자 계정 id
         private String postImageUrl;     // 게시물 이미지 URL
         private LocalDateTime createdAt; // 게시물 생성시간
     }
@@ -113,6 +116,7 @@ public class PostResponseDTO {
         @AllArgsConstructor
         public static class CommentDTO {
             private Long commentId;                            // 댓글 ID
+            private Long parentId;                             // 부모댓글 ID
             private Long userId;                               // 댓글 작성자 ID
             private String username;                           // 댓글 작성자 닉네임
             private String content;                            // 댓글 내용
@@ -133,6 +137,27 @@ public class PostResponseDTO {
         // 이 타입은 TemplateType ENUM의 이름을 문자열로 사용하므로,
         // 사용자에게 전달될 때는 이 ENUM을 기반으로 이름이 설정됩니다.
     }
+
+//    @Getter
+//    @Builder
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    public static class BrowsePostsResponse {
+//        private AccountVisibility accountVisibility; // 계정 공개 여부
+//        private List<List<PostResponseDTO.PostPreviewResponseDTO>> posts; // 기존 게시물 리스트
+//    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostBrowseResponseDTO {
+        private boolean canBrowse; // 게시물 둘러보기 가능 여부
+        private List<PostPreviewResponseDTO> followingPosts; // 팔로우한 사용자의 게시물
+        private List<PostPreviewResponseDTO> nonFollowingPosts; // 팔로우하지 않은 사용자의 게시물
+    }
+
+
 
     //7.댓글삭제api에 대한 response는 성공여부만 알려줄 것
     //8.이모지등록api에 대한 response는 성공여부만 알려줄 것

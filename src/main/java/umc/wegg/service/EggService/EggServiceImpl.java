@@ -2,6 +2,7 @@ package umc.wegg.service.EggService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.EggConverter;
@@ -19,6 +20,8 @@ import umc.wegg.service.NotificationService.NotificationService;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -110,5 +113,29 @@ public class EggServiceImpl implements EggService {
 
         // 알림 전송
         notificationService.sendNotificationToEggOwner(plan.getUser(), message, "EGG", breakUser.getProfileImage());
+    }
+
+    @Async
+    public void scheduleResetEggStatus(Long userId) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(5000); // ⏳ 5초 대기 (프론트에서 화면 재렌더링 이후 상태 변경을 위해)
+
+                List<Plan> userPlans = planRepository.findByUserId(userId);
+                List<Egg> userEggs = userPlans.stream()
+                        .map(plan -> eggRepository.findByPlanId(plan.getId()).orElse(null))
+                        .filter(egg -> egg != null)
+                        .collect(Collectors.toList());
+
+                userEggs.forEach(egg -> {
+                    egg.setStatus(EggStatus.INTACT);
+                    eggRepository.save(egg); // 🔄 Egg 상태 업데이트
+                });
+
+                System.out.println("✅ 5초 후 모든 Egg 상태가 INTACT로 변경됨.");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 }

@@ -98,7 +98,7 @@ public class PostConverter {
         return PostResponseDTO.PostPreviewResponseDTO.builder()
                 .postId(post.getId())
                 .profileImageUrl(post.getPlan().getUser().getProfileImage())
-                .nickname(post.getPlan().getUser().getName())
+                .accountId(post.getPlan().getUser().getAccountId())
                 .postImageUrl(post.getImageUrl())
                 .build();
     }
@@ -108,7 +108,7 @@ public class PostConverter {
         return PostResponseDTO.PostPreviewResponseDTO.builder()
                 .postId(post.getId())
                 .profileImageUrl(postUser.getProfileImage())
-                .nickname(postUser.getName())
+                .accountId(postUser.getAccountId())
                 .postImageUrl(post.getImageUrl())
                 .build();
     }

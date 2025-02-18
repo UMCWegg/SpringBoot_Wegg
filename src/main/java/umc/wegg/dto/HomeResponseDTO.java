@@ -2,6 +2,7 @@ package umc.wegg.dto;
 
 import lombok.*;
 import umc.wegg.domain.enums.EggStatus;
+import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.enums.TodoListStatus;
 
@@ -44,8 +45,8 @@ public class HomeResponseDTO {
     @AllArgsConstructor
     public static class HomeMonthResponseDTO {
 
-        private List<DailyData> monthlyData;                          // 날짜별 통합 리스트
-        private List<HomeResponseDTO.DateSummaryInfo> dateSummaries;  // 날짜별 학습 정보
+        private List<DailyData> monthlyData;          // 날짜별 통합 리스트
+        private List<DateSummaryInfo> dateSummaries;  // 날짜별 학습 정보
     }
 
     @Getter
@@ -57,6 +58,16 @@ public class HomeResponseDTO {
         private int followingCount; // 팔로잉 수
         private String profileImage; // 프로필 사진
         private String accountId;   // 사용자 계정 ID
+        private FollowStatus followStatus; // ✅ 친구 홈에서만 추가될 필드
+
+        // 본인 홈에서 사용하는 생성자 (팔로우 상태 없음)
+        public FollowResponseDTO(int followerCount, int followingCount, String profileImage, String accountId) {
+            this.followerCount = followerCount;
+            this.followingCount = followingCount;
+            this.profileImage = profileImage;
+            this.accountId = accountId;
+            this.followStatus = null; // 본인 홈에서는 팔로우 상태 없음
+        }
 }
 
     // plan 데이터와 post 데이터를 합침
@@ -80,6 +91,7 @@ public class HomeResponseDTO {
         private LocalDateTime startTime;     // 시작 시간
         private LocalDateTime endTime;       // 종료 시간
         private PlanStatus status;           // 계획 상태(YET, SUCCEEDED, FAILED)
+        private EggStatus eggStatus;         // 해당 계획과 연결된 Egg 상태
     }
 
     // Post 정보 구조
@@ -92,24 +104,15 @@ public class HomeResponseDTO {
         private LocalDateTime createdAt;     // 작성 시간
     }
 
-    // Egg 정보 구조
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    public static class EggInfo {
-        private Long id;                     // Egg ID
-        private EggStatus status;            // 알 상태
-    }
-
     // 투두리스트 상세 정보 DTO
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TodoInfo {
-        private Long id;                // 투두 ID
-        private String content;         // 할 일 내용
-        private TodoListStatus status;         // 완료 여부
+        private Long id;                 // 투두 ID
+        private String content;          // 할 일 내용
+        private TodoListStatus status;   // 완료 여부
         private LocalDateTime createdAt; // 작성
 
         //  Enum 값을 기반으로 isCompleted() 메서드 추가
@@ -119,7 +122,6 @@ public class HomeResponseDTO {
     }
 
 
-
     // 날짜별 시간 및 투두리스트 달성률 정보 구조
     @AllArgsConstructor
     @NoArgsConstructor
@@ -127,9 +129,10 @@ public class HomeResponseDTO {
     public static class DateSummaryInfo {
         private LocalDate date;           // 날짜
         private int studyTime;            // 공부 시간 (분 단위)
-        private int totalTodos;           // 총 투두리스트 항목 수
-        private int completedTodos;       // 완료된 항목 수
+//        private int totalTodos;           // 총 투두리스트 항목 수
+//        private int completedTodos;       // 완료된 항목 수
         private double completionRate;    // 투두리스트 달성률
+        private boolean hasFailedPlan;    // 실패한 계획이 있는지 여부
     }
 
 }
