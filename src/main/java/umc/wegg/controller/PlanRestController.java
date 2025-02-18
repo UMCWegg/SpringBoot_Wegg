@@ -93,7 +93,7 @@ public class PlanRestController {
 
         Long userId = authenticatedUser.getUserId();
         // 장소 인증 결과를 담은 메시지를 반환
-        return planQueryService.isUserInPlan(planId, userId, userLat, userLon);
+        return planQueryService.isUserInPlan(planId, userId, userLat, userLon, 1);
     }
 
     @GetMapping("/{plan_id}/check-info")

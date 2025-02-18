@@ -1,6 +1,7 @@
 package umc.wegg.service.PostService;
 
 import org.springframework.web.multipart.MultipartFile;
+import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.dto.UserResponseDTO;
@@ -10,7 +11,7 @@ import java.util.List;
 
 public interface PostCommandService {
     // 게시물 생성
-    PostResponseDTO.PostCreateResponseDTO createPost(Long userId, PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException;
+    ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(Long userId, PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException;
 
     // 댓글 등록
     void addComment(Long userId,PostRequestDTO.AddCommentDTO requestDTO);

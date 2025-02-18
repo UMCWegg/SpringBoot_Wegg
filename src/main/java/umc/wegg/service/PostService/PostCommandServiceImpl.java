@@ -10,17 +10,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.domain.*;
+import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.domain.apiPayload.code.status.ErrorStatus;
 import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.mapping.Emoji;
 import umc.wegg.domain.mapping.MyTemplate;
+import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.dto.PostRequestDTO;
 import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.*;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
+import umc.wegg.service.PlanService.PlanCommandService;
+import umc.wegg.service.PlanService.PlanQueryService;
 
 import java.io.IOException;
 import java.util.*;
@@ -41,62 +46,74 @@ public class PostCommandServiceImpl implements PostCommandService {
     private final NotificationService notificationService;
     private final FollowRepository followRepository;
     private final SettingRepository settingRepository;
+    private final PlanQueryService planQueryService;
 
     @Override
-    public PostResponseDTO.PostCreateResponseDTO createPost(Long userId,PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
-        // 1. Plan 엔티티 조회
+    public ApiResponse<PostResponseDTO.PostCreateResponseDTO> createPost(Long userId,PostRequestDTO.CreatePostDTO requestDTO, MultipartFile postImage) throws IOException {
+        // 1. 장소 인증 확인 (성공해야지만 게시물 작성 가능)
         Plan plan = planRepository.findById(requestDTO.getPlanId())
                 .orElseThrow(() -> new IllegalArgumentException("Plan not found with id: " + requestDTO.getPlanId()));
 
-        // 상태 업데이트 (YET -> SUCCEEDED)
-        plan.setStatus(PlanStatus.SUCCEEDED);
-        planRepository.save(plan); // 변경된 상태 저장
+        PlanResponseDTO.LocationVerificationResponseDTO verificationResponse =
+                planQueryService.isUserInPlan(plan.getId(), userId, requestDTO.getLatitude(), requestDTO.getLongitude(), 2); // 2는 랜덤 인증 타입
 
-        // 2. UUID 생성 및 저장 (필요한 경우)
-        String uuid = UUID.randomUUID().toString();
-        Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());  // UUID 저장 검토
+        if (!verificationResponse.getMessage().equals("장소 인증에 성공했습니다!")) {
+            planQueryService.failPlan(plan);
+            return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "장소 인증에 실패하여 포스트를 올릴 수 없습니다.", null);
+        }
+        else {
+            // 상태 업데이트 (YET -> SUCCEEDED)
+            plan.setStatus(PlanStatus.SUCCEEDED);
+            planRepository.save(plan); // 변경된 상태 저장
 
-        // 3. S3 이미지 업로드 (예외 처리 추가)
-        String pictureUrl = null;
-        if (postImage != null && !postImage.isEmpty()) { // 이미지가 존재하는 경우에만 업로드
-            try {
-                pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
-            } catch (Exception e) {
-                throw new IOException("S3 파일 업로드 실패: " + e.getMessage(), e);
+            // 2. UUID 생성 및 저장 (필요한 경우)
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());  // UUID 저장 검토
+
+            // 3. S3 이미지 업로드 (예외 처리 추가)
+            String pictureUrl = null;
+            if (postImage != null && !postImage.isEmpty()) { // 이미지가 존재하는 경우에만 업로드
+                try {
+                    pictureUrl = s3Manager.upLoadFile(s3Manager.generatePostKeyName(savedUuid), postImage);
+                } catch (Exception e) {
+                    throw new IOException("S3 파일 업로드 실패: " + e.getMessage(), e);
+                }
             }
+
+            // 4. Post 엔티티 생성
+            Post post = Post.builder()
+                    .imageUrl(pictureUrl) // 이미지 URL 설정 (null 허용)
+                    .plan(plan) // Plan 설정
+                    .build();
+
+            // 5. Post 엔티티 저장
+            Post savedPost = postRepository.save(post);
+
+            // 5. 게시글 작성자 조회
+            User postOwner = getPostOwner(post.getId()); // 현재 게시글 작성자 (이 메서드가 필요함)
+
+            // 6. 팔로워 조회
+            List<User> followers = followRepository.findFollowersByFollowee(postOwner);
+
+            // 7. 팔로워들에게 알림 전송
+            String message = postOwner.getAccountId() + "님이 새로운 포스트를 올렸습니다!";
+            for (User follower : followers) {
+                Setting followerSetting = settingRepository.findByUserId(follower.getId()).orElse(null); // 설정 조회
+
+                if (followerSetting != null && followerSetting.isPostAlarm()) { // postAlarm이 true일 때만 알림 전송
+                    notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST", postOwner.getProfileImage());
+                }
+            }
+
+            // 8. DTO 변환 및 반환
+            PostResponseDTO.PostCreateResponseDTO succeeded = PostResponseDTO.PostCreateResponseDTO.builder()
+                    .postId(savedPost.getId())
+                    .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
+                    .createdAt(savedPost.getCreatedAt()) // createdAt이 null이 아닌지 확인 필요
+                    .build();
+            return ApiResponse.onSuccess(succeeded);
         }
 
-        // 4. Post 엔티티 생성
-        Post post = Post.builder()
-                .imageUrl(pictureUrl) // 이미지 URL 설정 (null 허용)
-                .plan(plan) // Plan 설정
-                .build();
-
-        // 5. Post 엔티티 저장
-        Post savedPost = postRepository.save(post);
-
-        // 5. 게시글 작성자 조회
-        User postOwner = getPostOwner(post.getId()); // 현재 게시글 작성자 (이 메서드가 필요함)
-
-        // 6. 팔로워 조회
-        List<User> followers = followRepository.findFollowersByFollowee(postOwner);
-
-        // 7. 팔로워들에게 알림 전송
-        String message = postOwner.getAccountId() + "님이 새로운 포스트를 올렸습니다!";
-        for (User follower : followers) {
-            Setting followerSetting = settingRepository.findByUserId(follower.getId()).orElse(null); // 설정 조회
-
-            if (followerSetting != null && followerSetting.isPostAlarm()) { // postAlarm이 true일 때만 알림 전송
-                notificationService.sendNotificationToFollower(follower, savedPost.getId(), message, "POST", postOwner.getProfileImage());
-            }
-        }
-
-        // 8. DTO 변환 및 반환
-        return PostResponseDTO.PostCreateResponseDTO.builder()
-                .postId(savedPost.getId())
-                .planId(savedPost.getPlan() != null ? savedPost.getPlan().getId() : null)
-                .createdAt(savedPost.getCreatedAt()) // createdAt이 null이 아닌지 확인 필요
-                .build();
     }
 
 
