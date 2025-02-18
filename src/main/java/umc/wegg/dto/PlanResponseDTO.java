@@ -84,4 +84,16 @@ public class PlanResponseDTO {
         }
     }
 
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CheckPlanInfoDTO{
+        Long planId;
+        String placeName;
+        Double latitude;
+        Double longitude;
+        LocalDateTime startTime;
+    }
+
 }

@@ -96,6 +96,13 @@ public class PlanRestController {
         return planQueryService.isUserInPlan(planId, userId, userLat, userLon);
     }
 
+    @GetMapping("/{plan_id}/check-info")
+    public ApiResponse<PlanResponseDTO.CheckPlanInfoDTO> getPlanInfo(@PathVariable("plan_id") Long planId) {
+        PlanResponseDTO.CheckPlanInfoDTO response = planCommandService.getPlanInfoById(planId);
+
+        return ApiResponse.onSuccess(response);
+    }
+
 
     @DeleteMapping("/{plan_id}")
     public ApiResponse<PlanResponseDTO.PlanDeleteResponseDTO> deletePlan(@PathVariable Long plan_id) {
