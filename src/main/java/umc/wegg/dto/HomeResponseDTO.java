@@ -68,7 +68,7 @@ public class HomeResponseDTO {
             this.accountId = accountId;
             this.followStatus = null; // 본인 홈에서는 팔로우 상태 없음
         }
-}
+    }
 
     // plan 데이터와 post 데이터를 합침
     @Getter
@@ -110,7 +110,7 @@ public class HomeResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TodoInfo {
-        private Long todoId;                 // 투두 ID
+        private Long id;                 // 투두 ID
         private String content;          // 할 일 내용
         private TodoListStatus status;   // 완료 여부
         private LocalDateTime createdAt; // 작성
@@ -129,7 +129,7 @@ public class HomeResponseDTO {
     public static class DateSummaryInfo {
         private LocalDate date;           // 날짜
         private int studyTime;            // 공부 시간 (분 단위)
-//        private int totalTodos;           // 총 투두리스트 항목 수
+        //        private int totalTodos;           // 총 투두리스트 항목 수
 //        private int completedTodos;       // 완료된 항목 수
         private double completionRate;    // 투두리스트 달성률
         private boolean hasFailedPlan;    // 실패한 계획이 있는지 여부

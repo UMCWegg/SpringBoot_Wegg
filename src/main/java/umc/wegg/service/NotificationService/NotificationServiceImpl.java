@@ -128,6 +128,10 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
         send(follower, type, content, "/posts/" + postId + "/view", profileImage);
     }
+    public void sendNotificationToFollowee(User followee, Long followerId, String content, String notificationType, String profileImage) {
+        NotificationType type = NotificationType.valueOf(notificationType.toUpperCase());
+        send(followee, type, content, "/home/month/" + followerId, profileImage);
+    }
 
     public void scheduleNotification(User user, NotificationType type, LocalDateTime notificationTime, String content, String url, String profileImage) {
         long delay = notificationTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() - System.currentTimeMillis();

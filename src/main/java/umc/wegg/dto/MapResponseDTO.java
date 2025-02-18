@@ -184,7 +184,16 @@ public class MapResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BookmarkDTO {
-        Long myAddressId;
+        private Long myAddressId;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnbookmarkDTO {
+        private boolean success; // 성공 여부
+        private Long myAddressId;
     }
 
     @Builder
@@ -205,6 +214,34 @@ public class MapResponseDTO {
             private String placeLabel;
             private String roadAddress;
             private String phone;
+            private List<PostDTO> postList = new ArrayList<>();
+
+            @Getter
+            @AllArgsConstructor
+            public static class PostDTO {
+                private Long postId;
+                private String imageUrl;
+            }
+        }
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookmarkPlaceListDTO {
+        private List<BookmarkPlaceDTO> bookmarkPlaceList;
+
+        @Getter
+        @AllArgsConstructor
+        public static class BookmarkPlaceDTO {
+            private Long addressId;
+            private Float latitude;
+            private Float longitude;
+            private String placeName;
+            private String placeLabel;
+            private Long authCount;
+            private Long saveCount;
             private List<PostDTO> postList = new ArrayList<>();
 
             @Getter

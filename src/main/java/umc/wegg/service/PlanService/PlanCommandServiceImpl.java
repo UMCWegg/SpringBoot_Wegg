@@ -8,6 +8,8 @@ import umc.wegg.converter.PlanConverter;
 import umc.wegg.domain.Egg;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
+import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.domain.apiPayload.code.status.SuccessStatus;
 import umc.wegg.domain.enums.EggStatus;
 import umc.wegg.domain.enums.NotificationType;
 import umc.wegg.dto.MapResponseDTO;
@@ -23,7 +25,9 @@ import umc.wegg.util.RedisUtil;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +42,7 @@ public class PlanCommandServiceImpl implements PlanCommandService{
     private final PlanQueryService planQueryService;
 
     @Override
-    public List<Plan> addPlan(PlanRequestDTO.PlanAddDTO request) {
+    public List<PlanResponseDTO.PlanAddResultDTO> addPlan(PlanRequestDTO.PlanAddDTO request) {
 
         MapResponseDTO.SearchDTO.PlaceDetailDTO addressDetail = null;
         try {
@@ -49,43 +53,57 @@ public class PlanCommandServiceImpl implements PlanCommandService{
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return null; // 변환 실패 시 처리
+            return Collections.emptyList(); // 변환 실패 시 빈 리스트 반환
         }
 
         Address address = addressRepository.findByPlaceName(request.getPlaceName()).orElse(null);
-        if (address == null){
+        if (address == null) {
             assert addressDetail != null;
             address = AddressConverter.toAddress(addressDetail);
             addressRepository.save(address);
         }
 
-        // planDates에 대해 각각 Plan을 생성하여 반환
-        List<Plan> newPlans = PlanConverter.toPlan(request, userRepository, address);
+        // ✅ 컨버터가 이제 ApiResponse<List<Plan>>을 반환함
+        ApiResponse<List<Plan>> response = PlanConverter.toPlan(request, userRepository, address, planRepository);
 
-        // 반환된 계획을 저장
+        if (!response.getCode().equals(SuccessStatus._OK.getCode())) {
+            return List.of(new PlanResponseDTO.PlanAddResultDTO(null, null, response.getMessage()));
+        }
+
+        List<Plan> newPlans = response.getResult();
+
+        // ✅ 응답용 DTO 생성
+        List<PlanResponseDTO.PlanAddResultDTO> resultDTOList = newPlans.stream()
+                .map(plan -> {
+                    String warningMessage = null;
+
+                    // ✅ 날짜 비교 (startTime과 finishTime의 날짜가 다를 경우)
+                    if (!plan.getStartTime().toLocalDate().equals(plan.getFinishTime().toLocalDate())) {
+                        warningMessage = "랜덤 인증 시간이 다음날로 넘어갈 수 있습니다.";
+                    }
+
+                    return new PlanResponseDTO.PlanAddResultDTO(plan.getId(), plan.getCreatedAt(), warningMessage);
+                })
+                .collect(Collectors.toList());
+
+        // 반환된 계획을 기반으로 Egg 생성
         newPlans.forEach(plan -> {
-            planRepository.save(plan);  // Plan 저장
-
-            // Plan이 저장된 후 Egg 생성
             Egg egg = Egg.builder()
-                    .status(EggStatus.INTACT)  // 기본 상태는 INTACT
-                    .plan(plan)  // 생성된 Plan과 연결
+                    .status(EggStatus.INTACT)
+                    .plan(plan)
                     .build();
 
-            // Egg 저장
             eggRepository.save(egg);
 
-            // Plan에 Egg 연결 (양방향 관계)
-            plan.setEgg(egg);  // Plan과 Egg를 연결
-
-            // Egg 저장 (변경된 Plan을 다시 저장)
+            // Plan과 Egg를 연결
+            plan.setEgg(egg);
             planRepository.save(plan);
         });
 
         // 각 계획에 대해 알림 예약
-        newPlans.forEach(plan -> scheduleNotifications(plan));
+        newPlans.forEach(this::scheduleNotifications);
 
-        return newPlans;
+        return resultDTOList; // ✅ 응답용 DTO 반환
     }
 
     @Override

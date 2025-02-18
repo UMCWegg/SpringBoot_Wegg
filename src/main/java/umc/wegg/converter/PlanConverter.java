@@ -4,17 +4,21 @@ import lombok.RequiredArgsConstructor;
 import umc.wegg.domain.Plan;
 import umc.wegg.domain.User;
 import umc.wegg.domain.Address;
+import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.domain.enums.LateStatus;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
+import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.repository.AddressRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,28 +39,60 @@ public class PlanConverter {
                 .build();
     }
 
-    // PlanRequestDTO에서 Plan으로 변환
-    public static List<Plan> toPlan(PlanRequestDTO.PlanAddDTO request, UserRepository userRepository, Address address) {
+    public static ApiResponse<List<Plan>> toPlan(PlanRequestDTO.PlanAddDTO request,
+                                                 UserRepository userRepository,
+                                                 Address address,
+                                                 PlanRepository planRepository) {
         PlanStatus status = request.getStatus() != null ? request.getStatus() : PlanStatus.YET;
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 시간을 포맷하는 DateTimeFormatter 설정
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        List<Plan> planList = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        LocalDate maxAllowedDate = today.plusDays(14);
 
-        // 각 날짜에 대해 계획을 추가하는 방식으로 변경
-        return request.getPlanDates().stream()
-                .map(planDate -> Plan.builder()
-                        .status(status)
-                        .startTime(LocalDateTime.of(planDate, request.getStartTime().truncatedTo(ChronoUnit.MINUTES))) // 초와 나노초를 제거
-                        .finishTime(LocalDateTime.of(planDate, request.getFinishTime().truncatedTo(ChronoUnit.MINUTES))) // 초와 나노초를 제거
-                        .user(user)
-                        .lateTime(request.getLateTime() != null ? request.getLateTime() : LateStatus.ZERO)
-                        .address(address) // Address 정보 할당
-                        .planOn(request.getPlanOn() != null ? request.getPlanOn() : true)
-                        .planDate(planDate) // 각 날짜에 해당하는 planDate 추가
-                        .build())
-                .collect(Collectors.toList());
+        for (LocalDate planDate : request.getPlanDates()) {
+            // ✅ 과거 날짜 체크
+            if (planDate.isBefore(today)) {
+                return ApiResponse.onFailure("FAIL", "이미 날짜가 지났습니다.", null);
+            }
+            // ✅ 2주 후 초과 체크
+            if (planDate.isAfter(maxAllowedDate)) {
+                return ApiResponse.onFailure("FAIL", "2주 뒤까지의 계획만 설정 가능합니다.", null);
+            }
+
+            LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime().truncatedTo(ChronoUnit.MINUTES));
+            LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime().truncatedTo(ChronoUnit.MINUTES));
+
+            if (finishTime.isBefore(startTime)) {
+                finishTime = finishTime.plusDays(1);
+            }
+
+            // ✅ 일정 겹침 체크
+            boolean hasConflict = planRepository.existsByUserAndStartTimeBeforeAndFinishTimeAfter(
+                    user, finishTime, startTime);
+
+            if (hasConflict) {
+                return ApiResponse.onFailure("FAIL", "해당 시간대에 이미 일정이 존재합니다.", null);
+            }
+
+            // Plan 객체 생성 및 저장
+            Plan newPlan = Plan.builder()
+                    .status(status)
+                    .startTime(startTime)
+                    .finishTime(finishTime)
+                    .user(user)
+                    .lateTime(request.getLateTime() != null ? request.getLateTime() : LateStatus.ZERO)
+                    .address(address)
+                    .planOn(request.getPlanOn() != null ? request.getPlanOn() : true)
+                    .planDate(planDate)
+                    .build();
+
+            planRepository.save(newPlan);
+            planList.add(newPlan);
+        }
+
+        return ApiResponse.onSuccess(planList); // 성공 응답
     }
     // PlanRequestDTO를 사용하여 기존 Plan을 업데이트하는 메서드 추가
     public static Plan toPlanUpdate(PlanRequestDTO.PlanUpdateDTO requestDTO, Plan existingPlan, AddressRepository addressRepository) {
