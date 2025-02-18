@@ -12,6 +12,7 @@ import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.repository.AddressRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -46,15 +47,26 @@ public class PlanConverter {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Plan> planList = new ArrayList<>();
+        LocalDate today = LocalDate.now(); // 오늘 날짜
+        LocalDate maxAllowedDate = today.plusDays(14); // 2주 후까지만 허용
 
         request.getPlanDates().forEach(planDate -> {
+            // ✅ 날짜 검증 (과거 및 15일 초과)
+            if (planDate.isBefore(today)) {
+                throw new IllegalArgumentException("이미 날짜가 지났습니다.");
+            }
+            if (planDate.isAfter(maxAllowedDate)) {
+                throw new IllegalArgumentException("2주 뒤까지의 계획만 설정 가능합니다.");
+            }
+
             LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime().truncatedTo(ChronoUnit.MINUTES));
             LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime().truncatedTo(ChronoUnit.MINUTES));
 
             if (finishTime.isBefore(startTime)) {
                 finishTime = finishTime.plusDays(1);
             }
-            // ✅ 겹치는 일정이 있는지 확인
+
+            // ✅ 겹치는 일정 확인
             boolean hasConflict = planRepository.existsByUserAndStartTimeBeforeAndFinishTimeAfter(
                     user, finishTime, startTime);
 
@@ -80,7 +92,6 @@ public class PlanConverter {
 
         return planList; // Plan 리스트 반환
     }
-
     // PlanRequestDTO를 사용하여 기존 Plan을 업데이트하는 메서드 추가
     public static Plan toPlanUpdate(PlanRequestDTO.PlanUpdateDTO requestDTO, Plan existingPlan, AddressRepository addressRepository) {
         // 주어진 requestDTO의 값을 기존 Plan 엔티티에 업데이트
