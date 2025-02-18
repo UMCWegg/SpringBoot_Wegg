@@ -25,7 +25,8 @@ public interface PostCommandService {
     void deleteEmoji(Long postId, String emojiType);
 
     // 게시물 둘러보기
-    List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size);
+    //List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size);
+    PostResponseDTO.BrowsePostsResponse browsePosts(int page, int size);
 
     // 작성물 상세보기
     PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size);

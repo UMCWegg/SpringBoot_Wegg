@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import umc.wegg.aws.s3.AmazonS3Manager;
 import umc.wegg.domain.*;
+import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.EmojiType;
 import umc.wegg.domain.enums.PlanStatus;
 import umc.wegg.domain.mapping.Emoji;
@@ -244,24 +246,104 @@ public class PostCommandServiceImpl implements PostCommandService {
         emojiRepository.delete(emoji);
     }
 
+//    @Override
+//    public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size) {
+//        // 1. 현재 사용자 조회
+//        Long userId = 1L; // 로그인 구현 시 변경
+//        User currentUser = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+//
+//        // 2. 페이징된 게시물 조회
+//        Pageable pageable = PageRequest.of(page, size);
+//        Page<Post> postPage = postRepository.findAll(pageable);
+//        List<Post> allPosts = postPage.getContent();
+//
+//        // 3. 현재 사용자가 팔로우하는 사용자 목록 조회
+//        Set<Long> followingUserIds = currentUser.getFollowingList().stream()
+//                .map(follow -> follow.getFollowee().getId())
+//                .collect(Collectors.toSet());
+//
+//        // 4. 게시물 정렬
+//        List<Post> followingPosts = new ArrayList<>();
+//        List<Post> nonFollowingPosts = new ArrayList<>();
+//
+//        for (Post post : allPosts) {
+//            if (post.getPlan() == null) continue; // Plan이 없는 게시물 제외
+//            User postUser = post.getPlan().getUser();
+//            if (followingUserIds.contains(postUser.getId())) {
+//                followingPosts.add(post);
+//            } else {
+//                nonFollowingPosts.add(post);
+//            }
+//        }
+//
+//        Comparator<Post> postComparator = (post1, post2) -> {
+//            User user1 = post1.getPlan().getUser();
+//            User user2 = post2.getPlan().getUser();
+//
+//            boolean sameJob1 = user1.getJob() != null && user1.getJob().equals(currentUser.getJob());
+//            boolean sameJob2 = user2.getJob() != null && user2.getJob().equals(currentUser.getJob());
+//
+//            int emojiCount1 = emojiRepository.countByPost(post1);
+//            int emojiCount2 = emojiRepository.countByPost(post2);
+//
+//            if (sameJob1 && !sameJob2) return -1;
+//            if (!sameJob1 && sameJob2) return 1;
+//            return Integer.compare(emojiCount2, emojiCount1);
+//        };
+//
+//        // 5. 정렬 수행
+//        List<Post> sortedFollowingPosts = followingPosts.stream().sorted(postComparator).collect(Collectors.toList());
+//        List<Post> sortedNonFollowingPosts = nonFollowingPosts.stream().sorted(postComparator).collect(Collectors.toList());
+//
+//        // 6. DTO 변환
+//        List<PostResponseDTO.PostPreviewResponseDTO> followingPostDTOs = sortedFollowingPosts.stream()
+//                .map(post -> convertToDTO(post)).collect(Collectors.toList());
+//
+//        List<PostResponseDTO.PostPreviewResponseDTO> nonFollowingPostDTOs = sortedNonFollowingPosts.stream()
+//                .map(post -> convertToDTO(post)).collect(Collectors.toList());
+//
+//        // 7. 결과 반환 (팔로잉 게시물과 비팔로잉 게시물을 리스트로 구분)
+//        return Arrays.asList(followingPostDTOs, nonFollowingPostDTOs);
+//    }
+//
+//    private PostResponseDTO.PostPreviewResponseDTO convertToDTO(Post post) {
+//        User postUser = post.getPlan().getUser();
+//        return PostResponseDTO.PostPreviewResponseDTO.builder()
+//                .postId(post.getId())
+//                .profileImageUrl(postUser.getProfileImage())
+//                .accountId(postUser.getAccountId())
+//                .postImageUrl(post.getImageUrl())
+//                .createdAt(post.getCreatedAt())
+//                .build();
+//    }
     @Override
-    public List<List<PostResponseDTO.PostPreviewResponseDTO>> browsePosts(int page, int size) {
+    public PostResponseDTO.BrowsePostsResponse browsePosts(int page, int size) {
         // 1. 현재 사용자 조회
         Long userId = 1L; // 로그인 구현 시 변경
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        // 2. 페이징된 게시물 조회
+        // 2. 현재 사용자의 설정 조회 (accountVisibility 확인)
+        Setting userSetting = settingRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Setting not found for user id: " + userId));
+
+        // 3. 비공개 계정이면 접근 차단
+        if (userSetting.getAccountVisibility() == AccountVisibility.FOLLOWER_ONLY) {
+            throw new AccessDeniedException("비공개 계정은 게시물 둘러보기를 할 수 없습니다.");
+        }
+
+        // 4. 기존 게시물 조회 로직 (기존 코드 재사용)
         Pageable pageable = PageRequest.of(page, size);
         Page<Post> postPage = postRepository.findAll(pageable);
         List<Post> allPosts = postPage.getContent();
 
-        // 3. 현재 사용자가 팔로우하는 사용자 목록 조회
+        // 5. 현재 사용자가 팔로우하는 사용자 목록 조회
         Set<Long> followingUserIds = currentUser.getFollowingList().stream()
                 .map(follow -> follow.getFollowee().getId())
                 .collect(Collectors.toSet());
 
-        // 4. 게시물 정렬
+        // 6. 게시물 분류 및 정렬
         List<Post> followingPosts = new ArrayList<>();
         List<Post> nonFollowingPosts = new ArrayList<>();
 
@@ -290,19 +372,21 @@ public class PostCommandServiceImpl implements PostCommandService {
             return Integer.compare(emojiCount2, emojiCount1);
         };
 
-        // 5. 정렬 수행
         List<Post> sortedFollowingPosts = followingPosts.stream().sorted(postComparator).collect(Collectors.toList());
         List<Post> sortedNonFollowingPosts = nonFollowingPosts.stream().sorted(postComparator).collect(Collectors.toList());
 
-        // 6. DTO 변환
+        // 7. DTO 변환
         List<PostResponseDTO.PostPreviewResponseDTO> followingPostDTOs = sortedFollowingPosts.stream()
-                .map(post -> convertToDTO(post)).collect(Collectors.toList());
+                .map(this::convertToDTO).collect(Collectors.toList());
 
         List<PostResponseDTO.PostPreviewResponseDTO> nonFollowingPostDTOs = sortedNonFollowingPosts.stream()
-                .map(post -> convertToDTO(post)).collect(Collectors.toList());
+                .map(this::convertToDTO).collect(Collectors.toList());
 
-        // 7. 결과 반환 (팔로잉 게시물과 비팔로잉 게시물을 리스트로 구분)
-        return Arrays.asList(followingPostDTOs, nonFollowingPostDTOs);
+        // 8. 응답 객체 반환
+        return PostResponseDTO.BrowsePostsResponse.builder()
+                .accountVisibility(userSetting.getAccountVisibility()) // accountVisibility 포함
+                .posts(Arrays.asList(followingPostDTOs, nonFollowingPostDTOs))
+                .build();
     }
 
     private PostResponseDTO.PostPreviewResponseDTO convertToDTO(Post post) {
@@ -310,12 +394,11 @@ public class PostCommandServiceImpl implements PostCommandService {
         return PostResponseDTO.PostPreviewResponseDTO.builder()
                 .postId(post.getId())
                 .profileImageUrl(postUser.getProfileImage())
-                .nickname(postUser.getName())
+                .accountId(postUser.getAccountId())
                 .postImageUrl(post.getImageUrl())
                 .createdAt(post.getCreatedAt())
                 .build();
     }
-
 
     @Override
     public PostResponseDTO.PostDetailResponseDTO viewPostDetails(Long postId, int page, int size) {
