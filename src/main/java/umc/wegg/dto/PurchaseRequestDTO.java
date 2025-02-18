@@ -13,4 +13,10 @@ public class PurchaseRequestDTO {
         private TemplateType templateType; // 구매할 템플릿 타입 (ONE~NINE)
     }
 
+    @Getter
+    @NoArgsConstructor
+    public static class AddPointsRequestDTO {
+        private int pointsToAdd; // 충전할 포인트 값
+    }
+
 }

@@ -6,4 +6,5 @@ import umc.wegg.dto.PurchaseResponseDTO.MypointResponseDTO;
 public interface PurchaseCommandService {
     MypointResponseDTO getUserPoints(Long userId);
     boolean purchaseTemplate(Long userId, TemplateType templateType);
+    boolean addPoints(Long userId, int pointsToAdd);
 }

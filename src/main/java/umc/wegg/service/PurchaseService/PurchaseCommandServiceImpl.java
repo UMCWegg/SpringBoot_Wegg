@@ -56,6 +56,22 @@ public class PurchaseCommandServiceImpl implements PurchaseCommandService {
         return true;
     }
 
+    @Transactional
+    public boolean addPoints(Long userId, int pointsToAdd) {
+        if (pointsToAdd <= 0) {
+            return false; // 유효하지 않은 값
+        }
+
+        // 1. 현재 로그인된 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        // 2. 포인트 추가 후 저장
+        user.setPoints(user.getPoints() + pointsToAdd);
+        userRepository.save(user);
+
+        return true;
+    }
 
     @Override
     public MypointResponseDTO getUserPoints(Long userId) {

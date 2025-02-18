@@ -38,4 +38,16 @@ public class PurchaseRestController {
         }
     }
 
+    @PostMapping("/addPoints")
+    public ApiResponse<String> addPoints(@RequestBody PurchaseRequestDTO.AddPointsRequestDTO requestDTO) {
+        Long userId = 1L; // 로그인 구현 완료 후 변경
+
+        boolean success = purchaseCommandService.addPoints(userId, requestDTO.getPointsToAdd());
+        if (success) {
+            return ApiResponse.onSuccess("포인트 충전 완료");
+        } else {
+            return ApiResponse.onFailure("INVALID_AMOUNT", "올바르지 않은 포인트 값입니다.", null);
+        }
+    }
+
 }
