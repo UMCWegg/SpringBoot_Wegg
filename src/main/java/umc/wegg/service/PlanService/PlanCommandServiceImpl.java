@@ -182,6 +182,8 @@ public class PlanCommandServiceImpl implements PlanCommandService{
         // 랜덤한 시간 생성 (startTime과 finishTime 사이)
         long randomTimeMillis = min + (long) (Math.random() * (max - min));
         LocalDateTime randomTime = Instant.ofEpochMilli(randomTimeMillis).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        plan.setRandomTime(randomTime);
+        planRepository.save(plan);
 
         // 랜덤 알림 예약
         notificationService.scheduleNotification(plan.getUser(), NotificationType.RANDOM_VERIFY, randomTime, "2분 안에 사진을 찍어 나의 공부를 인증하세요.", "/posts", null);

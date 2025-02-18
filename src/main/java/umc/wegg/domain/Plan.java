@@ -33,6 +33,7 @@ public class Plan extends BaseEntity {
 
     private LocalDateTime startTime; // 공부 시작 시간 (랜덤 인증 시작 시간)
     private LocalDateTime finishTime; // 공부 종료 시간 (랜덤 인증 종료 시간)
+    private LocalDateTime randomTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
