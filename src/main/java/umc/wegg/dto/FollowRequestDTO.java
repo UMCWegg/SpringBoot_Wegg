@@ -29,6 +29,14 @@ public class FollowRequestDTO {
         //private String followSucceed; // 팔로우 요청 처리 상태 ("SUCCEEDED", "REJECTED", "WAITING")
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeleteFollowRequestDTO {
+        private Long followerId;
+        private Long followeeId;
+    }
 
 
 }

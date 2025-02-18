@@ -9,6 +9,7 @@ import java.util.List;
 public interface FollowCommandService {
     FollowStatus createFollowRequest(FollowRequestDTO.CreateFollowRequestDTO requestDTO);
     void decideFollowRequest(FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus);
+    boolean deleteFollowRequest(FollowRequestDTO.DeleteFollowRequestDTO requestDTO);
 
 
     List<FollowResponseDTO.UserRecommendationDTO> getFollowRequests(Long myId);

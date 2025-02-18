@@ -75,6 +75,25 @@ public class FollowCommandServiceImpl implements FollowCommandService {
         followRepository.save(follow);
     }
 
+    @Override
+    public boolean deleteFollowRequest(FollowRequestDTO.DeleteFollowRequestDTO requestDTO) {
+        Follow follow = followRepository.findByFollowerAndFollowee(
+                userRepository.findById(requestDTO.getFollowerId())
+                        .orElseThrow(() -> new IllegalArgumentException("Follower not found")),
+                userRepository.findById(requestDTO.getFolloweeId())
+                        .orElseThrow(() -> new IllegalArgumentException("Followee not found"))
+        ).orElseThrow(() -> new IllegalArgumentException("Follow request not found"));
+
+        // 공개 계정이면 즉시 삭제, 비공개 계정이면 삭제 X
+        if (follow.getFollowStatus() == FollowStatus.SUCCEEDED) {
+            followRepository.delete(follow);
+            return true; // 삭제됨
+        }
+
+        return false; // 삭제되지 않음 (비공개 계정 팔로우 요청만 취소 가능)
+    }
+
+
 
 
 
