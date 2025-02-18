@@ -1,7 +1,6 @@
 package umc.wegg.service.MapService;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import umc.wegg.config.security.AuthenticatedUser;
-import umc.wegg.converter.AddressConverter;
 import umc.wegg.converter.MyAddressConverter;
 import umc.wegg.domain.Address;
 import umc.wegg.domain.Plan;
@@ -156,6 +154,52 @@ public class MapServiceImpl implements MapService {
         );
 
         return hotPlaceList;
+    }
+
+    @Override
+    public MapResponseDTO.BookmarkPlaceListDTO getUserBookmarks(AuthenticatedUser authenticatedUser, Integer page, Integer size){
+
+        // DB에서 userId에 따라 myAddress, authCount 계산해서 가져오기(Paging 적용)
+        Page<Object[]> resultPage = addressRepository.getUserBookmarksByUserId(
+                authenticatedUser.getUserId(),
+                PageRequest.of(page, size)
+        );
+
+        // DB에서 가져온 값으로 DTO 생성
+        MapResponseDTO.BookmarkPlaceListDTO bookmarkPlaceList = new MapResponseDTO.BookmarkPlaceListDTO(
+                resultPage.stream()
+                        .map(row -> {
+                            // DB에서 address, authCount 가져오기
+                            Address address = (Address) row[0]; // address
+                            Long authCount = (Long) row[1];     // authCount
+
+                            // Plan을 거쳐서 Post 목록 가져오기(15개)
+                            List<Post> latestPosts = postRepository.findLatestPostsByAddressId(address.getId(), PageRequest.of(0, 15, Sort.by(Sort.Direction.DESC, "createdAt")));
+
+                            List<MapResponseDTO.BookmarkPlaceListDTO.BookmarkPlaceDTO.PostDTO> postList = latestPosts.stream()
+                                    .map(post -> new MapResponseDTO.BookmarkPlaceListDTO.BookmarkPlaceDTO.PostDTO(
+                                            post.getId(), post.getImageUrl()
+                                    ))
+                                    .collect(Collectors.toList());
+
+                            // 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
+                            Long saveCount = myAddressRepository.countByAddressId(address.getId());
+
+                            return new MapResponseDTO.BookmarkPlaceListDTO.BookmarkPlaceDTO(
+                                    address.getId(),
+                                    address.getLatitude(),
+                                    address.getLongitude(),
+                                    address.getPlaceName(),
+                                    address.getPlaceLabel(),
+                                    authCount,
+                                    saveCount,
+                                    postList
+                            );
+                        })
+                        .collect(Collectors.toList()) // List<HotPlaceDTO> 생성
+        );
+
+        return bookmarkPlaceList;
     }
 
     @Override

@@ -224,4 +224,32 @@ public class MapResponseDTO {
             }
         }
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookmarkPlaceListDTO {
+        private List<BookmarkPlaceDTO> bookmarkPlaceList;
+
+        @Getter
+        @AllArgsConstructor
+        public static class BookmarkPlaceDTO {
+            private Long addressId;
+            private Float latitude;
+            private Float longitude;
+            private String placeName;
+            private String placeLabel;
+            private Long authCount;
+            private Long saveCount;
+            private List<PostDTO> postList = new ArrayList<>();
+
+            @Getter
+            @AllArgsConstructor
+            public static class PostDTO {
+                private Long postId;
+                private String imageUrl;
+            }
+        }
+    }
 }
