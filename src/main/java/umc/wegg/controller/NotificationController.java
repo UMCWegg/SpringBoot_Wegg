@@ -18,7 +18,9 @@ import umc.wegg.domain.TodoList;
 import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.domain.enums.AccountVisibility;
+import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.dto.*;
+import umc.wegg.repository.FollowRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
 import umc.wegg.service.UserService.UserCommandService;
@@ -32,6 +34,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
 
     //Last-Event-ID는 SSE 연결이 끊어졌을 경우, 클라이언트가 수신한 마지막 데이터의 id 값을 의미합니다. 항상 존재하는 것이 아니기 때문에 false
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -54,10 +57,18 @@ public class NotificationController {
                 .map(NotificationConverter::toResultDTO)
                 .toList();
 
-        // 🔹 accountVisibility와 알림 리스트를 포함한 DTO 반환
+        // 🔹 followStatus가 WAITING인 요청 개수 조회
+        Long waitingFollowRequests = followRepository.countByFolloweeIdAndFollowStatus(userId, FollowStatus.WAITING);
+
+        // 🔹 updatedAt이 가장 최신인 follower의 accountId 조회
+        String latestFollowerAccountId = followRepository.findLatestFollowerAccountIdByFolloweeId(userId).orElse(null);
+
+        // 🔹 DTO 생성 및 응답 반환
         NotificationResponseDTO.NotificationListDTO response = NotificationResponseDTO.NotificationListDTO.builder()
                 .accountVisibility(AccountVisibility.valueOf(accountVisibility))
                 .notifications(result)
+                .latestFollowerAccountId(latestFollowerAccountId)
+                .waitingFollowRequests(waitingFollowRequests)
                 .build();
 
         return ApiResponse.onSuccess(response);

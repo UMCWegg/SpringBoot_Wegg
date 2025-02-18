@@ -18,7 +18,10 @@ public class NotificationResponseDTO {
     @AllArgsConstructor
     public static class NotificationListDTO {
         AccountVisibility accountVisibility; // 🔹 로그인한 유저의 accountVisibility 추가
+        String latestFollowerAccountId;
+        Long waitingFollowRequests;
         List<ResultDTO> notifications; // 🔹 기존의 알림 리스트
+
     }
 
     @Builder
