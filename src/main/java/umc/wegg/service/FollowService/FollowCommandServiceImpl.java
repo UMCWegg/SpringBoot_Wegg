@@ -3,6 +3,7 @@ package umc.wegg.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import umc.wegg.domain.Setting;
 import umc.wegg.domain.User;
 import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.FollowStatus;
@@ -11,7 +12,9 @@ import umc.wegg.dto.FollowRequestDTO;
 import umc.wegg.dto.FollowResponseDTO;
 import umc.wegg.repository.ContactFriendsRepository;
 import umc.wegg.repository.FollowRepository;
+import umc.wegg.repository.SettingRepository;
 import umc.wegg.repository.UserRepository;
+import umc.wegg.service.NotificationService.NotificationService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,7 +26,7 @@ public class FollowCommandServiceImpl implements FollowCommandService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
     private final ContactFriendsRepository contactFriendsRepository; // 연락처 친구 조회를 위해 필요
-
+    private final NotificationService notificationService;
     /**
      * 팔로우 요청 생성
      * @param requestDTO 팔로우 요청 데이터
@@ -46,6 +49,10 @@ public class FollowCommandServiceImpl implements FollowCommandService {
         // 계정 공개 상태 확인
         AccountVisibility visibility = followee.getSetting().getAccountVisibility();
         FollowStatus followStatus = (visibility == AccountVisibility.PUBLIC) ? FollowStatus.SUCCEEDED : FollowStatus.WAITING;
+
+        // 알림 메시지 작성
+        String message = (visibility == AccountVisibility.PUBLIC) ? follower.getAccountId() + "님이 팔로우를 시작합니다." : follower.getAccountId() + "님이 팔로우를 요청했습니다.";
+        notificationService.sendNotificationToFollowee(followee, follower.getId(), message, "FOLLOW", follower.getProfileImage());
 
         // 팔로우 요청 저장
         Follow follow = Follow.builder()

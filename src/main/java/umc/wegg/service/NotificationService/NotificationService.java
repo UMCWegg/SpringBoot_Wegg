@@ -14,6 +14,7 @@ public interface NotificationService {
     void send(User receiver, NotificationType notificationType, String content, String url, String profileImage);
     void sendNotificationToPostOwner(User postOwner, Long postId, String message, String notificationType, String profileImage);
     void sendNotificationToEggOwner(User planUser, String content, String notificationType, String profileImage);
+    void sendNotificationToFollowee(User followee, Long followerId, String content, String notificationType, String profileImage);
     void scheduleNotification(User user, NotificationType type, LocalDateTime notificationTime, String content, String url, String profileImage);
     List<Notification> getUserNotifications(Long userId);
     Notification readNotification(Long notificationId, NotificationRequestDTO.ReadDTO request);
