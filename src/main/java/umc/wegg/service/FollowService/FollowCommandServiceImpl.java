@@ -80,17 +80,17 @@ public class FollowCommandServiceImpl implements FollowCommandService {
     // 나에게 온 팔로우 요청들
     @Override
     public List<FollowResponseDTO.UserRecommendationDTO> getFollowRequests(Long myId) {
-        // 1️⃣ 사용자 조회
+        // 1️. 사용자 조회
         User user = userRepository.findById(myId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + myId));
 
-        // 2️⃣ 계정 공개 여부 확인
+        // 2️. 계정 공개 여부 확인
         if (user.getSetting() == null || user.getSetting().getAccountVisibility() == AccountVisibility.PUBLIC) {
             // 공개 계정이면 빈 리스트 반환
             return Collections.emptyList();
         }
 
-        // 3️⃣ 비공개 계정이면 팔로우 요청 리스트 반환
+        // 3️. 비공개 계정이면 팔로우 요청 리스트 반환
         return followRepository.findByFolloweeIdAndFollowStatusOrderByCreatedAtDesc(myId, FollowStatus.WAITING)
                 .stream()
                 .map(follow -> FollowResponseDTO.UserRecommendationDTO.builder()
@@ -295,64 +295,5 @@ public class FollowCommandServiceImpl implements FollowCommandService {
         // 3. 최종 추천 리스트 반환 (최대 10명, 부족할 경우 가능한 범위 내에서 반환)
         return recommendations;
     }
-
-
-
-
-
-
-
-//    @Override
-//    public List<FollowResponseDTO.UserRecommendationDTO> getGeneralRecommendations(Long myId) {
-//        List<Object[]> recommendedUsersData = followRepository.findRecommendedUsersWithFollowCount(myId, PageRequest.of(0, 10));
-//        Set<Long> uniqueUserIds = new HashSet<>(); // 중복 방지를 위한 Set
-//
-//        // 1️⃣ 팔로워 기반 추천
-//        List<FollowResponseDTO.UserRecommendationDTO> recommendations = recommendedUsersData.stream()
-//                .map(data -> {
-//                    User user = (User) data[0];
-//                    Long followCount = (Long) data[1];
-//                    return FollowResponseDTO.UserRecommendationDTO.builder()
-//                            .userId(user.getId())
-//                            .profileImage(user.getProfileImage())
-//                            .accountId(user.getAccountId())
-//                            .userName(user.getName())
-//                            .build();
-//                })
-//                .filter(dto -> uniqueUserIds.add(dto.getUserId())) // 중복 제거
-//                .collect(Collectors.toList());
-//
-//        // 2️⃣ 팔로워 기반 추천이 10명보다 적으면, 인기 유저 추가
-//        if (recommendations.size() < 10) {
-//            int remainingSlots = 10 - recommendations.size();
-//            List<User> popularUsers = followRepository.findTopFollowedUsers(PageRequest.of(0, remainingSlots));
-//
-//            if (popularUsers.isEmpty()) {
-//                // 3️⃣ 인기 유저 추천도 비어있으면, 랜덤 유저 추천 추가
-//                Long totalUsers = userRepository.countTotalUsers();
-//                if (totalUsers > 0) {
-//                    List<User> randomUsers = userRepository.findRandomUsers(PageRequest.of(0, remainingSlots));
-//                    popularUsers = randomUsers;
-//                }
-//            }
-//
-//            List<FollowResponseDTO.UserRecommendationDTO> popularRecommendations = popularUsers.stream()
-//                    .map(user -> FollowResponseDTO.UserRecommendationDTO.builder()
-//                            .userId(user.getId())
-//                            .profileImage(user.getProfileImage())
-//                            .accountId(user.getAccountId())
-//                            .userName(user.getName())
-//                            .build())
-//                    .filter(dto -> uniqueUserIds.add(dto.getUserId())) // 중복 제거
-//                    .collect(Collectors.toList());
-//
-//            recommendations.addAll(popularRecommendations);
-//        }
-//
-//        return recommendations;
-//    }
-
-
-
 
 }

@@ -1,7 +1,9 @@
 package umc.wegg.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.User;
 import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.FollowStatus;
@@ -51,6 +53,7 @@ public class FollowRestController {
      */
     @PatchMapping
     public ApiResponse<FollowResponseDTO.AcceptFollowResponseDTO> acceptFollowRequest(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.DecideFollowRequestDTO requestDTO) {
         followCommandService.decideFollowRequest(requestDTO, FollowStatus.SUCCEEDED);
         return ApiResponse.onSuccess(
@@ -71,8 +74,11 @@ public class FollowRestController {
     }
 
     @GetMapping("/recommendations")
-    public ApiResponse<Map<String, Object>> getFriendRecommendations(@RequestParam Long myId) {
+    public ApiResponse<Map<String, Object>> getFriendRecommendations(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Map<String, Object> recommendations = new LinkedHashMap<>(); // 순서 유지하려고 LinkedHashMap 씀
+
+        // 인증된 사용자 ID 가져오기
+        Long myId = authenticatedUser.getUserId();
 
         // 사용자 조회
         User user = userRepository.findById(myId)
