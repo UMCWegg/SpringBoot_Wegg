@@ -31,7 +31,7 @@ public class ContactFriend {
     private String phoneNum;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "is_following", nullable = false, length = 255)
+    @Column(name = "is_following", nullable = false)
     private FollowStatus isFollowing;
 }
 

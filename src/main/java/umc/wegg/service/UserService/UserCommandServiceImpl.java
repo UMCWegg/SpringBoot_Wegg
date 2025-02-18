@@ -24,6 +24,8 @@ import umc.wegg.converter.UserConverter;
 import umc.wegg.domain.ContactFriend;
 import umc.wegg.domain.User;
 import umc.wegg.domain.Uuid;
+import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.domain.apiPayload.code.status.ErrorStatus;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.repository.UserRepository;
@@ -33,7 +35,6 @@ import umc.wegg.util.RedisUtil;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -157,17 +158,17 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
     @Override
-    public UserResponseDTO.LoginResultDTO oAuth2LoginUser(UserRequestDTO.OAuth2LoginRequestDTO request,
+    public ApiResponse<UserResponseDTO.LoginResultDTO> oAuth2LoginUser(UserRequestDTO.OAuth2LoginRequestDTO request,
                                                           HttpServletRequest httpServletRequest,
                                                           HttpServletResponse httpServletResponse) {
 
         if ("google".equals(request.getType())) {
             if (!verifyGoogleToken(request.getToken())) {
-                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "로그인 실패", null);
             }
         }else{
             if (!verifyKakaoToken(request.getToken())){
-                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "로그인 실패", null);
             }
         }
 
@@ -190,10 +191,10 @@ public class UserCommandServiceImpl implements UserCommandService{
             // 3. Session 등록 및 성공 핸들러 호출
             securityContextRepository.saveContext(context, httpServletRequest, httpServletResponse);
 
-            return new UserResponseDTO.LoginResultDTO(true, user.getId());
+            return ApiResponse.onSuccess(new UserResponseDTO.LoginResultDTO(true, user.getId()));
         } else {
             //exception throw
-            throw new UsernameNotFoundException("해당 유저를 찾을 수 없습니다.");
+            return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "로그인 실패", null);
         }
     }
 
@@ -204,12 +205,12 @@ public class UserCommandServiceImpl implements UserCommandService{
                     .build();
 
             GoogleIdToken idToken = verifier.verify(idTokenString);
-            System.out.print("확인" + idToken.toString());
+
             if (idToken != null) {
                 return true;
             }
-        } catch (GeneralSecurityException | IOException e) {
-            throw new IllegalArgumentException("잘못된 토큰입니다.");
+        } catch (Exception e) {
+            return false;
         }
         return false; // 검증 실패
     }

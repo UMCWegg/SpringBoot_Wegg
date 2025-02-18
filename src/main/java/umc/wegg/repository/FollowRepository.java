@@ -14,6 +14,12 @@ import java.util.Optional;
 public interface FollowRepository extends JpaRepository<Follow, Long> {
     Optional<Follow> findById(Long id);
 
+    //웨이팅 개수 세기
+    Long countByFolloweeIdAndFollowStatus(Long followeeId, FollowStatus followStatus);
+    //한명의 어카운트아이디 가져오기
+    @Query("SELECT f.follower.accountId FROM Follow f WHERE f.followee.id = :followeeId ORDER BY f.updatedAt DESC LIMIT 1")
+    Optional<String> findLatestFollowerAccountIdByFolloweeId(@Param("followeeId") Long followeeId);
+
     boolean existsByFollowerAndFolloweeAndFollowStatus(User follower, User followee, FollowStatus status);
 
     @Query("SELECT COUNT(f) FROM Follow f WHERE f.followee.id = :userId")

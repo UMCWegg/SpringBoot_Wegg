@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import umc.wegg.domain.Address;
 
 import java.util.List;
@@ -64,4 +63,11 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     Optional<Object[]> findAddressWithDetails(@Param("placeName") String placeName,
                                               @Param("centerLat") double centerLat,
                                               @Param("centerLon") double centerLon);
+
+    @Query("SELECT a, " +
+            "(SELECT COUNT(p.id) FROM Post p JOIN Plan pl ON p.plan.id = pl.id WHERE pl.address.id = a.id) AS authCount " +
+            "FROM Address a, MyAddress ma " +
+            "WHERE a.id = ma.address.id AND ma.user.id = :userId " +
+            "ORDER BY ma.createdAt DESC")
+    Page<Object[]> getUserBookmarksByUserId(@Param("userId") Long userId, PageRequest pageRequest);
 }
