@@ -2,10 +2,9 @@ package umc.wegg.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.dto.PurchaseRequestDTO;
 import umc.wegg.dto.PurchaseResponseDTO.MypointResponseDTO;
 import umc.wegg.service.PurchaseService.PurchaseCommandService;
 
@@ -26,4 +25,17 @@ public class PurchaseRestController {
             return ApiResponse.onFailure("NOT_FOUND", "사용자 정보를 찾을 수 없습니다.", null);
         }
     }
+
+    @PostMapping("/template")
+    public ApiResponse<String> purchaseTemplate(@RequestBody PurchaseRequestDTO.TemplatePurchaseRequestDTO requestDTO) {
+        Long userId = 1L; // 로그인 구현 완료 후 변경
+
+        boolean success = purchaseCommandService.purchaseTemplate(userId, requestDTO.getTemplateType());
+        if (success) {
+            return ApiResponse.onSuccess("템플릿 구매가 완료되었습니다.");
+        } else {
+            return ApiResponse.onFailure("INSUFFICIENT_FUNDS", "포인트가 부족합니다.", null);
+        }
+    }
+
 }
