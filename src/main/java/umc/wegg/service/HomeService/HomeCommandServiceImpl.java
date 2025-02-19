@@ -38,7 +38,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
     @Override
     public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData(AuthenticatedUser authenticatedUser) {
-        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
+        Long userId = 1L;//authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
@@ -118,17 +118,57 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         int totalStudyTime = timeRepository.findStudyTimeByUserIdAndDate(userId, today)
                 .stream().mapToInt(time -> time.getDuration()).sum();
 
-        //  가장 가까운 일정 찾기
+        // 가장 가까운 일정 찾기 (시작 시간이 가장 가까운 계획)
         Plan closestPlan = allPlans.stream()
                 .filter(plan -> plan.getStartTime().isAfter(now))
                 .min(Comparator.comparing(Plan::getStartTime))
                 .orElse(null);
 
+        Long planId = null;
         String upcomingPlanAddress = null;
-        if (closestPlan != null) {
-            long minutesUntilStart = java.time.Duration.between(now, closestPlan.getStartTime()).toMinutes();
-            if (minutesUntilStart <= 10) {
-                upcomingPlanAddress = closestPlan.getAddress().getAddress(); // ✅ Address 객체에서 가져오기
+
+        // 현재 시간이 어떤 일정의 startTime과 finishTime 사이에 있다면 해당 계획을 사용
+        Plan activePlan = allPlans.stream()
+                .filter(plan -> now.isAfter(plan.getStartTime()) && now.isBefore(plan.getFinishTime()))
+                .findFirst()
+                .orElse(null);
+
+        if (activePlan != null) {
+            LocalDateTime planStartTime = activePlan.getStartTime();
+            LocalDateTime planFinishTime = activePlan.getFinishTime();
+            LocalDateTime planRandomTime = activePlan.getRandomTime();
+            LocalDateTime planLateTime = planStartTime.plusMinutes(activePlan.getLateTime().getMinutes());
+
+            // startTime 5분 전부터 + 지각 허용 시간까지 upcomingPlanAddress 포함
+            if (now.isAfter(planStartTime.minusMinutes(5)) && now.isBefore(planLateTime)) {
+                upcomingPlanAddress = activePlan.getAddress().getAddress();
+                planId = activePlan.getId();
+            }
+
+            // 랜덤 타임이 설정된 경우 5분 전부터 randomTime까지 포함
+            if (planRandomTime != null) {
+                if (now.isAfter(planRandomTime.minusMinutes(5)) && now.isBefore(planRandomTime)) {
+                    upcomingPlanAddress = activePlan.getAddress().getAddress();
+                    planId = activePlan.getId();
+                }
+            }
+        } else if (closestPlan != null) {
+            LocalDateTime planStartTime = closestPlan.getStartTime();
+            LocalDateTime planLateTime = planStartTime.plusMinutes(closestPlan.getLateTime().getMinutes());
+
+            // startTime 5분 전부터 + 지각 허용 시간까지 upcomingPlanAddress 포함
+            if (now.isAfter(planStartTime.minusMinutes(5)) && now.isBefore(planLateTime)) {
+                upcomingPlanAddress = closestPlan.getAddress().getAddress();
+                planId = closestPlan.getId();
+            }
+
+            // 랜덤 타임이 설정된 경우 5분 전부터 randomTime까지 포함
+            LocalDateTime planRandomTime = closestPlan.getRandomTime();
+            if (planRandomTime != null) {
+                if (now.isAfter(planRandomTime.minusMinutes(5)) && now.isBefore(planRandomTime)) {
+                    upcomingPlanAddress = closestPlan.getAddress().getAddress();
+                    planId = closestPlan.getId();
+                }
             }
         }
 
@@ -150,6 +190,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 .completionRate(completionRate)
                 .successCount(successCount)
                 .totalStudyTime(totalStudyTime)
+                .planId(planId)
                 .upcomingPlanAddress(upcomingPlanAddress)
                 .availablePoints(availablePoints)
                 .canReceivePoints(canReceivePoints)
