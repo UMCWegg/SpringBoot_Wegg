@@ -13,10 +13,7 @@ import umc.wegg.repository.PlanRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.repository.AddressRepository;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -62,12 +59,16 @@ public class PlanConverter {
                 return ApiResponse.onFailure("FAIL", "2주 뒤까지의 계획만 설정 가능합니다.", null);
             }
 
-            LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime())
-                    .atZone(ZoneId.of("Asia/Seoul"))
-                    .toLocalDateTime();
-            LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime())
-                    .atZone(ZoneId.of("Asia/Seoul"))
-                    .toLocalDateTime();
+            // 🛠 **UTC → KST 변환 정확히 수행**
+            LocalDateTime startTimeUTC = LocalDateTime.of(planDate, request.getStartTime());
+            LocalDateTime finishTimeUTC = LocalDateTime.of(planDate, request.getFinishTime());
+
+            // 🌍 **UTC에서 KST로 변환**
+            ZonedDateTime startTimeKST = startTimeUTC.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+            ZonedDateTime finishTimeKST = finishTimeUTC.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+
+            LocalDateTime startTime = startTimeKST.toLocalDateTime();
+            LocalDateTime finishTime = finishTimeKST.toLocalDateTime();
 
             if (finishTime.isBefore(startTime)) {
                 finishTime = finishTime.plusDays(1);
