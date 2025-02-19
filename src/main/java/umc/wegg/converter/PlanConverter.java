@@ -53,11 +53,11 @@ public class PlanConverter {
         LocalDate maxAllowedDate = today.plusDays(14);
 
         for (LocalDate planDate : request.getPlanDates()) {
-            // ✅ 과거 날짜 체크
+            //과거 날짜 체크
             if (planDate.isBefore(today)) {
                 return ApiResponse.onFailure("FAIL", "이미 날짜가 지났습니다.", null);
             }
-            // ✅ 2주 후 초과 체크
+            //2주 후 초과 체크
             if (planDate.isAfter(maxAllowedDate)) {
                 return ApiResponse.onFailure("FAIL", "2주 뒤까지의 계획만 설정 가능합니다.", null);
             }
@@ -65,6 +65,8 @@ public class PlanConverter {
             LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime())
                     .atZone(ZoneId.of("Asia/Seoul"))
                     .toLocalDateTime();
+            System.out.println("request의 startTime" + request.getStartTime() + "변환 후 : " + startTime);
+
             LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime())
                     .atZone(ZoneId.of("Asia/Seoul"))
                     .toLocalDateTime();
