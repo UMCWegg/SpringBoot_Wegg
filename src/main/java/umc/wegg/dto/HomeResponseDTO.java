@@ -33,9 +33,10 @@ public class HomeResponseDTO {
         private int successCount;                // 인증 성공 횟수
         private int totalStudyTime;              // 총 공부 시간 (분 단위)
 
+        private Long planId;                // 가장 가까운 plan 아이디
         private String upcomingPlanAddress; //  추가된 필드 (10분 남은 일정의 주소)
-        private int availablePoints; //  받을 수 있는 포인트 (3의 배수일 때만)
-        private boolean canReceivePoints; //  포인트 받을 수 있는지 여부
+        private int availablePoints;        //  받을 수 있는 포인트 (3의 배수일 때만)
+        private boolean canReceivePoints;   //  포인트 받을 수 있는지 여부
 
     }
 
