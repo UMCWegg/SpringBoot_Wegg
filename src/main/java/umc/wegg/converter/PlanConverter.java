@@ -65,6 +65,8 @@ public class PlanConverter {
             LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime())
                     .atZone(ZoneId.of("Asia/Seoul"))
                     .toLocalDateTime();
+            System.out.println("request의 startTime" + request.getStartTime() + "변환 후 : " + startTime);
+
             LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime())
                     .atZone(ZoneId.of("Asia/Seoul"))
                     .toLocalDateTime();

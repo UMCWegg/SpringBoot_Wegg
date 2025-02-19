@@ -90,9 +90,9 @@ public class UserRestController {
             @RequestPart(value = "profileImage", required = false) MultipartFile profilePicture
     ) throws IOException {
         // 회원 정보 업데이트 서비스 호출
-        UserResponseDTO.UserUpdateResultDTO response = userCommandService.updateUser(authenticatedUser, request, profilePicture);
+        ApiResponse<UserResponseDTO.UserUpdateResultDTO> response = userCommandService.updateUser(authenticatedUser, request, profilePicture);
 
-        return ApiResponse.onSuccess(response);
+        return response;
     }
 
 
