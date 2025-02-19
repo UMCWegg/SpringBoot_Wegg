@@ -229,11 +229,6 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     public UserResponseDTO.UserDeleteResultDTO deleteUser(AuthenticatedUser authenticatedUser) {
-
-        if (authenticatedUser == null) {
-            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-        }
-
         Long userId = authenticatedUser.getUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
@@ -245,14 +240,9 @@ public class UserCommandServiceImpl implements UserCommandService{
 
 @Override
 public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
-
-    if (authenticatedUser == null) {
-        throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-    }
-
     Long userId = authenticatedUser.getUserId();
     User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다. "));
+            .orElseThrow();
 
     // 수정된 필드를 저장할 Map
     Map<String, Object> updatedFields = new HashMap<>();
@@ -290,14 +280,22 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponseDTO.CheckAccountIdResultDTO checkAccountIdDuplication(String accountId) {
-        boolean isDuplicate = userRepository.existsByAccountId(accountId);
+    public UserResponseDTO.CheckAccountIdResultDTO checkAccountIdValidation(String accountId) {
 
-        String message = isDuplicate
-                ? "이미 사용 중인 아이디입니다."
-                : "사용 가능한 아이디입니다.";
+        boolean isValid = true;
+        String message = "사용 가능한 아이디입니다.";
+        if (!accountId.matches("^[a-zA-Z0-9]+$")) {
+            isValid = false;
+            message = "아이디에는 영어와 숫자만 들어갈 수 있습니다.";
+        }
+        else{
+            if (userRepository.existsByAccountId(accountId)) {
+                isValid = false;
+                message = "이미 사용 중인 아이디입니다.";
+            }
+        }
 
-        return new UserResponseDTO.CheckAccountIdResultDTO(isDuplicate, message);
+        return new UserResponseDTO.CheckAccountIdResultDTO(isValid, message);
     }
 
     @Override

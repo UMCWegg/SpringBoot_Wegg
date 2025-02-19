@@ -109,7 +109,7 @@ public class UserResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CheckAccountIdResultDTO {
-        private boolean isDuplicate;
+        private boolean isValid;
         private String message;  // 결과 메시지
     }
 
