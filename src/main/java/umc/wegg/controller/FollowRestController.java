@@ -9,10 +9,10 @@ import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.dto.FollowRequestDTO;
 import umc.wegg.dto.FollowResponseDTO;
-import umc.wegg.repository.FollowRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.FollowService.FollowCommandService;
 import umc.wegg.domain.apiPayload.ApiResponse;
+import umc.wegg.validation.annotation.ValidUser;
 
 import java.util.*;
 
@@ -68,7 +68,7 @@ public class FollowRestController {
      */
     @PatchMapping("/accept")
     public ApiResponse<FollowResponseDTO.AcceptFollowResponseDTO> acceptFollowRequest(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.DecideFollowRequestDTO requestDTO) {
 
         // FollowStatus.SUCCEEDED를 추가하여 호출
@@ -92,7 +92,7 @@ public class FollowRestController {
     }
 
     @GetMapping("/recommendations")
-    public ApiResponse<Map<String, Object>> getFriendRecommendations(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<Map<String, Object>> getFriendRecommendations(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Map<String, Object> recommendations = new LinkedHashMap<>(); // 순서 유지하려고 LinkedHashMap 씀
 
         // 인증된 사용자 ID 가져오기

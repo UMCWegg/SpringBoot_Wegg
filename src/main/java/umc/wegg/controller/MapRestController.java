@@ -10,6 +10,7 @@ import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.service.MapService.MapService;
+import umc.wegg.validation.annotation.ValidUser;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,7 +57,7 @@ public class MapRestController {
     @PostMapping("/addresses/{address_id}/bookmark")
     @Operation(summary = "장소 저장", description = "장소를 저장하는 API")
     public ApiResponse<MapResponseDTO.BookmarkDTO> bookmarkAddress(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @PathVariable("address_id") Long addressId
     ) {
 
@@ -68,7 +69,7 @@ public class MapRestController {
     @DeleteMapping("/addresses/{address_id}/bookmark")
     @Operation(summary = "장소 저장 삭제", description = "저장한 장소를 삭제하는 API")
     public ApiResponse<MapResponseDTO.UnbookmarkDTO> unbookmarkAddress(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @PathVariable("address_id") Long addressId
     ) {
 

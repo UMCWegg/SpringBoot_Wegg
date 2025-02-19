@@ -11,6 +11,7 @@ import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.MypageRequestDTO;
 import umc.wegg.service.MypageService.MypageCommandService;
+import umc.wegg.validation.annotation.ValidUser;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class MypageRestController {
     private final MypageCommandService mypageCommandService;
 
     @PatchMapping("/setting")
-    public ApiResponse<String> updateSettings(@AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody @Valid MypageRequestDTO.SettingDTO request) {
+    public ApiResponse<String> updateSettings(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody @Valid MypageRequestDTO.SettingDTO request) {
         Long userId = authenticatedUser.getUserId(); // 예: 인증된 사용자 ID 가져오기 (실제로는 SecurityContext 등을 사용해야 함)
         mypageCommandService.updateSettings(userId, request);
         return ApiResponse.onSuccess("Settings updated successfully");
