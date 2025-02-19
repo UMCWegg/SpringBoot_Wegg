@@ -85,21 +85,21 @@ public class PlanCommandServiceImpl implements PlanCommandService{
                     return new PlanResponseDTO.PlanAddResultDTO(plan.getId(), plan.getCreatedAt(), warningMessage);
                 })
                 .collect(Collectors.toList());
-
+        System.out.println("알생성전 서비스의 startTime : " + newPlans.get(0).getStartTime());
         // 반환된 계획을 기반으로 Egg 생성
-//        newPlans.forEach(plan -> {
-//            Egg egg = Egg.builder()
-//                    .status(EggStatus.INTACT)
-//                    .plan(plan)
-//                    .build();
-//
-//            eggRepository.save(egg);
-//
-//            // Plan과 Egg를 연결
-//            plan.setEgg(egg);
-//            planRepository.save(plan);
-//        });
+        newPlans.forEach(plan -> {
+            Egg egg = Egg.builder()
+                    .status(EggStatus.INTACT)
+                    .plan(plan)
+                    .build();
 
+            eggRepository.save(egg);
+
+            // Plan과 Egg를 연결
+            plan.setEgg(egg);
+            planRepository.save(plan);
+        });
+        System.out.println("서비스에서의 마지막 startTime : " + newPlans.get(0).getStartTime() + "그리고 현재시간 : " + LocalDateTime.now() );
         // 각 계획에 대해 알림 예약
         newPlans.forEach(this::scheduleNotifications);
 
