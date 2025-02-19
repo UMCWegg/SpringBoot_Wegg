@@ -53,7 +53,7 @@ public class PlanConverter {
         LocalDate maxAllowedDate = today.plusDays(14);
 
         for (LocalDate planDate : request.getPlanDates()) {
-            // ✅ 과거 날짜 체크
+            //과거 날짜 체크
             if (planDate.isBefore(today)) {
                 return ApiResponse.onFailure("FAIL", "이미 날짜가 지났습니다.", null);
             }
