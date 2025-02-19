@@ -16,7 +16,7 @@ public interface UserCommandService {
     ApiResponse<UserResponseDTO.OAuth2UserJoinResultDTO> oAuth2JoinUser(UserRequestDTO.OAuth2UserJoinDto request);
     ApiResponse<UserResponseDTO.LoginResultDTO> oAuth2LoginUser(UserRequestDTO.OAuth2LoginRequestDTO request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse);
     UserResponseDTO.UserDeleteResultDTO deleteUser(AuthenticatedUser authenticatedUser);
-    UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException;
+    ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException;
     UserResponseDTO.CheckAccountIdResultDTO checkAccountIdValidation(String accountId);
     UserResponseDTO.CheckEmailResultDTO checkEmailDuplication(String email);
     ApiResponse<UserResponseDTO.VerifyNumberResultDTO> verityNumber(UserRequestDTO.VerifyNumberDto request);

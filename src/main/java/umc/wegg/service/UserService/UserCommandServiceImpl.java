@@ -239,7 +239,7 @@ public class UserCommandServiceImpl implements UserCommandService{
     }
 
 @Override
-public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
+public ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(AuthenticatedUser authenticatedUser, UserRequestDTO.UserUpdateDto request, MultipartFile profilePicture) throws IOException {
     Long userId = authenticatedUser.getUserId();
     User user = userRepository.findById(userId)
             .orElseThrow();
@@ -254,8 +254,14 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
         }
 
         if (request.getAccountId() != null && !request.getAccountId().isEmpty()) {
-            user.setAccountId(request.getAccountId());
-            updatedFields.put("accountId", request.getAccountId());
+            UserResponseDTO.CheckAccountIdResultDTO check = checkAccountIdValidation(request.getAccountId());
+            if (check.isValid() == false) {
+                return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), check.getMessage(), null);
+            }
+            else {
+                user.setAccountId(request.getAccountId());
+                updatedFields.put("accountId", request.getAccountId());
+            }
         }
     }
 
@@ -274,7 +280,7 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
 
     userRepository.save(user);
 
-    return new UserResponseDTO.UserUpdateResultDTO(true, updatedFields);
+    return ApiResponse.onSuccess(new UserResponseDTO.UserUpdateResultDTO(true, updatedFields));
 }
 
 
