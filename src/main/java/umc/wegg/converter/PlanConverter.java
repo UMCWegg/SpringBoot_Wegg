@@ -16,6 +16,7 @@ import umc.wegg.repository.AddressRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -61,8 +62,12 @@ public class PlanConverter {
                 return ApiResponse.onFailure("FAIL", "2주 뒤까지의 계획만 설정 가능합니다.", null);
             }
 
-            LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime().truncatedTo(ChronoUnit.MINUTES));
-            LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime().truncatedTo(ChronoUnit.MINUTES));
+            LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime())
+                    .atZone(ZoneId.of("Asia/Seoul"))
+                    .toLocalDateTime();
+            LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime())
+                    .atZone(ZoneId.of("Asia/Seoul"))
+                    .toLocalDateTime();
 
             if (finishTime.isBefore(startTime)) {
                 finishTime = finishTime.plusDays(1);
