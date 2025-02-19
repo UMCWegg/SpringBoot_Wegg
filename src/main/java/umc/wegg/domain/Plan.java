@@ -31,8 +31,11 @@ public class Plan extends BaseEntity {
     @Column(nullable = false)
     private PlanStatus status; // 계획 상태(YET, SUCCEEDED, FAILED)
 
+    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime startTime; // 공부 시작 시간 (랜덤 인증 시작 시간)
+    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime finishTime; // 공부 종료 시간 (랜덤 인증 종료 시간)
+    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime randomTime;
 
     @Enumerated(EnumType.STRING)
