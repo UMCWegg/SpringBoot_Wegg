@@ -3,6 +3,7 @@ package umc.wegg.service.FollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.Setting;
 import umc.wegg.domain.User;
 import umc.wegg.domain.enums.AccountVisibility;
@@ -32,10 +33,10 @@ public class FollowCommandServiceImpl implements FollowCommandService {
      * @param requestDTO 팔로우 요청 데이터
      */
     @Override
-    public FollowStatus createFollowRequest(FollowRequestDTO.CreateFollowRequestDTO requestDTO) {
+    public FollowStatus createFollowRequest(AuthenticatedUser authenticatedUser, FollowRequestDTO.CreateFollowRequestDTO requestDTO) {
         // 팔로우 요청한 사용자 조회
-        User follower = userRepository.findById(requestDTO.getFollowerId())
-                .orElseThrow(() -> new IllegalArgumentException("Follower not found with id: " + requestDTO.getFollowerId()));
+        User follower = userRepository.findById(authenticatedUser.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Follower not found with id: " + authenticatedUser.getUserId()));
 
         // 팔로우 요청받은 사용자 조회
         User followee = userRepository.findById(requestDTO.getFolloweeId())
@@ -69,9 +70,9 @@ public class FollowCommandServiceImpl implements FollowCommandService {
 
 
     @Override
-    public void decideFollowRequest(FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus) {
+    public void decideFollowRequest(AuthenticatedUser authenticatedUser, FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus) {
         Follow follow = followRepository.findByFollowerAndFollowee(
-                userRepository.findById(requestDTO.getFollowerId())
+                userRepository.findById(authenticatedUser.getUserId())
                         .orElseThrow(() -> new IllegalArgumentException("Follower not found")),
                 userRepository.findById(requestDTO.getFolloweeId())
                         .orElseThrow(() -> new IllegalArgumentException("Followee not found"))
@@ -83,9 +84,9 @@ public class FollowCommandServiceImpl implements FollowCommandService {
     }
 
     @Override
-    public boolean deleteFollowRequest(FollowRequestDTO.DeleteFollowRequestDTO requestDTO) {
+    public boolean deleteFollowRequest(AuthenticatedUser authenticatedUser,FollowRequestDTO.DeleteFollowRequestDTO requestDTO) {
         Follow follow = followRepository.findByFollowerAndFollowee(
-                userRepository.findById(requestDTO.getFollowerId())
+                userRepository.findById(authenticatedUser.getUserId())
                         .orElseThrow(() -> new IllegalArgumentException("Follower not found")),
                 userRepository.findById(requestDTO.getFolloweeId())
                         .orElseThrow(() -> new IllegalArgumentException("Followee not found"))
