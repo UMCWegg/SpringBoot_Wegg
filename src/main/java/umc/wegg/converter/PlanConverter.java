@@ -57,7 +57,7 @@ public class PlanConverter {
             if (planDate.isBefore(today)) {
                 return ApiResponse.onFailure("FAIL", "이미 날짜가 지났습니다.", null);
             }
-            // ✅ 2주 후 초과 체크
+            //2주 후 초과 체크
             if (planDate.isAfter(maxAllowedDate)) {
                 return ApiResponse.onFailure("FAIL", "2주 뒤까지의 계획만 설정 가능합니다.", null);
             }
