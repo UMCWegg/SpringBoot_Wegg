@@ -1,5 +1,6 @@
 package umc.wegg.service.FollowService;
 
+import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.enums.FollowStatus;
 import umc.wegg.dto.FollowRequestDTO;
 import umc.wegg.dto.FollowResponseDTO;
@@ -7,9 +8,9 @@ import umc.wegg.dto.FollowResponseDTO;
 import java.util.List;
 
 public interface FollowCommandService {
-    FollowStatus createFollowRequest(FollowRequestDTO.CreateFollowRequestDTO requestDTO);
-    void decideFollowRequest(FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus);
-    boolean deleteFollowRequest(FollowRequestDTO.DeleteFollowRequestDTO requestDTO);
+    FollowStatus createFollowRequest(AuthenticatedUser authenticatedUser,FollowRequestDTO.CreateFollowRequestDTO requestDTO);
+    void decideFollowRequest(AuthenticatedUser authenticatedUser,FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus);
+    boolean deleteFollowRequest(AuthenticatedUser authenticatedUser,FollowRequestDTO.DeleteFollowRequestDTO requestDTO);
 
 
     List<FollowResponseDTO.UserRecommendationDTO> getFollowRequests(Long myId);

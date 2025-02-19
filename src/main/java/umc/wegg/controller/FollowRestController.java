@@ -32,9 +32,10 @@ public class FollowRestController {
      */
     @PostMapping
     public ApiResponse<FollowResponseDTO.CreateFollowResponseDTO> createFollowRequest(
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.CreateFollowRequestDTO requestDTO) {
 
-        FollowStatus followStatus = followCommandService.createFollowRequest(requestDTO);
+        FollowStatus followStatus = followCommandService.createFollowRequest(authenticatedUser, requestDTO);
 
         String message = (followStatus == FollowStatus.SUCCEEDED)
                 ? "공개 계정을 팔로우 했습니다."
@@ -51,9 +52,10 @@ public class FollowRestController {
      */
     @DeleteMapping
     public ApiResponse<FollowResponseDTO.DeleteFollowResponseDTO> deleteFollowRequest(
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.DeleteFollowRequestDTO requestDTO) {
 
-        boolean isDeleted = followCommandService.deleteFollowRequest(requestDTO);
+        boolean isDeleted = followCommandService.deleteFollowRequest(authenticatedUser, requestDTO);
 
         String message = isDeleted ? "팔로우가 취소되었습니다." : "비공개 계정의 팔로우 요청은 취소만 가능합니다.";
 
@@ -72,7 +74,7 @@ public class FollowRestController {
             @RequestBody FollowRequestDTO.DecideFollowRequestDTO requestDTO) {
 
         // FollowStatus.SUCCEEDED를 추가하여 호출
-        followCommandService.decideFollowRequest(requestDTO, FollowStatus.SUCCEEDED);
+        followCommandService.decideFollowRequest(authenticatedUser, requestDTO, FollowStatus.SUCCEEDED);
 
         return ApiResponse.onSuccess(
                 new FollowResponseDTO.AcceptFollowResponseDTO("Follow request updated successfully."));
@@ -85,8 +87,9 @@ public class FollowRestController {
      */
     @PatchMapping("/reject")
     public ApiResponse<FollowResponseDTO.RejectFollowResponseDTO> rejectFollowRequest(
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.DecideFollowRequestDTO requestDTO) {
-        followCommandService.decideFollowRequest(requestDTO, FollowStatus.REJECTED);
+        followCommandService.decideFollowRequest(authenticatedUser, requestDTO, FollowStatus.REJECTED);
         return ApiResponse.onSuccess(
                 new FollowResponseDTO.RejectFollowResponseDTO("Follow request rejected successfully."));
     }

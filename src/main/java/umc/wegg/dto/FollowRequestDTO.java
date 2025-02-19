@@ -14,7 +14,7 @@ public class FollowRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CreateFollowRequestDTO {
-        private Long followerId; // 팔로우 요청을 보낸 사용자 ID
+        //private Long followerId; // 팔로우 요청을 보낸 사용자 ID
         private Long followeeId; // 팔로우 요청을 받은 사용자 ID
     }
 
@@ -24,7 +24,7 @@ public class FollowRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DecideFollowRequestDTO {
-        private Long followerId; // 팔로우 하는 사람 ID (필수)
+        //private Long followerId; // 팔로우 하는 사람 ID (필수)
         private Long followeeId; // 팔로우 당한 사람 ID (필수)
         //private String followSucceed; // 팔로우 요청 처리 상태 ("SUCCEEDED", "REJECTED", "WAITING")
     }
@@ -34,7 +34,7 @@ public class FollowRequestDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DeleteFollowRequestDTO {
-        private Long followerId;
+        //private Long followerId;
         private Long followeeId;
     }
 
