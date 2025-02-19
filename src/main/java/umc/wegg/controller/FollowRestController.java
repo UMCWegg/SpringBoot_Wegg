@@ -44,6 +44,21 @@ public class FollowRestController {
                 new FollowResponseDTO.CreateFollowResponseDTO(message, followStatus));
     }
 
+    /**
+     * 공개 계정의 팔로우 취소 (즉시 삭제)
+     * @param requestDTO 팔로우 취소 요청 데이터
+     * @return 응답 메시지
+     */
+    @DeleteMapping
+    public ApiResponse<FollowResponseDTO.DeleteFollowResponseDTO> deleteFollowRequest(
+            @RequestBody FollowRequestDTO.DeleteFollowRequestDTO requestDTO) {
+
+        boolean isDeleted = followCommandService.deleteFollowRequest(requestDTO);
+
+        String message = isDeleted ? "팔로우가 취소되었습니다." : "비공개 계정의 팔로우 요청은 취소만 가능합니다.";
+
+        return ApiResponse.onSuccess(new FollowResponseDTO.DeleteFollowResponseDTO(message));
+    }
 
 
     /**
@@ -51,13 +66,16 @@ public class FollowRestController {
      * @param requestDTO 팔로우 요청 처리 데이터
      * @return 응답 메시지
      */
-    @PatchMapping
+    @PatchMapping("/accept")
     public ApiResponse<FollowResponseDTO.AcceptFollowResponseDTO> acceptFollowRequest(
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody FollowRequestDTO.DecideFollowRequestDTO requestDTO) {
+
+        // FollowStatus.SUCCEEDED를 추가하여 호출
         followCommandService.decideFollowRequest(requestDTO, FollowStatus.SUCCEEDED);
+
         return ApiResponse.onSuccess(
-                new FollowResponseDTO.AcceptFollowResponseDTO("Follow request accepted successfully."));
+                new FollowResponseDTO.AcceptFollowResponseDTO("Follow request updated successfully."));
     }
 
     /**

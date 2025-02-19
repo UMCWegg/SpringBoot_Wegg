@@ -13,6 +13,8 @@ public class PostRequestDTO {
         //private String comment;    // 게시물 코멘트
         //private Long templateId;   // 템플릿 ID
         private Long planId;   // 계획 ID
+        private Double latitude;
+        private Double longitude;
     }
 
     @Getter

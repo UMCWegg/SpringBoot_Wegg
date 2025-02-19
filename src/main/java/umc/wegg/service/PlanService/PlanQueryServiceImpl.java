@@ -36,7 +36,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
 
 
     @Override
-    public PlanResponseDTO.LocationVerificationResponseDTO isUserInPlan(Long planId, Long userId, double userLat, double userLon) {
+    public PlanResponseDTO.LocationVerificationResponseDTO isUserInPlan(Long planId, Long userId, double userLat, double userLon, int type) {
         Plan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new RuntimeException("Plan not found"));
 
@@ -46,8 +46,8 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         boolean isWithinBoundary = GeoUtil.isWithinPlanBoundary(planLat, planLon, userLat, userLon, 0.5);
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startTime = plan.getStartTime();
-        LocalDateTime endTime = startTime.plusMinutes(plan.getLateTime().getMinutes());
+        LocalDateTime startTime = (type == 1) ? plan.getStartTime() : plan.getRandomTime();
+        LocalDateTime endTime = (type == 1) ? startTime.plusMinutes(plan.getLateTime().getMinutes()) : startTime.plusMinutes(2);
 
         String message;
         if (isWithinBoundary && now.isAfter(startTime.minusMinutes(5)) && now.isBefore(endTime)) {
@@ -63,7 +63,7 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         return new PlanResponseDTO.LocationVerificationResponseDTO(message);
     }
 
-    private void failPlan(Plan plan) {
+    public void failPlan(Plan plan) {
         plan.setStatus(PlanStatus.FAILED);
         Egg egg = plan.getEgg();
         if (egg != null) {

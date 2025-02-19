@@ -20,6 +20,9 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
                                        @Param("minY") double minY,
                                        @Param("maxY") double maxY);
 
+    @Query("SELECT a FROM Address a, Plan p WHERE p.address.id = a.id AND p.id = :planId")
+    Optional<Address> getAddressByPlanId(@Param("planId") Long planId);
+
     @Query("SELECT a, " +
             "(SELECT COUNT(p.id) FROM Post p JOIN Plan pl ON p.plan.id = pl.id WHERE pl.address.id = a.id) AS authCount, " +
             "(6371 * acos(\n" +

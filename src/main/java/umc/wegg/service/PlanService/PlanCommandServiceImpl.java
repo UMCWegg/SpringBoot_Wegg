@@ -190,4 +190,21 @@ public class PlanCommandServiceImpl implements PlanCommandService{
         // **장소 인증 후 계획이 실패하는 경우 알림 예약**
         planQueryService.schedulePlanVerification(plan);
     }
+
+    @Override
+    public PlanResponseDTO.CheckPlanInfoDTO getPlanInfoById(Long planId){
+
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new RuntimeException("해당 계획을 찾을 수 없습니다."));
+        Address address = addressRepository.getAddressByPlanId(planId)
+                .orElseThrow();
+
+        return PlanResponseDTO.CheckPlanInfoDTO.builder()
+                .planId(planId)
+                .placeName(address.getPlaceName())
+                .startTime(plan.getStartTime())
+                .latitude(Double.valueOf(address.getLatitude()))
+                .longitude(Double.valueOf(address.getLongitude()))
+                .build();
+    }
 }

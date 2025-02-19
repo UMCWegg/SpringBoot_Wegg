@@ -8,8 +8,10 @@ import umc.wegg.domain.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PlanRepository extends JpaRepository<Plan, Long> {
+    Optional<Plan> findById(Long id);
     List<Plan> findByUserId(Long userId);
     List<Plan> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
     List<Plan> findByAddressId(Long addressId);

@@ -129,13 +129,14 @@ public class PlanConverter {
     public static PlanResponseDTO.PlanDetailDTO toPlanDetailDTO(Plan plan) {
         return PlanResponseDTO.PlanDetailDTO.builder()
                 .planId(plan.getId())
-                .status(plan.getStatus())
-                .startTime(plan.getStartTime().truncatedTo(ChronoUnit.MINUTES)) // 초, 나노초 제거
-                .finishTime(plan.getFinishTime().truncatedTo(ChronoUnit.MINUTES)) // 초, 나노초 제거
+                .planDate(plan.getPlanDate())
+                .startTime(plan.getStartTime().toLocalTime().truncatedTo(ChronoUnit.MINUTES)) // 초, 나노초 제거
+                .finishTime(plan.getFinishTime().toLocalTime().truncatedTo(ChronoUnit.MINUTES)) // 초, 나노초 제거
                 .lateTime(plan.getLateTime())
+                .Onoff(plan.getPlanOn())
                 .latitude(plan.getAddress().getLatitude()) // Address의 latitude 사용
                 .longitude(plan.getAddress().getLongitude()) // Address의 longitude 사용
-                .address(plan.getAddress().getAddress()) // Address의 address 사용
+                .placeName(plan.getAddress().getPlaceName()) // Address의 address 사용
                 .userId(plan.getUser().getId()) // Plan에 User가 연관되어 있다고 가정
                 .build();
     }
