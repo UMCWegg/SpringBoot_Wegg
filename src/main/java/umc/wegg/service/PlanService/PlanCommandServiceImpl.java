@@ -87,18 +87,18 @@ public class PlanCommandServiceImpl implements PlanCommandService{
                 .collect(Collectors.toList());
 
         // 반환된 계획을 기반으로 Egg 생성
-        newPlans.forEach(plan -> {
-            Egg egg = Egg.builder()
-                    .status(EggStatus.INTACT)
-                    .plan(plan)
-                    .build();
-
-            eggRepository.save(egg);
-
-            // Plan과 Egg를 연결
-            plan.setEgg(egg);
-            planRepository.save(plan);
-        });
+//        newPlans.forEach(plan -> {
+//            Egg egg = Egg.builder()
+//                    .status(EggStatus.INTACT)
+//                    .plan(plan)
+//                    .build();
+//
+//            eggRepository.save(egg);
+//
+//            // Plan과 Egg를 연결
+//            plan.setEgg(egg);
+//            planRepository.save(plan);
+//        });
 
         // 각 계획에 대해 알림 예약
         newPlans.forEach(this::scheduleNotifications);
