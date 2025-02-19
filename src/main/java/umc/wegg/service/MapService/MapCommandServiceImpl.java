@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class MapServiceImpl implements MapService {
+public class MapCommandServiceImpl implements MapCommandService {
 
     private final AddressRepository addressRepository;
     private final MyAddressRepository myAddressRepository;
@@ -204,17 +204,12 @@ public class MapServiceImpl implements MapService {
 
     @Override
     public MapResponseDTO.BookmarkDTO bookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId){
-
-        if (authenticatedUser == null) {
-            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-        }
-
         Long userId = authenticatedUser.getUserId();
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+                .orElseThrow();
 
         Address address = addressRepository.findById(addressId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 장소를 찾을 수 없습니다."));
+                .orElseThrow();
 
 
         MyAddress myAddress = MyAddressConverter.toMyAddress(user, address);
@@ -228,13 +223,9 @@ public class MapServiceImpl implements MapService {
     @Override
     public MapResponseDTO.UnbookmarkDTO unbookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId){
 
-        if (authenticatedUser == null) {
-            throw new IllegalArgumentException("인증된 사용자 정보를 찾을 수 없습니다.");
-        }
-
         Long userId = authenticatedUser.getUserId();
         MyAddress myAddress = myAddressRepository.findByUserIdAndAddressId(userId, addressId)
-                        .orElseThrow(() -> new IllegalArgumentException("장소 저장 데이터를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new NoSuchElementException("장소 저장 데이터를 찾을 수 없습니다."));
 
         myAddressRepository.delete(myAddress);
 

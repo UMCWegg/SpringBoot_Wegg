@@ -1,19 +1,14 @@
 package umc.wegg.controller;
 
-import com.amazonaws.services.ec2.model.PurchaseRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.config.security.AuthenticatedUser;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import umc.wegg.config.security.AuthenticatedUser;
-import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.PurchaseRequestDTO;
 import umc.wegg.dto.PurchaseResponseDTO.MypointResponseDTO;
-import umc.wegg.repository.UserRepository;
 import umc.wegg.service.PurchaseService.PurchaseCommandService;
+import umc.wegg.validation.annotation.ValidUser;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,10 +16,9 @@ import umc.wegg.service.PurchaseService.PurchaseCommandService;
 public class PurchaseRestController {
 
     private final PurchaseCommandService purchaseCommandService;
-    private final UserRepository userRepository;
 
     @GetMapping("/myPoints")
-    public ApiResponse<MypointResponseDTO> getMyPoints(AuthenticatedUser authenticatedUser) {
+    public ApiResponse<MypointResponseDTO> getMyPoints(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         MypointResponseDTO response = purchaseCommandService.getUserPoints(userId);
@@ -55,7 +49,7 @@ public class PurchaseRestController {
 //    }
 
     @PostMapping("/template")
-    public ApiResponse<String> purchaseTemplate(AuthenticatedUser authenticatedUser, @RequestBody PurchaseRequestDTO.TemplatePurchaseRequestDTO requestDTO) {
+    public ApiResponse<String> purchaseTemplate(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody PurchaseRequestDTO.TemplatePurchaseRequestDTO requestDTO) {
         Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         boolean success = purchaseCommandService.purchaseTemplate(userId, requestDTO.getTemplateType());
@@ -67,7 +61,7 @@ public class PurchaseRestController {
     }
 
     @PostMapping("/addPoints")
-    public ApiResponse<String> addPoints(AuthenticatedUser authenticatedUser, @RequestBody PurchaseRequestDTO.AddPointsRequestDTO requestDTO) {
+    public ApiResponse<String> addPoints(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser, @RequestBody PurchaseRequestDTO.AddPointsRequestDTO requestDTO) {
         Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         boolean success = purchaseCommandService.addPoints(userId, requestDTO.getPointsToAdd());

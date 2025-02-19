@@ -2,7 +2,6 @@ package umc.wegg.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import umc.wegg.config.security.AuthenticatedUser;
@@ -13,9 +12,9 @@ import umc.wegg.dto.PlanRequestDTO;
 import umc.wegg.dto.PlanResponseDTO;
 import umc.wegg.service.PlanService.PlanCommandService;
 import umc.wegg.service.PlanService.PlanQueryService;
+import umc.wegg.validation.annotation.ValidUser;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,7 +25,7 @@ public class PlanRestController {
 
     @PostMapping("/add")
     public ApiResponse<List<PlanResponseDTO.PlanAddResultDTO>> join(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody @Valid PlanRequestDTO.PlanAddDTO request) {
 
         // 인증된 사용자 ID 가져오기
@@ -68,7 +67,7 @@ public class PlanRestController {
 
 
     @GetMapping
-    public ApiResponse<List<PlanResponseDTO.PlanDetailDTO>> getPlans(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<List<PlanResponseDTO.PlanDetailDTO>> getPlans(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         // 인증된 사용자 정보 가져오기
         Long userId = authenticatedUser.getUserId();
 
@@ -86,7 +85,7 @@ public class PlanRestController {
 
     @GetMapping("/{plan_id}/check")
     public PlanResponseDTO.LocationVerificationResponseDTO checkUserLocation(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @PathVariable("plan_id") Long planId,
             @RequestParam("lat") double userLat,
             @RequestParam("lon") double userLon) {

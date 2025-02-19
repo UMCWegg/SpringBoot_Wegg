@@ -1,6 +1,5 @@
 package umc.wegg.controller;
 
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -10,12 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.converter.NotificationConverter;
-import umc.wegg.converter.PlanConverter;
-import umc.wegg.converter.TodoConverter;
 import umc.wegg.domain.Notification;
-import umc.wegg.domain.Plan;
-import umc.wegg.domain.TodoList;
-import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.domain.enums.AccountVisibility;
 import umc.wegg.domain.enums.FollowStatus;
@@ -23,7 +17,7 @@ import umc.wegg.dto.*;
 import umc.wegg.repository.FollowRepository;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.NotificationService.NotificationService;
-import umc.wegg.service.UserService.UserCommandService;
+import umc.wegg.validation.annotation.ValidUser;
 
 import java.util.List;
 
@@ -38,14 +32,14 @@ public class NotificationController {
 
     //Last-Event-ID는 SSE 연결이 끊어졌을 경우, 클라이언트가 수신한 마지막 데이터의 id 값을 의미합니다. 항상 존재하는 것이 아니기 때문에 false
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> subscribe(@AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+    public ResponseEntity<SseEmitter> subscribe(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
                                                 @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         return ResponseEntity.ok(notificationService.subscribe(authenticatedUser.getUserId(), lastEventId));
     }
 
     @GetMapping
     public ApiResponse<NotificationResponseDTO.NotificationListDTO> getUserNotifications(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Long userId = authenticatedUser.getUserId();
 
         // 🔹 UserRepository 또는 UserService를 통해 Setting 가져오기

@@ -19,9 +19,10 @@ import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.service.MailService.MailService;
-import umc.wegg.service.MapService.MapService;
+import umc.wegg.service.MapService.MapCommandService;
 import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
+import umc.wegg.validation.annotation.ValidUser;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,20 +35,20 @@ import java.util.List;
 public class UserRestController {
 
     private final UserCommandService userCommandService;
-    private final MapService mapService;
+    private final MapCommandService mapCommandService;
     private final SmsService smsService;
     private final MailService mailService;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입",description = "회원가입 API")
     public ApiResponse<UserResponseDTO.UserJoinResultDTO> join(@RequestBody @Valid UserRequestDTO.UserJoinDto request){
-        UserResponseDTO.UserJoinResultDTO response = userCommandService.joinUser(request);
-        return ApiResponse.onSuccess(response);
+        ApiResponse<UserResponseDTO.UserJoinResultDTO> response = userCommandService.joinUser(request);
+        return response;
     }
 
     //확인용 api
     @GetMapping("/info")
-    public void infoMember(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public void infoMember(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         log.info("authenticatedUser -> {}", authenticatedUser.toString());
     }
 
@@ -55,7 +56,7 @@ public class UserRestController {
     @Operation(summary = "OAuth 회원가입", description = "OAuth 인증을 완료하고 사용자 정보를 저장하는 API")
     public ApiResponse<?> oAuth2Signup(@RequestBody @Valid UserRequestDTO.OAuth2UserJoinDto request) {
 
-        UserResponseDTO.OAuth2UserJoinResultDTO response = userCommandService.oAuth2JoinUser(request);
+        ApiResponse<UserResponseDTO.OAuth2UserJoinResultDTO> response = userCommandService.oAuth2JoinUser(request);
 
         return ApiResponse.onSuccess(response);
     }
@@ -74,7 +75,7 @@ public class UserRestController {
 
     @DeleteMapping("/resign")
     @Operation(summary = "회원 탈퇴",description = "회원 탈퇴 API. ")
-    public ApiResponse<UserResponseDTO.UserDeleteResultDTO> deleteUser(@AuthenticationPrincipal AuthenticatedUser authenticatedUser){
+    public ApiResponse<UserResponseDTO.UserDeleteResultDTO> deleteUser(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser){
 
         UserResponseDTO.UserDeleteResultDTO response = userCommandService.deleteUser(authenticatedUser);
 
@@ -84,7 +85,7 @@ public class UserRestController {
     @PatchMapping(value = "/update", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(summary = "회원정보 수정", description = "회원정보 수정 API")
     public ApiResponse<UserResponseDTO.UserUpdateResultDTO> updateUser(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestPart(value = "request", required = false) @Valid UserRequestDTO.UserUpdateDto request,
             @RequestPart(value = "profileImage", required = false) MultipartFile profilePicture
     ) throws IOException {
@@ -118,16 +119,16 @@ public class UserRestController {
     @Operation(summary = "인증번호 확인",description = "인증번호가 일치하는지 확인하는 API. 일치할 경우 result 값 true")
     public ApiResponse<UserResponseDTO.VerifyNumberResultDTO> verifyNumber(@RequestBody @Valid UserRequestDTO.VerifyNumberDto request){
 
-        UserResponseDTO.VerifyNumberResultDTO response = userCommandService.verityNumber(request);
+        ApiResponse<UserResponseDTO.VerifyNumberResultDTO> response = userCommandService.verityNumber(request);
 
-        return ApiResponse.onSuccess(response);
+        return response;
     }
 
     @GetMapping("/id-check")
-    @Operation(summary = "아이디 중복 체크", description = "아이디의 중복 여부를 확인하는 API. 중복일 경우 result 값 true")
+    @Operation(summary = "아이디 유효성 체크", description = "아이디의 중복 여부 및 형식을 확인하는 API. 중복이거나 형식이 다를 경우 result 값 true")
     public ApiResponse<UserResponseDTO.CheckAccountIdResultDTO> checkAccountIdDuplication(
             @RequestParam("accountId") @NotBlank String accountId) {
-        UserResponseDTO.CheckAccountIdResultDTO response = userCommandService.checkAccountIdDuplication(accountId);
+        UserResponseDTO.CheckAccountIdResultDTO response = userCommandService.checkAccountIdValidation(accountId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -142,7 +143,7 @@ public class UserRestController {
     @PostMapping("/update-contacts")
     @Operation(summary = "연락처 갱신", description = "새롭게 가입한 친구를 추가하는 API")
     public ApiResponse<UserResponseDTO.ContactUpdateResultDTO> updateContacts(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody @Valid UserRequestDTO.UpdateContactListDTO request) {
 
         UserResponseDTO.ContactUpdateResultDTO response = userCommandService.updateContactList(authenticatedUser, request.getContacts());
@@ -160,11 +161,11 @@ public class UserRestController {
     @GetMapping("/bookmarks")
     @Operation(summary = "사용자가 저장한 장소 조회", description = "사용자가 저장한 장소 목록을 조회하는 API")
     public ApiResponse<MapResponseDTO.BookmarkPlaceListDTO> getUserBookmarks(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "15") Integer size) {
 
-        MapResponseDTO.BookmarkPlaceListDTO response = mapService.getUserBookmarks(authenticatedUser, page, size);
+        MapResponseDTO.BookmarkPlaceListDTO response = mapCommandService.getUserBookmarks(authenticatedUser, page, size);
 
         return ApiResponse.onSuccess(response);
     }
