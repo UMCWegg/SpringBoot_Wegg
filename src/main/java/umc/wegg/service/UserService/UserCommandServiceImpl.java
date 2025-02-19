@@ -59,12 +59,11 @@ public class UserCommandServiceImpl implements UserCommandService{
 
     @Override
     @Transactional
-    public UserResponseDTO.UserJoinResultDTO joinUser(UserRequestDTO.UserJoinDto request) {
+    public ApiResponse<UserResponseDTO.UserJoinResultDTO> joinUser(UserRequestDTO.UserJoinDto request) {
 
         boolean isExistingUser = userRepository.existsByEmail(request.getEmail());
         if (isExistingUser) {
-            //exception throw
-            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
+            ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "이미 존재하는 사용자입니다.", null);
         }
 
         List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
@@ -97,20 +96,20 @@ public class UserCommandServiceImpl implements UserCommandService{
                 ))
                 .collect(Collectors.toList());
 
-        return UserConverter.toJoinResultDTO(user, contactFriends);
+        return ApiResponse.onSuccess(UserConverter.toJoinResultDTO(user, contactFriends));
     }
 
     @Override
     @Transactional
-    public UserResponseDTO.OAuth2UserJoinResultDTO oAuth2JoinUser(UserRequestDTO.OAuth2UserJoinDto request) {
+    public ApiResponse<UserResponseDTO.OAuth2UserJoinResultDTO> oAuth2JoinUser(UserRequestDTO.OAuth2UserJoinDto request) {
 
         if ("google".equals(request.getType())) {
             if (!verifyGoogleToken(request.getToken())) {
-                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "OAuth2 로그인 검증에 실패했습니다", null);
             }
         }else{
             if (!verifyKakaoToken(request.getToken())){
-                throw new IllegalArgumentException("OAuth2 로그인 검증에 실패했습니다");
+                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "OAuth2 로그인 검증에 실패했습니다", null);
             }
         }
 
@@ -121,8 +120,7 @@ public class UserCommandServiceImpl implements UserCommandService{
         // 2. 사용자 존재 여부 확인
         boolean isExistingUser = userRepository.existsByEmail(email);
         if (isExistingUser) {
-            //exception throw
-            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
+            ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "이미 존재하는 사용자입니다.", null);
         }
 
         List<UserResponseDTO.ContactFriendDTO> contactFriendList = Optional.ofNullable(request.getContact())
@@ -154,7 +152,7 @@ public class UserCommandServiceImpl implements UserCommandService{
                 ))
                 .collect(Collectors.toList());
 
-        return UserConverter.toOAuth2JoinResultDTO(user, contactFriends);
+        return ApiResponse.onSuccess(UserConverter.toOAuth2JoinResultDTO(user, contactFriends));
     }
 
     @Override
@@ -164,11 +162,11 @@ public class UserCommandServiceImpl implements UserCommandService{
 
         if ("google".equals(request.getType())) {
             if (!verifyGoogleToken(request.getToken())) {
-                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "로그인 실패", null);
+                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "OAuth2 로그인 검증에 실패했습니다", null);
             }
         }else{
             if (!verifyKakaoToken(request.getToken())){
-                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "로그인 실패", null);
+                return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "OAuth2 로그인 검증에 실패했습니다", null);
             }
         }
 
@@ -193,7 +191,6 @@ public class UserCommandServiceImpl implements UserCommandService{
 
             return ApiResponse.onSuccess(new UserResponseDTO.LoginResultDTO(true, user.getId()));
         } else {
-            //exception throw
             return ApiResponse.onFailure(ErrorStatus._UNAUTHORIZED.getCode(), "로그인 실패", null);
         }
     }
@@ -315,26 +312,25 @@ public UserResponseDTO.UserUpdateResultDTO updateUser(AuthenticatedUser authenti
         return new UserResponseDTO.CheckEmailResultDTO(isDuplicate, message);
     }
 
-    public UserResponseDTO.VerifyNumberResultDTO verityNumber(UserRequestDTO.VerifyNumberDto request) {
+    public ApiResponse<UserResponseDTO.VerifyNumberResultDTO> verityNumber(UserRequestDTO.VerifyNumberDto request) {
 
         if (!request.validateFormat()) {
-            //exception throw
+            return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "이메일/전화번호의 형식이 맞지 않습니다.", null);
         }
 
         String target = request.getTarget();
 
         String savedNumber = redisUtil.getData(target);
         if (savedNumber == null) {
-            //exception throw 하기
+            return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "해당 이메일/전화번호로 전송된 인증번호가 존재하지 않습니다.", null);
         }
 
         String number = request.getNumber();
 
         if (savedNumber.equals(number)) {
-            return new UserResponseDTO.VerifyNumberResultDTO(true);
-
+            return ApiResponse.onSuccess(new UserResponseDTO.VerifyNumberResultDTO(true));
         } else {
-            return new UserResponseDTO.VerifyNumberResultDTO(false);
+            return ApiResponse.onSuccess(new UserResponseDTO.VerifyNumberResultDTO(false));
         }
     }
 

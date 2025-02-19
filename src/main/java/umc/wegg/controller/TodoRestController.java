@@ -13,6 +13,7 @@ import umc.wegg.service.TodoService.TodoCommandService;
 import umc.wegg.dto.TodoRequestDTO;
 import umc.wegg.dto.TodoResponseDTO;
 import org.springframework.security.core.Authentication;
+import umc.wegg.validation.annotation.ValidUser;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class TodoRestController {
 
     @PostMapping("/add")
     public ApiResponse<TodoResponseDTO.AddResultDTO> join(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @RequestBody @Valid TodoRequestDTO.AddDTO request) {
 
         // 인증된 사용자 ID 가져오기
@@ -55,7 +56,7 @@ public class TodoRestController {
     }
 
     @GetMapping("/achievement")
-    public ApiResponse<Double> getAchievementRate(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<Double> getAchievementRate(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = authenticatedUser.getUserId();
 
@@ -65,7 +66,7 @@ public class TodoRestController {
 
     @GetMapping
     public ApiResponse<List<TodoResponseDTO.AddResultDTO>> getUserTodos(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Long userId = authenticatedUser.getUserId();
         List<TodoList> todos = todoCommandService.getUserTodos(userId);
 

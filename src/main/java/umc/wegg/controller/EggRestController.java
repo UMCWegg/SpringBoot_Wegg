@@ -11,6 +11,7 @@ import umc.wegg.dto.HomeResponseDTO;
 import umc.wegg.dto.TimeRequestDTO;
 import umc.wegg.service.EggService.EggService;
 import umc.wegg.service.HomeService.HomeCommandService;
+import umc.wegg.validation.annotation.ValidUser;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class EggRestController {
             summary = "캘린더 조회",
             description = "캘린더 화면에서 사용자의 계획(Plan)을 조회하는 API"
     )
-    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView(@AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView(@ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
@@ -49,7 +50,7 @@ public class EggRestController {
             description = "특정 계획(plan_id)에 연결된 알(Egg)을 깨는 API"
     )
     public ApiResponse<Void> breakEgg(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @PathVariable("plan_id") Long planId) {
         eggService.breakEgg(authenticatedUser, planId);
         return ApiResponse.onSuccess(null);

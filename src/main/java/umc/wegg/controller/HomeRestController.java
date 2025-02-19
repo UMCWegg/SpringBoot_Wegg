@@ -8,10 +8,9 @@ import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.User;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.HomeResponseDTO;
-import umc.wegg.dto.PostResponseDTO;
 import umc.wegg.repository.UserRepository;
 import umc.wegg.service.HomeService.HomeCommandService;
-import umc.wegg.service.PostService.PostCommandService;
+import umc.wegg.validation.annotation.ValidUser;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,13 +18,12 @@ import umc.wegg.service.PostService.PostCommandService;
 public class HomeRestController {
 
     private final HomeCommandService homeService;
-    private final PostCommandService postCommandService;
     private final UserRepository userRepository;
 
     // 주간 화면 렌더링
     @GetMapping("/week")
     @Operation(summary = "주간 화면 렌더링", description = "홈(주간) 화면 렌더링 API")
-    public ApiResponse<HomeResponseDTO.HomeWeekResponseDTO> renderWeekView( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<HomeResponseDTO.HomeWeekResponseDTO> renderWeekView( @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         HomeResponseDTO.HomeWeekResponseDTO response = homeService.getHomeWeekData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
@@ -33,14 +31,14 @@ public class HomeRestController {
     // 월간 화면 렌더링
     @GetMapping("/month")
     @Operation(summary = "월간 화면 렌더링", description = "홈(월간) 화면 렌더링 API, 날짜에 따른 게시물 사진과 시간 모두 담김")
-    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> renderMonthView( @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         HomeResponseDTO.HomeMonthResponseDTO response = homeService.getHomeMonthData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
 
     @GetMapping("/follow")
     @Operation(summary = "팔로우 팔로잉(+프로필 사진) 화면 렌더링", description = "홈(월간) 화면 렌더링 시 팔로우,팔로잉 API")
-    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFollowView( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFollowView( @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         HomeResponseDTO.FollowResponseDTO response = homeService.getHomeFollowData(authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
@@ -49,7 +47,7 @@ public class HomeRestController {
     @GetMapping("/calendar/{year}/{month}")
     @Operation(summary = "이전달/다음달 버튼", description = "홈(월간) 화면에서 이전/다음 달로 이동하는 API")
     public ApiResponse<HomeResponseDTO.HomeMonthResponseDTO> getCalendarData(
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
             @PathVariable("year") int year,
             @PathVariable("month") int month
     ) {
@@ -68,7 +66,7 @@ public class HomeRestController {
     @Operation(summary = "친구의 팔로우/팔로잉 정보 조회", description = "특정 사용자의 팔로우 및 팔로잉 정보를 조회하는 API")
     public ApiResponse<HomeResponseDTO.FollowResponseDTO> renderFriendFollowView(
             @PathVariable("userId") Long userId,
-            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+            @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         HomeResponseDTO.FollowResponseDTO response = homeService.getFriendHomeFollowData(userId, authenticatedUser);
         return ApiResponse.onSuccess(response);
     }
@@ -88,10 +86,10 @@ public class HomeRestController {
 
     @PostMapping("/receive-points")
     @Operation(summary = "포인트 받기", description = "3의 배수 성공 횟수마다 포인트 지급")
-    public ApiResponse<Integer> receivePoints( @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+    public ApiResponse<Integer> receivePoints( @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
         Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow();
 
         int successCount = user.getSuccessCount();
 
