@@ -59,18 +59,10 @@ public class PlanConverter {
                 return ApiResponse.onFailure("FAIL", "2주 뒤까지의 계획만 설정 가능합니다.", null);
             }
 
-            // 🛠 **UTC → KST 변환 정확히 수행**
-            LocalDateTime startTimeUTC = LocalDateTime.of(planDate, request.getStartTime());
-            LocalDateTime finishTimeUTC = LocalDateTime.of(planDate, request.getFinishTime());
+            LocalDateTime startTime = LocalDateTime.of(planDate, request.getStartTime());
+            LocalDateTime finishTime = LocalDateTime.of(planDate, request.getFinishTime());
 
-            // 🌍 **UTC에서 KST로 변환**
-            ZonedDateTime startTimeKST = startTimeUTC.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-            ZonedDateTime finishTimeKST = finishTimeUTC.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-
-            LocalDateTime startTime = startTimeKST.toLocalDateTime();
-            LocalDateTime finishTime = finishTimeKST.toLocalDateTime();
-
-            System.out.println("request의 startTime" + request.getStartTime() + "변환 후 : " + startTime);
+            System.out.println("request의 startTime : " + request.getStartTime() + "변환 후 : " + startTime);
 
             if (finishTime.isBefore(startTime)) {
                 finishTime = finishTime.plusDays(1);
