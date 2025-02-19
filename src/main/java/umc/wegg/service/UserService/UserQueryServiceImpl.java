@@ -11,7 +11,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final UserRepository userRepository;
 
     @Override
-    public boolean  existsById(Long id){
+    public boolean existsById(Long id){
         return userRepository.existsById(id);
     }
 }

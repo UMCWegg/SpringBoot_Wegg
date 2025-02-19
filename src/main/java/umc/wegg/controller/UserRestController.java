@@ -19,7 +19,7 @@ import umc.wegg.dto.MapResponseDTO;
 import umc.wegg.dto.UserRequestDTO;
 import umc.wegg.dto.UserResponseDTO;
 import umc.wegg.service.MailService.MailService;
-import umc.wegg.service.MapService.MapService;
+import umc.wegg.service.MapService.MapCommandService;
 import umc.wegg.service.SmsService.SmsService;
 import umc.wegg.service.UserService.UserCommandService;
 import umc.wegg.validation.annotation.ValidUser;
@@ -35,7 +35,7 @@ import java.util.List;
 public class UserRestController {
 
     private final UserCommandService userCommandService;
-    private final MapService mapService;
+    private final MapCommandService mapCommandService;
     private final SmsService smsService;
     private final MailService mailService;
 
@@ -165,7 +165,7 @@ public class UserRestController {
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "15") Integer size) {
 
-        MapResponseDTO.BookmarkPlaceListDTO response = mapService.getUserBookmarks(authenticatedUser, page, size);
+        MapResponseDTO.BookmarkPlaceListDTO response = mapCommandService.getUserBookmarks(authenticatedUser, page, size);
 
         return ApiResponse.onSuccess(response);
     }

@@ -9,7 +9,8 @@ import umc.wegg.config.security.AuthenticatedUser;
 import umc.wegg.domain.apiPayload.ApiResponse;
 import umc.wegg.dto.MapRequestDTO;
 import umc.wegg.dto.MapResponseDTO;
-import umc.wegg.service.MapService.MapService;
+import umc.wegg.service.MapService.MapCommandService;
+import umc.wegg.validation.annotation.ExistAddress;
 import umc.wegg.validation.annotation.ValidUser;
 
 @RestController
@@ -17,7 +18,7 @@ import umc.wegg.validation.annotation.ValidUser;
 @RequestMapping("/maps")
 public class MapRestController {
 
-    private final MapService mapService;
+    private final MapCommandService mapCommandService;
 
     @GetMapping("/plans/search")
     @Operation(summary = "장소 검색(계획)", description = "계획 설정 시, 장소를 지정할때 사용하는 장소 검색 API (사용자 위치 주변 장소 리스트 반환)")
@@ -25,7 +26,7 @@ public class MapRestController {
                                                                          @RequestParam(name = "page", defaultValue = "0") Integer page,
                                                                          @RequestParam(name = "size", defaultValue = "15") Integer size) {
 
-        MapResponseDTO.SearchPlanPlaceListDTO response = mapService.searchPlaceListByKeyword(request, page, size);
+        MapResponseDTO.SearchPlanPlaceListDTO response = mapCommandService.searchPlaceListByKeyword(request, page, size);
 
         return ApiResponse.onSuccess(response);
     }
@@ -36,7 +37,7 @@ public class MapRestController {
                                                                             @RequestParam(name = "page", defaultValue = "0") Integer page,
                                                                             @RequestParam(name = "size", defaultValue = "15") Integer size) {
 
-        MapResponseDTO.SearchHotPlaceListDTO response = mapService.searchHotPlaceListByKeyword(request, page, size);
+        MapResponseDTO.SearchHotPlaceListDTO response = mapCommandService.searchHotPlaceListByKeyword(request, page, size);
 
         return ApiResponse.onSuccess(response);
     }
@@ -49,7 +50,7 @@ public class MapRestController {
             @RequestParam(name = "size", defaultValue = "15") Integer size
     ) {
 
-        MapResponseDTO.HotPlaceListDTO response = mapService.viewHotPlaceList(request, page, size);
+        MapResponseDTO.HotPlaceListDTO response = mapCommandService.viewHotPlaceList(request, page, size);
 
         return ApiResponse.onSuccess(response);
     }
@@ -58,10 +59,10 @@ public class MapRestController {
     @Operation(summary = "장소 저장", description = "장소를 저장하는 API")
     public ApiResponse<MapResponseDTO.BookmarkDTO> bookmarkAddress(
             @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
-            @PathVariable("address_id") Long addressId
+            @ExistAddress @PathVariable("address_id") Long addressId
     ) {
 
-        MapResponseDTO.BookmarkDTO response = mapService.bookmarkAddress(authenticatedUser, addressId);
+        MapResponseDTO.BookmarkDTO response = mapCommandService.bookmarkAddress(authenticatedUser, addressId);
 
         return ApiResponse.onSuccess(response);
     }
@@ -70,10 +71,10 @@ public class MapRestController {
     @Operation(summary = "장소 저장 삭제", description = "저장한 장소를 삭제하는 API")
     public ApiResponse<MapResponseDTO.UnbookmarkDTO> unbookmarkAddress(
             @ValidUser @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
-            @PathVariable("address_id") Long addressId
+            @ExistAddress @PathVariable("address_id") Long addressId
     ) {
 
-        MapResponseDTO.UnbookmarkDTO response = mapService.unbookmarkAddress(authenticatedUser, addressId);
+        MapResponseDTO.UnbookmarkDTO response = mapCommandService.unbookmarkAddress(authenticatedUser, addressId);
 
         return ApiResponse.onSuccess(response);
     }
@@ -83,7 +84,7 @@ public class MapRestController {
     public ApiResponse<MapResponseDTO.DetailListDTO> getPlaceDetails(
             @Valid @ModelAttribute MapRequestDTO.SearchDetailDTO request) {
 
-        MapResponseDTO.DetailListDTO response = mapService.getPlaceDetails(request);
+        MapResponseDTO.DetailListDTO response = mapCommandService.getPlaceDetails(request);
         return ApiResponse.onSuccess(response);
     }
 
