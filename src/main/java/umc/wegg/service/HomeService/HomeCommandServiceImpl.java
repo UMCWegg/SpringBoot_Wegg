@@ -38,7 +38,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
     @Override
     public HomeResponseDTO.HomeWeekResponseDTO getHomeWeekData(AuthenticatedUser authenticatedUser) {
-        Long userId = 1L;//authenticatedUser.getUserId(); // 로그인된 사용자 ID
+        Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
 
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
