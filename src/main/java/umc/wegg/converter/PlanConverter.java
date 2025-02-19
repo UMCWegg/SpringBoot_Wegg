@@ -89,6 +89,7 @@ public class PlanConverter {
                     .build();
 
             planRepository.save(newPlan);
+            System.out.println("저장되는 startTime : " + newPlan.getStartTime());
             planList.add(newPlan);
         }
 
