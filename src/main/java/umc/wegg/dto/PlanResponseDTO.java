@@ -1,5 +1,6 @@
 package umc.wegg.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,14 +38,16 @@ public class PlanResponseDTO {
     @AllArgsConstructor
     public static class PlanDetailDTO {
         Long planId;
-        PlanStatus status;
-        LocalDateTime startTime;
-        LocalDateTime finishTime;
+        LocalDate planDate;
+        @JsonFormat(pattern = "HH:mm")
+        LocalTime startTime;
+        @JsonFormat(pattern = "HH:mm")
+        LocalTime finishTime;
         LateStatus lateTime;
+        Boolean Onoff;
         Float latitude;
         Float longitude;
-        String address;
-        String content;
+        String placeName;
         Long userId;
     }
     @Builder
