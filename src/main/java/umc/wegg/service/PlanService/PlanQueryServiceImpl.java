@@ -53,7 +53,13 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         if (isWithinBoundary && now.isAfter(startTime.minusMinutes(5)) && now.isBefore(endTime)) {
             message = "장소 인증에 성공했습니다!";
             plan.setStatus(PlanStatus.STARTED);
-        } else {
+        } else if (!now.isAfter(startTime.minusMinutes(5))) {
+            message = "장소 인증 시간이 아닙니다!";
+        } else if (!now.isBefore(endTime)) {
+            message = "장소 인증을 늦었습니다!";
+            failPlan(plan);
+        }
+        else {
             message = "장소 인증에 실패했습니다!";
             failPlan(plan);
         }

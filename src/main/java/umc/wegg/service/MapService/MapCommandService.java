@@ -11,5 +11,5 @@ public interface MapCommandService {
     MapResponseDTO.BookmarkDTO bookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId);
     MapResponseDTO.UnbookmarkDTO unbookmarkAddress(AuthenticatedUser authenticatedUser, Long addressId);
     MapResponseDTO.BookmarkPlaceListDTO getUserBookmarks(AuthenticatedUser authenticatedUser, Integer page, Integer size);
-    MapResponseDTO.DetailListDTO getPlaceDetails(MapRequestDTO.SearchDetailDTO request);
+    MapResponseDTO.DetailListDTO getPlaceDetails(Long userId, MapRequestDTO.SearchDetailDTO request);
 }

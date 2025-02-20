@@ -51,7 +51,7 @@ public class PostResponseDTO {
         private Long commentId;         // 댓글 ID
         private Long parentId;          // 부모댓글 ID
         private Long userId;            // 댓글 작성자 ID
-        private String username;        // 댓글 작성자 닉네임
+        private String accountId;        // 댓글 작성자 accountId
         private String content;         // 댓글 내용
         private String commenterProfileUrl; // 댓글 작성자 프로필 이미지 URL
         private LocalDateTime createdAt; // 댓글 작성 시간
@@ -118,7 +118,7 @@ public class PostResponseDTO {
             private Long commentId;                            // 댓글 ID
             private Long parentId;                             // 부모댓글 ID
             private Long userId;                               // 댓글 작성자 ID
-            private String username;                           // 댓글 작성자 닉네임
+            private String accountId;                           // 댓글 작성자 accountId
             private String content;                            // 댓글 내용
             private String commenterProfileUrl;               // 댓글 작성자 프로필 이미지
             private LocalDateTime createdAt;                  // 댓글 작성 시간
@@ -137,15 +137,6 @@ public class PostResponseDTO {
         // 이 타입은 TemplateType ENUM의 이름을 문자열로 사용하므로,
         // 사용자에게 전달될 때는 이 ENUM을 기반으로 이름이 설정됩니다.
     }
-
-//    @Getter
-//    @Builder
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class BrowsePostsResponse {
-//        private AccountVisibility accountVisibility; // 계정 공개 여부
-//        private List<List<PostResponseDTO.PostPreviewResponseDTO>> posts; // 기존 게시물 리스트
-//    }
 
     @Getter
     @Builder
