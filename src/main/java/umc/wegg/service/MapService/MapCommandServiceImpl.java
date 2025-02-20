@@ -143,6 +143,7 @@ public class MapCommandServiceImpl implements MapCommandService {
                                     address.getLatitude(),
                                     address.getLongitude(),
                                     address.getPlaceName(),
+                                    address.getPhone(),
                                     address.getPlaceLabel(),
                                     authCount,
                                     saveCount,
