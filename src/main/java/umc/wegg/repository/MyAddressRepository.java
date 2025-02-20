@@ -9,4 +9,6 @@ public interface MyAddressRepository extends JpaRepository<MyAddress, Long> {
     Long countByAddressId(Long addressId);
 
     Optional<MyAddress> findByUserIdAndAddressId(Long userId, Long addressId);
+
+    Boolean existsByUserIdAndAddressId(Long userId, Long id);
 }

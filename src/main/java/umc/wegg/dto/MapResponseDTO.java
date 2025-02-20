@@ -8,90 +8,6 @@ import java.util.List;
 
 public class MapResponseDTO {
 
-//    @Builder
-//    @Getter
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-//    public static class ReverseGeocodingDTO {
-//        @JsonProperty("documents")
-//        private List<AddressDTO> reverseGeocodingist;  // 검색 결과 리스트
-//
-//        @Getter
-//        @Setter
-//        @NoArgsConstructor
-//        public static class AddressDTO {
-//            @JsonProperty("road_address")
-//            private RoadAddress roadAddress; // 도로명 주소
-//
-//            @JsonProperty("address")
-//            private Address address; // 지번 주소
-//        }
-//
-//        @Getter
-//        @Setter
-//        @NoArgsConstructor
-//        public static class RoadAddress {
-//            @JsonProperty("address_name")
-//            private String addressName;
-//
-//            @JsonProperty("region_1depth_name")
-//            private String region1DepthName;
-//
-//            @JsonProperty("region_2depth_name")
-//            private String region2DepthName;
-//
-//            @JsonProperty("region_3depth_name")
-//            private String region3DepthName;
-//
-//            @JsonProperty("road_name")
-//            private String roadName;
-//
-//            @JsonProperty("underground_yn")
-//            private String undergroundYn;
-//
-//            @JsonProperty("main_building_no")
-//            private String mainBuildingNo;
-//
-//            @JsonProperty("sub_building_no")
-//            private String subBuildingNo;
-//
-//            @JsonProperty("building_name")
-//            private String buildingName;
-//
-//            @JsonProperty("zone_no")
-//            private String zoneNo; // 우편번호
-//        }
-//
-//        @Getter
-//        @Setter
-//        @NoArgsConstructor
-//        public static class Address {
-//            @JsonProperty("address_name")
-//            private String addressName;
-//
-//            @JsonProperty("region_1depth_name")
-//            private String region1DepthName;
-//
-//            @JsonProperty("region_2depth_name")
-//            private String region2DepthName;
-//
-//            @JsonProperty("region_3depth_name")
-//            private String region3DepthName;
-//
-//            @JsonProperty("mountain_yn")
-//            private String mountainYn;
-//
-//            @JsonProperty("main_address_no")
-//            private String mainAddressNo;
-//
-//            @JsonProperty("sub_address_no")
-//            private String subAddressNo;
-//
-//            @JsonProperty("zip_code")
-//            private String zipCode; // 우편번호
-//        }
-//    }
-
     @Builder
     @Getter
     @NoArgsConstructor
@@ -209,6 +125,9 @@ public class MapResponseDTO {
         public static class DetailDTO {
             private Long addressId;
             private String placeName;
+            private Float latitude;
+            private Float longitude;
+            private Boolean savedStatus;
             private Long authPeople;
             private Long authCount;
             private Long saveCount;

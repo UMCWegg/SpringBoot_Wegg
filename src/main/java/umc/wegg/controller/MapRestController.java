@@ -82,9 +82,10 @@ public class MapRestController {
     @GetMapping("/details")
     @Operation(summary = "장소 상세 조회", description = "placeName을 기준으로 장소 상세 정보를 조회하는 API")
     public ApiResponse<MapResponseDTO.DetailListDTO> getPlaceDetails(
-            @Valid @ModelAttribute MapRequestDTO.SearchDetailDTO request) {
+            @Valid @ModelAttribute MapRequestDTO.SearchDetailDTO request, @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
 
-        MapResponseDTO.DetailListDTO response = mapCommandService.getPlaceDetails(request);
+        Long userId = authenticatedUser.getUserId();
+        MapResponseDTO.DetailListDTO response = mapCommandService.getPlaceDetails(userId, request);
         return ApiResponse.onSuccess(response);
     }
 
