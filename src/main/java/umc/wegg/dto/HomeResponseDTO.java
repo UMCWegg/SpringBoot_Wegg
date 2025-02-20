@@ -58,8 +58,9 @@ public class HomeResponseDTO {
         private int followerCount;  // 팔로워 수
         private int followingCount; // 팔로잉 수
         private String profileImage; // 프로필 사진
-        private String accountId;   // 사용자 계정 ID
-        private FollowStatus followStatus; // ✅ 친구 홈에서만 추가될 필드
+        private String accountId;   // 사용자 계정 이름
+        private Long userId;      // 사용자 계정 아이디
+        private FollowStatus followStatus; // 친구 홈에서만 추가될 필드
 
         // 본인 홈에서 사용하는 생성자 (팔로우 상태 없음)
         public FollowResponseDTO(int followerCount, int followingCount, String profileImage, String accountId) {
@@ -67,6 +68,7 @@ public class HomeResponseDTO {
             this.followingCount = followingCount;
             this.profileImage = profileImage;
             this.accountId = accountId;
+            this.userId = userId;
             this.followStatus = null; // 본인 홈에서는 팔로우 상태 없음
         }
     }
