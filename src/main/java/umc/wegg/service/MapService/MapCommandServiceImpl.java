@@ -143,6 +143,7 @@ public class MapCommandServiceImpl implements MapCommandService {
                                     address.getLatitude(),
                                     address.getLongitude(),
                                     address.getPlaceName(),
+                                    address.getPhone(),
                                     address.getPlaceLabel(),
                                     authCount,
                                     saveCount,
@@ -236,7 +237,7 @@ public class MapCommandServiceImpl implements MapCommandService {
     }
 
     @Override
-    public MapResponseDTO.DetailListDTO getPlaceDetails(MapRequestDTO.SearchDetailDTO request) {
+    public MapResponseDTO.DetailListDTO getPlaceDetails(Long userId, MapRequestDTO.SearchDetailDTO request) {
         // placeName을 기준으로 Address 조회
         Address address = addressRepository.findByPlaceName(request.getPlaceName())
                 .orElseThrow(() -> new NoSuchElementException("해당 장소를 찾을 수 없습니다."));
@@ -268,10 +269,15 @@ public class MapCommandServiceImpl implements MapCommandService {
 // 저장된 횟수 계산 (my_address 테이블에서 address_id로 저장된 레코드 수 조회)
         Long saveCount = myAddressRepository.countByAddressId(address.getId());
 
+        Boolean savedStatus = myAddressRepository.existsByUserIdAndAddressId(userId, address.getId());
+
 // 응답 DTO 생성
         MapResponseDTO.DetailListDTO.DetailDTO detailDTO = new MapResponseDTO.DetailListDTO.DetailDTO(
                 address.getId(),
                 address.getPlaceName(),
+                address.getLatitude(),
+                address.getLongitude(),
+                savedStatus,
                 authPeople, // 중복 없는 사용자 수
                 authCount,  // 인증 게시물 수
                 saveCount,  // 저장된 횟수
