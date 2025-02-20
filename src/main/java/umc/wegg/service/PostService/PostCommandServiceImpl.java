@@ -57,9 +57,14 @@ public class PostCommandServiceImpl implements PostCommandService {
         PlanResponseDTO.LocationVerificationResponseDTO verificationResponse =
                 planQueryService.isUserInPlan(plan.getId(), userId, requestDTO.getLatitude(), requestDTO.getLongitude(), 2); // 2는 랜덤 인증 타입
 
-        if (!verificationResponse.getMessage().equals("장소 인증에 성공했습니다!")) {
+        if (verificationResponse.getMessage().equals("장소 인증에 실패했습니다!")) {
             planQueryService.failPlan(plan);
             return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "장소 인증에 실패하여 포스트를 올릴 수 없습니다.", null);
+        } else if (verificationResponse.getMessage().equals("장소 인증 시간이 아닙니다!")) {
+            return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "랜덤 인증 시간이 아니어서 포스트를 올릴 수 없습니다.", null);
+        } else if (verificationResponse.getMessage().equals("장소 인증을 늦었습니다!")) {
+            planQueryService.failPlan(plan);
+            return ApiResponse.onFailure(ErrorStatus._BAD_REQUEST.getCode(), "랜덤 인증 시간에 늦어서 포스트를 올릴 수 없습니다.", null);
         }
         else {
             // 상태 업데이트 (YET -> SUCCEEDED)
