@@ -64,12 +64,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             // 일정 및 게시물 조회
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
+                    .min(Comparator.comparing(Plan::getStartTime)) // 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
@@ -141,14 +141,14 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
             // startTime 5분 전부터 + 지각 허용 시간까지 upcomingPlanAddress 포함
             if (now.isAfter(planStartTime.minusMinutes(5)) && now.isBefore(planLateTime)) {
-                upcomingPlanAddress = activePlan.getAddress().getAddress();
+                upcomingPlanAddress = activePlan.getAddress().getPlaceName();
                 planId = activePlan.getId();
             }
 
             // 랜덤 타임이 설정된 경우 5분 전부터 randomTime까지 포함
             if (planRandomTime != null) {
                 if (now.isAfter(planRandomTime.minusMinutes(5)) && now.isBefore(planRandomTime)) {
-                    upcomingPlanAddress = activePlan.getAddress().getAddress();
+                    upcomingPlanAddress = activePlan.getAddress().getPlaceName();
                     planId = activePlan.getId();
                 }
             }
@@ -158,7 +158,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
 
             // startTime 5분 전부터 + 지각 허용 시간까지 upcomingPlanAddress 포함
             if (now.isAfter(planStartTime.minusMinutes(5)) && now.isBefore(planLateTime)) {
-                upcomingPlanAddress = closestPlan.getAddress().getAddress();
+                upcomingPlanAddress = closestPlan.getAddress().getPlaceName();
                 planId = closestPlan.getId();
             }
 
@@ -166,7 +166,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             LocalDateTime planRandomTime = closestPlan.getRandomTime();
             if (planRandomTime != null) {
                 if (now.isAfter(planRandomTime.minusMinutes(5)) && now.isBefore(planRandomTime)) {
-                    upcomingPlanAddress = closestPlan.getAddress().getAddress();
+                    upcomingPlanAddress = closestPlan.getAddress().getPlaceName();
                     planId = closestPlan.getId();
                 }
             }
@@ -202,7 +202,7 @@ public class HomeCommandServiceImpl implements HomeCommandService {
     public HomeResponseDTO.HomeMonthResponseDTO getHomeMonthData(AuthenticatedUser authenticatedUser) {
         Long userId = authenticatedUser.getUserId(); // 로그인된 사용자 ID
         LocalDate today = LocalDate.now();
-        // ✅ 본인의 월간 데이터를 조회할 때만 Egg 상태 초기화 실행
+        // 본인의 월간 데이터를 조회할 때만 Egg 상태 초기화 실행
         HomeResponseDTO.HomeMonthResponseDTO response = getMonthData(userId, today.getYear(), today.getMonthValue());
         eggService.scheduleResetEggStatus(userId);
 
@@ -240,13 +240,13 @@ public class HomeCommandServiceImpl implements HomeCommandService {
         // 현재 로그인한 사용자 ID
         Long currentUserId = authenticatedUser.getUserId();
 
-        // ✅ 현재 사용자(User)와 친구(User) 객체 가져오기
+        // 현재 사용자(User)와 친구(User) 객체 가져오기
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException("현재 사용자를 찾을 수 없습니다."));
         User friendUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("친구 사용자를 찾을 수 없습니다."));
 
-        // ✅ 현재 사용자와 친구의 팔로우 상태 조회
+        // 현재 사용자와 친구의 팔로우 상태 조회
         Follow follow = followRepository.findByFollowerAndFollowee(currentUser, friendUser)
                 .orElse(null);  // 해당 팔로우 관계가 없으면 null 반환
 
@@ -266,7 +266,8 @@ public class HomeCommandServiceImpl implements HomeCommandService {
                 baseResponse.getFollowingCount(),
                 baseResponse.getProfileImage(),
                 baseResponse.getAccountId(),
-                followStatus // ✅ 친구 홈에서만 추가되는 필드
+                userId,      // 친구의 유저 아이디
+                followStatus // 친구 홈에서만 추가되는 필드
         );
     }
 
@@ -298,12 +299,12 @@ public class HomeCommandServiceImpl implements HomeCommandService {
             // 일정 및 게시물 조회
             Plan plan = allPlans.stream()
                     .filter(p -> p.getStartTime().toLocalDate().equals(currentDate))
-                    .min(Comparator.comparing(Plan::getStartTime)) // 📌 가장 빠른 일정 선택
+                    .min(Comparator.comparing(Plan::getStartTime)) // 가장 빠른 일정 선택
                     .orElse(null);
 
             Post post = allPosts.stream()
                     .filter(p -> p.getCreatedAt().toLocalDate().equals(currentDate))
-                    .min(Comparator.comparing(Post::getCreatedAt)) // 📌 첫 게시물 선택
+                    .min(Comparator.comparing(Post::getCreatedAt)) // 첫 게시물 선택
                     .orElse(null);
 
             HomeResponseDTO.PlanInfo planInfo = (plan != null)
