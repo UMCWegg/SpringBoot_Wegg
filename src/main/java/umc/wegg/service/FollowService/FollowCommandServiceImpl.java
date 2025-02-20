@@ -72,9 +72,9 @@ public class FollowCommandServiceImpl implements FollowCommandService {
     @Override
     public void decideFollowRequest(AuthenticatedUser authenticatedUser, FollowRequestDTO.DecideFollowRequestDTO requestDTO, FollowStatus followStatus) {
         Follow follow = followRepository.findByFollowerAndFollowee(
-                userRepository.findById(authenticatedUser.getUserId())
+                userRepository.findById(requestDTO.getFollowerId())
                         .orElseThrow(() -> new IllegalArgumentException("Follower not found")),
-                userRepository.findById(requestDTO.getFolloweeId())
+                userRepository.findById(authenticatedUser.getUserId())
                         .orElseThrow(() -> new IllegalArgumentException("Followee not found"))
         ).orElseThrow(() -> new IllegalArgumentException("Follow request not found"));
 

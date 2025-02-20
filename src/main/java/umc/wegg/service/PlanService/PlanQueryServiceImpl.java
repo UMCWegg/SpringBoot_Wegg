@@ -50,23 +50,28 @@ public class PlanQueryServiceImpl implements PlanQueryService {
         LocalDateTime endTime = (type == 1) ? startTime.plusMinutes(plan.getLateTime().getMinutes()) : startTime.plusMinutes(2);
 
         String message;
+        boolean success;
+
         if (isWithinBoundary && now.isAfter(startTime.minusMinutes(5)) && now.isBefore(endTime)) {
             message = "장소 인증에 성공했습니다!";
+            success = true;
             plan.setStatus(PlanStatus.STARTED);
         } else if (!now.isAfter(startTime.minusMinutes(5))) {
             message = "장소 인증 시간이 아닙니다!";
+            success = false;
         } else if (!now.isBefore(endTime)) {
             message = "장소 인증을 늦었습니다!";
+            success = false;
             failPlan(plan);
-        }
-        else {
+        } else {
             message = "장소 인증에 실패했습니다!";
+            success = false;
             failPlan(plan);
         }
 
         planRepository.save(plan);
 
-        return new PlanResponseDTO.LocationVerificationResponseDTO(message);
+        return new PlanResponseDTO.LocationVerificationResponseDTO(message, success);
     }
 
     public void failPlan(Plan plan) {

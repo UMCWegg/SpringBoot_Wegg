@@ -70,20 +70,22 @@ public class PlanResponseDTO {
         LocalTime startTime;
         String address;
     }
-    // 장소 인증 응답 DTO
+
     public static class LocationVerificationResponseDTO {
         private String message;
+        private Boolean success;
 
-        public LocationVerificationResponseDTO(String message) {
+        public LocationVerificationResponseDTO(String message, Boolean success) {
             this.message = message;
+            this.success = success;
         }
 
         public String getMessage() {
             return message;
         }
 
-        public void setMessage(String message) {
-            this.message = message;
+        public Boolean getSuccess() {
+            return success;
         }
     }
 
