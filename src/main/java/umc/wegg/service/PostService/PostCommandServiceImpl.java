@@ -437,7 +437,7 @@ public class PostCommandServiceImpl implements PostCommandService {
                         .commentId(comment.getId())                         // 댓글 ID
                         .parentId(comment.getParentId())                    // 부모댓글 ID
                         .userId(comment.getUser().getId())                  // 댓글 작성자 ID
-                        .username(comment.getUser().getName())              // 댓글 작성자 닉네임
+                        .accountId(comment.getUser().getAccountId())              // 댓글 작성자 닉네임
                         .content(comment.getComment())                      // 댓글 내용
                         .commenterProfileUrl(comment.getUser().getProfileImage()) // 댓글 작성자 프로필 이미지
                         .createdAt(comment.getCreatedAt())                  // 댓글 작성 시간
@@ -501,7 +501,7 @@ public class PostCommandServiceImpl implements PostCommandService {
                         .commentId(comment.getId())                         // 댓글 ID
                         .parentId(comment.getParentId())                    // 부모댓글 ID
                         .userId(comment.getUser().getId())                  // 작성자 ID
-                        .username(comment.getUser().getName())              // 작성자 닉네임
+                        .accountId(comment.getUser().getAccountId())              // 작성자 닉네임
                         .content(comment.getComment())                      // 댓글 내용
                         .commenterProfileUrl(comment.getUser().getProfileImage()) // 작성자 프로필 이미지
                         .createdAt(comment.getCreatedAt())                  // 작성 시간

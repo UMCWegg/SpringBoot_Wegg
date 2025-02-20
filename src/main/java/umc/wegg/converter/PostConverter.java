@@ -64,7 +64,7 @@ public class PostConverter {
                 .map(comment -> PostResponseDTO.PostDetailResponseDTO.CommentDTO.builder()
                         .commentId(comment.getId())
                         .content(comment.getComment()) // Comment 엔티티의 content 필드
-                        .username(comment.getUser() != null ? comment.getUser().getName() : "Unknown") // User의 닉네임
+                        .accountId(comment.getUser() != null ? comment.getUser().getAccountId() : "Unknown") // User의 닉네임
                         .commenterProfileUrl(comment.getUser() != null ? comment.getUser().getProfileImage() : null) // User의 프로필 URL
                         .createdAt(comment.getCreatedAt()) // 댓글 생성 시간
                         .build())
