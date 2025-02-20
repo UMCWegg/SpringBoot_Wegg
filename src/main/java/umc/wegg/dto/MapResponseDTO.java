@@ -164,6 +164,7 @@ public class MapResponseDTO {
             private Float latitude;
             private Float longitude;
             private String placeName;
+            private String phone;
             private String placeLabel;
             private Long authCount;
             private Long saveCount;
